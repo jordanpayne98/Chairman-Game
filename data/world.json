@@ -1,0 +1,10 @@
+{
+  "id": "chairman.first-season", "version": 1,
+  "clubs": ["Northbridge Athletic", "Westhaven Rovers", "Kingsford Town", "Ashcombe United", "Brackenfield FC", "Eastmere City", "Redwick Albion", "Hartwell Borough"],
+  "start_date": "2026-08-03", "opening_cash": 35000000, "owner_cash": 20000000,
+  "weekly_budget": 2400000, "operating_buffer": 1000000,
+  "weekly_overheads": 350000, "weekly_sponsor": 550000,
+  "scout_fee": 25000, "scout_days": 3, "capacity": 6000,
+  "ticket_price": 1800, "home_advantage": 3, "action_scale": 14,
+  "shot_rate": 0.28, "prizes": [15000000, 10000000, 7000000, 5000000, 4000000, 3000000, 2000000, 1000000]
+}

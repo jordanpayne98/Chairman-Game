@@ -1,14 +1,68 @@
-# Club Chairman
+# Club Chairman — Career Update (0.3)
 
-A football owner-chairman simulation built with Python and Pygame.
+A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic through continuing 14-match seasons in an eight-club fictional development league. This is a playable development version; the approved full AA game is still being built.
 
-## Current status
+## Play on Windows
 
-Development setup only. The repository contains coding-agent instructions, pinned graphics dependencies, an environment diagnostic and automated Linux/Windows checks. There is no playable game yet. Foundation remains incomplete.
+Download **ClubChairman-Windows-preview** from the successful GitHub Actions run linked in the implementation pull request. Extract the entire ZIP into a folder, then open **ClubChairman.exe**. Keep the `_internal` folder beside the executable. Python installation is not required for the packaged build.
 
-## Setup
+1. Choose New career and appoint a manager in Staff.
+2. Filter and sort free agents in Recruitment. Save a shortlist, add private notes and pin up to four candidates to compare. Scout them before committing; reports use uncertain ranges.
+3. Review Finances > Forecast for the next 28 days, or Plan for the combined impact of pinned free agents. Plans change neither time nor funds; signings need individual confirmation. Review the wage limit and ticket price here too.
+4. Continue one day or advance to the next fixture. Required chairman decisions interrupt time.
+5. Watch text matches at 1x/2x/4x or skip. Your manager selects the team. Encourage them or request more attacking football; they can refuse.
+6. Review player and manager contract expiries, then use Career > Prepare next season after closing the final match. Wages and deadlines continue through the two-week preseason. Previous tables and matches remain in Career history.
 
-Use Python 3.12 and run these commands from the repository root:
+Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
+
+The update reads **existing 0.1 and 0.2 / schema 1 and 2 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 3. Older executables cannot read these new saves. Existing contracts retain their original expiry dates; renew before advancing beyond them. New careers start with longer contracts to introduce the continuing-season loop. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+
+Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
+
+## New in 0.3
+
+- Continuing compact seasons with unique fixture identities, separate prize settlements, preseason and retained tables/match reports.
+- Contracts desk: editable saved proposals, agent counteroffers, expiry/cooldown, cash/payroll reservations, medical review and final atomic registration. Renewals of existing employment have an immediate medical review. Proposed deals alone do not stop employment expiring.
+- Manager renewal and replacement with explicit notice/severance and incoming salary/signing costs.
+- Annual academy trials, persistent youth identities, individual admissions and wages, promotion from age 16 and periodic coaching/development estimates.
+- Training, academy and stand proposals; fixed-price construction; temporary seat closures; operational capacity and weekly running-cost changes.
+- Original crests, stable illustrated portraits and stadium diagram, goal emphasis, construction animation and optional short sound cues. Settings includes reduced motion and sound controls.
+- Contextual hover explanations and keyboard F2 help; financial assumptions available through Why this forecast?; cached presentation snapshots for the expanded screens.
+- Correct forecast settlement during a paused final away match and a verified migration from an actual 0.2 mid-match save.
+
+The standard immediate-signing shortcut remains available alongside negotiated contracts in this development version. Full clause coverage and unification remain on the release checklist.
+
+## Included from 0.2
+
+- Executive dashboard with cash projection, wage headroom, recent form and unread updates.
+- Role/name/shortlist filtering; stable sorting by name, age, wage or scouted range midpoint. Unknown ratings remain unknown and sort last.
+- Saved shortlist, private notes, four-player comparison and reversible list/pin changes. Signed players stay pinned and are excluded from prospective signing costs.
+- A 28-day cash forecast and a pinned-signings scenario with immediate fees, future wages, budget impact and combined affordability checks. Gate receipts hold today's supporter mood and ticket price; the shaded ±15% attendance sensitivity is not a probability interval. Forecasts exclude prizes and unapproved future spending and show unpaid accruals separately.
+- Archived match reports, lineups, possession and key-event filtering.
+- Unread Inbox counts separate from required decisions; session Activity history; keyboard shortcuts; stale and duplicate confirmation guards.
+- Configured scouting prices, delivery times and career calendar dates shown consistently.
+
+## What works
+
+- New seeded career, eight clubs, 156 players and a home/away fixture list.
+- Three manager candidates; manager-controlled lineup selection and tactical risk.
+- Paid scouting with delayed uncertain reports; cash- and wage-validated free-agent signings.
+- Wage budgets, home ticket demand, owner equity injections, payroll, sponsorship, ledger and league prizes.
+- Chairman spending decisions and a manager response to bench messages.
+- Connected match simulation, commentary, statistics, league standings and season completion.
+- Versioned atomic SQLite saves, integrity checks, backups and recoverable timelines.
+
+## Preview boundaries
+
+This is an early playable version, not the finished AA game. The eight-club compact calendar remains development content. Full 14-nation world content, career creation/acquisitions, owner succession, multi-club groups, full attributes/potential, all staff roles/delegation, club transfers/loans/clauses, full football rules, promotion/cups, commercial systems, AI finances, detailed assets and the remaining accessibility/QoL requirements are still pending. The new career systems are connected playable implementations of a subset of their approved scope.
+
+See [release readiness](docs/RELEASE_READINESS.md) for the complete retained scope and [the asset register](docs/ASSET_REGISTER.md) for artwork/audio provenance. No full AA release gate is claimed complete.
+
+All amounts, player distributions and the preview league are provisional implementation fixtures for playtesting. They do not replace the approved full-game design. The current living GDD revision 0.3 remains authoritative and is not duplicated in this repository. See [AGENTS.md](AGENTS.md) and [the development checkpoint](docs/DEVELOPMENT_CHECKPOINT.md).
+
+## Run from source
+
+Use Python 3.12:
 
 ```sh
 python -m venv .venv
@@ -18,24 +72,24 @@ On Windows:
 
 ```powershell
 .venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe tools\check_environment.py
+.venv\Scripts\python.exe -m club_chairman
 ```
 
-On Linux or macOS:
+On Linux:
 
 ```sh
 .venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python tools/check_environment.py
+.venv/bin/python -m club_chairman
 ```
 
-For a server without a display, add `--headless` to the check command. The diagnostic creates a temporary SQLite database, checks write/read integrity, renders text and processes an event, then exits. It does not implement or test game saves. Audio and physical input are not checked.
+Checks:
 
-Windows users with Python 3.12 and the Python launcher installed can also run `setup_windows.cmd`. This convenience script creates the environment, installs dependencies and runs the diagnostic. It is not a game launcher.
+```sh
+python -m unittest discover -s tests -v
+python -m club_chairman --self-test
+python -m club_chairman --smoke
+```
 
-## Working on the project
+Run these using the virtual environment's Python. The smoke display uses SDL's dummy driver; it does not prove physical input, audio, accessibility or performance on every PC. GitHub Actions runs Linux and Windows tests, builds with PyInstaller, then runs both career and display checks against the Windows executable. Build artifacts expire after 30 days and can be regenerated from source.
 
-Read [AGENTS.md](AGENTS.md) and [the development checkpoint](docs/DEVELOPMENT_CHECKPOINT.md) before making changes. Consult the current living GDD for relevant design requirements; it is not included in this repository yet. Do not infer gameplay rules from this README or create a competing design document.
-
-The technical baseline uses Python 3.12 and Pygame 2.6.1. SQLite, JSON, logging and unittest are available in the Python standard library. No supporting UI framework or packaging tool has been selected yet. Windows is the intended initial game platform; Linux CI is an engineering check, not a commitment to release on Linux.
-
-Development checks run on pull requests and on pushes to main. They verify installation, dependency consistency, graphics initialization, event handling and basic database operations. Passing them does not constitute a playable milestone or packaged Windows validation.
+Licensing dependencies are documented in [THIRD_PARTY.md](docs/THIRD_PARTY.md).
