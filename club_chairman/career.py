@@ -206,7 +206,7 @@ def apply(s,action,data):
             elif o['rounds']>=3:
                 o['status']='rejected';o['cooldown']=s['day']+14;o['transcript'].append('Agent: We are ending these discussions. Try again after the cooling-off period.')
             else:
-                o['status']='counter';o['wage']=max(wage,p['wage']);o['fee']=max(fee,0 if o['kind']=='renew' else p['fee'])
+                o['status']='counter';o['wage']=max(wage,p['wage'],required_wage);o['fee']=max(fee,0 if o['kind']=='renew' else p['fee'])
                 o['transcript'].append('Agent: The package is too low. Our revised terms are shown above.')
             return 'Response received. Review the revised terms and expiry.'
         if action=='accept_offer':

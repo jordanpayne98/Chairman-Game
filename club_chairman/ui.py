@@ -162,11 +162,12 @@ class App(CareerScreens):
 
     def command(self,action,**payload):
         try:
+            before_score=tuple(self.state['match']['score']) if self.state['match'] else None
             self.state,self.message=execute(self.state,Command(uuid.uuid4().hex,self.state['revision'],action,payload))
             self.v=view(self.state)
             if action=='match_step' and self.v['match']:
                 score=tuple(self.v['match']['score'])
-                if self.last_score is not None and score!=self.last_score:
+                if before_score is not None and score!=before_score:
                     self.goal_until=pygame.time.get_ticks()+950;self.sound.play('goal')
                 self.last_score=score
             self.undo=None

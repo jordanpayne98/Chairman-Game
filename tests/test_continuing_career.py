@@ -58,6 +58,19 @@ class ContinuingCareerTests(unittest.TestCase):
         repeated,_=execute(self.s,command);self.assertEqual(repeated,self.s)
         self.assertEqual(len([e for e in self.s['ledger'] if e['reason']=='Manager termination payment']),1)
 
+    def test_agent_accepts_its_own_counteroffer(self):
+        # This person seeks a pay rise on a one-season agreement.
+        self.s=new_career(1);self.act('budget',value=4000000);self.act('hire',id='m0')
+        self.act('enquire',id='p144')
+        self.act('propose_offer',id='p144',wage=10000,fee=0,duration=1)
+        counter=deepcopy(self.s['career']['offers']['p144'])
+        self.assertEqual(counter['status'],'counter')
+        self.act('propose_offer',id='p144',wage=counter['wage'],fee=counter['fee'],duration=counter['duration'])
+        self.assertEqual(self.s['career']['offers']['p144']['status'],'agreed')
+        self.act('accept_offer',id='p144');self.progress(2);self.act('complete_offer',id='p144')
+        signed=next(p for p in self.s['players'] if p['id']=='p144')
+        self.assertEqual(signed['wage'],counter['wage']);self.assertEqual(signed['club'],'c0')
+
     def test_academy_identity_and_project_milestones(self):
         self.act('academy_intake');ids=[p['id'] for p in self.s['players'] if p['youth']]
         self.assertEqual(len(ids),6)

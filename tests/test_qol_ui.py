@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 os.environ['SDL_VIDEODRIVER']='dummy'
 import pygame
 from club_chairman.ui import App
@@ -101,3 +102,16 @@ class QolInterfaceTests(unittest.TestCase):
         self.key(pygame.K_ESCAPE);self.assertFalse(a.explain_focus)
         self.click('Settings');self.click('Reduced motion: Off')
         self.assertTrue(a.reduced_motion);self.assertEqual(before,json.dumps(a.state,sort_keys=True))
+
+    def test_goal_feedback_uses_current_match_score(self):
+        a=self.app;a.command('hire',id='m0')
+        while not a.state['match']:
+            if a.state['decision']:a.command('decision',choice='decline')
+            a.command('continue')
+        a.last_score=(9,9)  # A previous match or restored UI must not trigger a cue.
+        a.state['config']['shot_rate']=0
+        with patch.object(a.sound,'play') as sound:
+            a.command('match_step',minutes=1);sound.assert_not_called()
+            a.state['config']['shot_rate']=10
+            a.command('match_step',minutes=90)
+            self.assertGreater(sum(a.v['match']['score']),0);sound.assert_called_once_with('goal')

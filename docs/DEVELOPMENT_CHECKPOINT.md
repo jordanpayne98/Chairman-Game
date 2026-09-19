@@ -12,6 +12,8 @@ Compatibility: schema 3 migration adds career bookkeeping without modifying old 
 
 Validation: targeted domain and UI tests include three consecutive seasons / 168 unique fixtures with one prize per season, duplicate command/rollover guards, competing reservations, expired offers, end-of-season renewals, manager notice, academy identity and promotion, construction capacity/upkeep, draft navigation, keyboard explanations and unchanged football state under presentation settings. Original regression coverage retained. New screens were rendered and visually inspected. Packaged self-test now covers two seasons / 112 fixtures and the new contract/academy/facility/staff loops. Exact final CI results and Windows download belong to the implementation PR.
 
+Review follow-up: agent counteroffers now honour their own required wage, with an end-to-end regression that resubmits and signs the counter. Goal feedback compares the current match before/after each step, preventing stale scores from producing false cues after changing matches or loading. The load browser caches save summaries once per visit to avoid repeatedly parsing long careers every frame.
+
 Current storage: Python/Pygame code remains Git-backed. Authoritative GDD remains the existing private document. Next dependency work is listed in RELEASE_READINESS.md; full AA completion cannot be claimed from the current compact league.
 
 ## PLAY-002 — Executive Update 0.2
