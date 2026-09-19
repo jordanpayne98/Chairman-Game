@@ -47,7 +47,7 @@ def save(state,path):
             db.executemany('INSERT INTO metadata VALUES (?,?)',[('schema','1'),('checksum',hashlib.sha256(raw.encode()).hexdigest()),('date',str(state['day'])),('content',state['config']['id'])])
             db.execute('INSERT INTO entities VALUES (?,?)',('world',raw));db.commit()
         load(temp)
-        with open(temp,'rb') as f:os.fsync(f.fileno())
+        with open(temp,'r+b') as f:os.fsync(f.fileno())
         if path.exists():
             # Preserve only a validated prior save; a damaged slot is never overwritten.
             load(path)
