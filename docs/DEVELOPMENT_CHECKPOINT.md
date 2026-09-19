@@ -1,5 +1,19 @@
 # Development checkpoint
 
+## PLAY-003 — Career and Presentation Update 0.3
+
+Date: 2026-09-19. User asked to proceed toward the finished AA game with complete systems, UI, tooltips, graphics and animation. Read the attached revision 0.2 and current living revision 0.3; revision 0.3 remains authoritative. Reviewed relevant career/contract/staff/academy/facility/presentation and release gates. No GDD scope reduction or design-document replacement. RELEASE_READINESS.md tracks the full approved goal and explicitly leaves unimplemented gates open.
+
+Implemented connected work: continuing compact seasons, archived tables and fixtures, player renewals/expiry, negotiated free-agent and renewal discussions with proposals/counteroffers, bounded patience, reserved capacity, medical review and atomic completion, manager renewal/replacement/notice, annual academy trial cohorts and individual admissions, youth promotion/development, facility feasibility/approval/construction/opening and real capacity/upkeep effects. Existing standard-signing shortcut remains a stated prototype limitation. AI club finance and full career/world policies are not complete.
+
+Presentation: Contracts, Academy, Facilities, Career/history and Settings screens; original deterministic procedural crests, portraits, stadium plan and decorative animation; optional synthesised cues; reduced motion; hover and keyboard F2 explanations; saved offer drafts and cached read-model rendering. All graphics are native code with provenance in ASSET_REGISTER.md; no third-party art or portraits. Text scaling, remapping and complete release art/accessibility remain open.
+
+Compatibility: schema 3 migration adds career bookkeeping without modifying old money, employment dates, player ability or saved RNG. Original saves remain untouched on load. Verified using the actual 0.2 code to create a 27-minute save and reference full-time outcome: new-build resume matched cash/ledger/table/fixtures exactly. Renew old preview contracts before expiry. A PR #4 forecast finding was fixed: paused final away fixtures now settle accrued costs independently of ticket income.
+
+Validation: targeted domain and UI tests include three consecutive seasons / 168 unique fixtures with one prize per season, duplicate command/rollover guards, competing reservations, expired offers, end-of-season renewals, manager notice, academy identity and promotion, construction capacity/upkeep, draft navigation, keyboard explanations and unchanged football state under presentation settings. Original regression coverage retained. New screens were rendered and visually inspected. Packaged self-test now covers two seasons / 112 fixtures and the new contract/academy/facility/staff loops. Exact final CI results and Windows download belong to the implementation PR.
+
+Current storage: Python/Pygame code remains Git-backed. Authoritative GDD remains the existing private document. Next dependency work is listed in RELEASE_READINESS.md; full AA completion cannot be claimed from the current compact league.
+
 ## PLAY-002 — Executive Update 0.2
 
 Date: 2026-09-19. User requested deeper functionality, QoL and UI improvements. Current living GDD revision 0.3 remains authoritative; reviewed chapters 37–39 and the approved overview/profile visuals. No design scope or GDD changes.

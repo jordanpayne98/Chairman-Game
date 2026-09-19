@@ -11,6 +11,7 @@ def dated(v, day):
 
 def player_rows(v, recruitment, search='', role='All', only_shortlist=False, sort='Name', descending=False):
     rows = [p for p in v['players'] if (p['club'] is None) == recruitment
+            and (not p.get('retired',False) or only_shortlist) and not p.get('youth',False)
             and search.casefold() in p['name'].casefold()
             and (role == 'All' or p['role'] == role)
             and (not only_shortlist or p['id'] in v['planning']['shortlist'])]
@@ -29,20 +30,24 @@ def player_rows(v, recruitment, search='', role='All', only_shortlist=False, sor
 def signing_terms(v, players):
     """Guaranteed future wages exclude already accrued costs and existing contracts."""
     targets = [p for p in players if p['club'] is None]
-    days = max(0, v['season_end'] - v['day'])
+    span=v['season_end']-v.get('season_start',0)+v.get('career_settings',{}).get('season_gap',14)
+    contract_end=v['season_end']+span
+    days = max(0, contract_end - v['day'])
     fee = sum(p['fee'] for p in targets)
     wage = sum(p['wage'] for p in targets)
     future = wage * days // 7
     reasons = []
     if targets:
-        if v['season_done'] or v['day'] > 28: reasons.append('Signing window closed')
+        if v['season_done'] or v['day'] > v.get('window_end',28): reasons.append('Signing window closed')
         if v['match']: reasons.append('Recruitment locked during matchday')
         if not v['manager']: reasons.append('Appoint a manager first')
-        if v['cash'] - fee < v['terms']['operating_buffer']: reasons.append('Would use the operating reserve')
-        if v['payroll'] + wage > v['budget']: reasons.append('Exceeds the weekly wage limit')
+        if v['cash'] - fee - v.get('reserved_cash',0) < v['terms']['operating_buffer']: reasons.append('Would use the operating reserve')
+        if v['payroll'] + wage + v.get('reserved_wages',0) > v['budget']: reasons.append('Exceeds the weekly wage limit')
+        if any(v.get('career',{}).get('offers',{}).get(p['id'],{}).get('status') in ('draft','counter','agreed','medical','ready') for p in targets):
+            reasons.append('Open discussion: use Contracts to complete or withdraw')
     return dict(count=len(targets), fee=fee, wage=wage, future=future, total=fee+future,
-                cash_after=v['cash']-fee, headroom=v['budget']-v['payroll']-wage,
-                end_date=dated(v, v['season_end']), reasons=reasons)
+                cash_after=v['cash']-fee, headroom=v['budget']-v['payroll']-wage-v.get('reserved_wages',0),
+                end_date=dated(v, contract_end), reasons=reasons)
 
 
 def forecast(v, players=(), horizon=28):
@@ -58,24 +63,29 @@ def forecast(v, players=(), horizon=28):
     points = [dict(day=v['day'], cash=cash, low=low, high=high)]
     daily = v['payroll']+terms['wage']+v['terms']['weekly_overheads']
     gate_days = [f['day'] for f in v['fixtures'] if f['home']=='c0' and f['result'] is None]
-    def gate():
-        attendance = min(v['terms']['capacity'], max(0,round((3800+v['supporters']*15)*(1800/v['tickets']))))
+    def gate(day):
+        capacity=v['terms']['capacity']+sum(p['closure']+p['capacity'] for p in v.get('career',{}).get('projects',[]) if p['status']=='construction' and p['due']<=day)
+        attendance = min(capacity, max(0,round((3800+v['supporters']*15)*(1800/v['tickets']))))
         return (attendance*v['tickets'], round(attendance*.85)*v['tickets'],
-                min(v['terms']['capacity'],round(attendance*1.15))*v['tickets'])
+                min(capacity,round(attendance*1.15))*v['tickets'])
     # A paused home match may still settle on the current day.
     if v['day'] in gate_days and v['match'] and not v['match']['settled']:
-        income, lo, hi = gate();cash+=income;low+=lo;high+=hi;gates+=income
-        if v['day'] == v['season_end']:
-            amount=accrued//7;cash-=amount;low-=amount;high-=amount;costs+=amount;accrued=0
+        income, lo, hi = gate(v['day']);cash+=income;low+=lo;high+=hi;gates+=income
+        points.append(dict(day=v['day'],cash=cash,low=low,high=high))
+    if v['match'] and not v['match']['settled'] and v['day']==v['season_end']:
+        amount=accrued//7;cash-=amount;low-=amount;high-=amount;costs+=amount;accrued=0
         points.append(dict(day=v['day'],cash=cash,low=low,high=high))
     for day in range(v['day']+1,end+1):
-        accrued += daily
+        committed=sum(p['wage'] for p in v['players'] if p['club']=='c0' and (p['contract_end'] is None or p['contract_end']>=day))
+        manager=v['manager'];committed+=manager['wage'] if manager and manager.get('contract_end',end)>=day else 0
+        extra=sum(p['upkeep'] for p in v.get('career',{}).get('projects',[]) if p['status']=='construction' and p['due']<=day)
+        accrued += committed+terms['wage']+v['terms']['weekly_overheads']+extra
         if day % 7 == 0:
             income=v['terms']['weekly_sponsor'];amount=accrued//7;accrued%=7
             sponsorship+=income;costs+=amount
             cash+=income-amount;low+=income-amount;high+=income-amount
         if day in gate_days:
-            income,lo,hi=gate();cash+=income;low+=lo;high+=hi;gates+=income
+            income,lo,hi=gate(day);cash+=income;low+=lo;high+=hi;gates+=income
         if day == v['season_end']:
             amount=accrued//7;cash-=amount;low-=amount;high-=amount;costs+=amount;accrued=0
         points.append(dict(day=day,cash=cash,low=low,high=high))

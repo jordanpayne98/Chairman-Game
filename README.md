@@ -1,6 +1,6 @@
-# Club Chairman — Executive Update (0.2)
+# Club Chairman — Career Update (0.3)
 
-A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic through a complete 14-match season in an eight-club fictional league.
+A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic through continuing 14-match seasons in an eight-club fictional development league. This is a playable development version; the approved full AA game is still being built.
 
 ## Play on Windows
 
@@ -11,15 +11,28 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 3. Review Finances > Forecast for the next 28 days, or Plan for the combined impact of pinned free agents. Plans change neither time nor funds; signings need individual confirmation. Review the wage limit and ticket price here too.
 4. Continue one day or advance to the next fixture. Required chairman decisions interrupt time.
 5. Watch text matches at 1x/2x/4x or skip. Your manager selects the team. Encourage them or request more attacking football; they can refuse.
-6. Complete all fourteen fixtures and review the final table, prize money and cash ledger. Open completed fixtures in League to revisit commentary, possession and lineups.
+6. Review player and manager contract expiries, then use Career > Prepare next season after closing the final match. Wages and deadlines continue through the two-week preseason. Previous tables and matches remain in Career history.
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1 / schema 1 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 2. The older executable cannot read these new saves. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1 and 0.2 / schema 1 and 2 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 3. Older executables cannot read these new saves. Existing contracts retain their original expiry dates; renew before advancing beyond them. New careers start with longer contracts to introduce the continuing-season loop. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
-## New in 0.2
+## New in 0.3
+
+- Continuing compact seasons with unique fixture identities, separate prize settlements, preseason and retained tables/match reports.
+- Contracts desk: editable saved proposals, agent counteroffers, expiry/cooldown, cash/payroll reservations, medical review and final atomic registration. Renewals of existing employment have an immediate medical review. Proposed deals alone do not stop employment expiring.
+- Manager renewal and replacement with explicit notice/severance and incoming salary/signing costs.
+- Annual academy trials, persistent youth identities, individual admissions and wages, promotion from age 16 and periodic coaching/development estimates.
+- Training, academy and stand proposals; fixed-price construction; temporary seat closures; operational capacity and weekly running-cost changes.
+- Original crests, stable illustrated portraits and stadium diagram, goal emphasis, construction animation and optional short sound cues. Settings includes reduced motion and sound controls.
+- Contextual hover explanations and keyboard F2 help; financial assumptions available through Why this forecast?; cached presentation snapshots for the expanded screens.
+- Correct forecast settlement during a paused final away match and a verified migration from an actual 0.2 mid-match save.
+
+The standard immediate-signing shortcut remains available alongside negotiated contracts in this development version. Full clause coverage and unification remain on the release checklist.
+
+## Included from 0.2
 
 - Executive dashboard with cash projection, wage headroom, recent form and unread updates.
 - Role/name/shortlist filtering; stable sorting by name, age, wage or scouted range midpoint. Unknown ratings remain unknown and sort last.
@@ -41,7 +54,9 @@ Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves,
 
 ## Preview boundaries
 
-This is an early playable version, not the finished AA game. It supports one existing club and one season. Career creation/acquisition choices, full 37-attribute profiles, potential/development, full contract negotiations, staff replacement, broader delegation, academies, injuries, cards, substitutions, cups, promotion/relegation, later seasons, multi-club ownership, stadium projects, outside investments and succession are not implemented yet. Match simulation is a simplified possession/chance model, not the complete GDD match engine. There is no sound or authored club artwork yet. This update implements part of the approved QoL scope: named multiple shortlists, saved named financial scenarios, side-panel profiles, adjustable columns, global search, shortcut remapping and enlarged text are still pending.
+This is an early playable version, not the finished AA game. The eight-club compact calendar remains development content. Full 14-nation world content, career creation/acquisitions, owner succession, multi-club groups, full attributes/potential, all staff roles/delegation, club transfers/loans/clauses, full football rules, promotion/cups, commercial systems, AI finances, detailed assets and the remaining accessibility/QoL requirements are still pending. The new career systems are connected playable implementations of a subset of their approved scope.
+
+See [release readiness](docs/RELEASE_READINESS.md) for the complete retained scope and [the asset register](docs/ASSET_REGISTER.md) for artwork/audio provenance. No full AA release gate is claimed complete.
 
 All amounts, player distributions and the preview league are provisional implementation fixtures for playtesting. They do not replace the approved full-game design. The current living GDD revision 0.3 remains authoritative and is not duplicated in this repository. See [AGENTS.md](AGENTS.md) and [the development checkpoint](docs/DEVELOPMENT_CHECKPOINT.md).
 

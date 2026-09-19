@@ -7,6 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
+from . import career
 
 
 @dataclass(frozen=True)
@@ -76,7 +77,10 @@ def new_career(seed=42):
         for j, (a,b) in enumerate(pairings[rnd % 7]):
             if rnd >= 7: a,b = b,a
             world['fixtures'].append(dict(id=f'f{rnd}-{j}', day=5+rnd*7, home=f'c{a}', away=f'c{b}', result=None))
-    news(world, 'Welcome to Northbridge', 'Appoint a manager, review your wage budget, and request scouting before the first match. This preview covers one 14-match league season.')
+    career.initialise(world)
+    for p in world['players']:
+        if p['club']:p['contract_end']=316
+    news(world, 'Welcome to Northbridge', 'Appoint a manager, review your wage budget, and request scouting before the first match. The compact eight-club league now continues into further seasons.')
     return world
 
 
@@ -140,6 +144,8 @@ def execute(state, command):
 
 def apply(s, action, payload):
     cfg = s['config']
+    result=career.apply(s,action,payload)
+    if result is not None:return result
     if action == 'planning':
         key = payload.get('key'); value = payload.get('value')
         known = {p['id'] for p in s['players'] if p['club'] in (None, 'c0')}
@@ -159,16 +165,16 @@ def apply(s, action, payload):
         require(s['manager'] is None, 'A manager is already appointed for this preview season.')
         m = next((x for x in MANAGERS if x['id'] == payload.get('id')), None)
         require(m is not None, 'Unknown candidate.')
-        require(payroll(s) + m['wage'] <= s['budget'], 'Increase the weekly wage budget first.')
-        require(s['cash'] - m['fee'] >= cfg['operating_buffer'], 'Insufficient available cash.')
-        s['manager'] = deepcopy(m)
-        posting(s, f"hire:{m['id']}", -m['fee'], 'Manager signing fee')
+        require(payroll(s) + m['wage'] + career.reservations(s)[1] <= s['budget'], 'Increase the weekly wage budget first.')
+        require(career.free_cash(s,m['fee']), 'Insufficient available cash.')
+        s['manager'] = dict(deepcopy(m),contract_end=career.contractual_end(s,3),notice_weeks=cfg['career']['manager_notice_weeks'])
+        posting(s, f"hire:{m['id']}:{s['revision']}", -m['fee'], 'Manager signing fee')
         news(s, 'Manager appointed', f"{m['name']} takes charge. Weekly salary: £{m['wage']//100:,}. Selection and tactics are delegated to the manager.")
         return 'Manager appointed. Football decisions are delegated.'
     if action == 'budget':
         value = payload.get('value')
         require(type(value) is int and 1500000 <= value <= 4000000, 'Weekly wage budget must be £15,000–£40,000.')
-        require(value >= payroll(s), 'Budget cannot be below existing wage commitments.')
+        require(value >= payroll(s)+career.reservations(s)[1], 'Budget cannot be below existing wage commitments.')
         s['budget'] = value
         return 'Wage budget updated. This changes authority, not cash.'
     if action == 'tickets':
@@ -181,23 +187,26 @@ def apply(s, action, payload):
         require(not s['season_done'] and s['match'] is None, 'Recruitment is closed during matchday or after season end.')
         p = next((x for x in s['players'] if x['id'] == payload.get('id')), None)
         require(p is not None and p['club'] is None, 'This player is no longer a free agent.')
+        require(not p['retired'] and not p['youth'],'Use Academy for youth admissions; retired people cannot be signed.')
         if action == 'scout':
             require(p['id'] not in s['scouting'] and p['id'] not in s['reports'], 'A report exists or scouting is already in progress.')
-            require(s['cash'] >= cfg['scout_fee'] + cfg['operating_buffer'], 'Insufficient available cash for scouting.')
+            require(career.free_cash(s,cfg['scout_fee']), 'Insufficient available cash for scouting.')
             posting(s, f"scout:{p['id']}", -cfg['scout_fee'], 'Scouting')
             s['scouting'][p['id']] = s['day'] + cfg['scout_days']
             return f"Scouting commissioned. Report due in {cfg['scout_days']} days."
         require(s['manager'] is not None, 'Appoint a manager before signing players.')
-        require(s['day'] <= 28, 'The preview signing window has closed (day 28).')
-        require(payroll(s) + p['wage'] <= s['budget'], 'Signing exceeds the weekly wage budget.')
-        require(s['cash'] >= p['fee'] + cfg['operating_buffer'], 'Signing would use the operating reserve.')
+        discussion=s['career']['offers'].get(p['id'])
+        require(not discussion or discussion['status'] in ('completed','withdrawn','expired','rejected'),'A contract discussion is open. Complete or withdraw it in Contracts first.')
+        require(s['day'] <= career.window_end(s), 'The current registration window has closed.')
+        require(payroll(s) + p['wage'] + career.reservations(s)[1] <= s['budget'], 'Signing exceeds the weekly wage budget.')
+        require(career.free_cash(s,p['fee']), 'Signing would use the operating reserve.')
         p['club'] = 'c0'
-        p['contract_end'] = 96
-        posting(s, f"sign:{p['id']}", -p['fee'], 'Player signing fee')
+        p['contract_end'] = career.contractual_end(s,2)
+        posting(s, f"sign:{p['id']}:{s['revision']}", -p['fee'], 'Player signing fee')
         s['transfer_spend'] += p['fee']
         if p['id'] not in s['reports']: s['reports'][p['id']] = make_report(s, p, 'Coaching staff', 5)
         s['scouting'].pop(p['id'], None)
-        news(s, 'Signing completed', f"{p['name']} joins until the preview season ends. The manager decides whether to select him.")
+        news(s, 'Signing completed', f"{p['name']} joins on the displayed contract terms. The manager decides whether to select him.")
         return 'Signing completed and payroll updated.'
     if action == 'fund':
         amount = 5000000
@@ -210,7 +219,7 @@ def apply(s, action, payload):
         d = s['decision']; choice = payload.get('choice')
         require(choice in ('approve','decline'), 'Choose approve or decline.')
         if choice == 'approve':
-            require(s['cash'] >= d['cost'] + cfg['operating_buffer'], 'Insufficient available cash. You may decline or fund the club.')
+            require(career.free_cash(s,d['cost']), 'Insufficient available cash. You may decline or fund the club.')
             posting(s, d['id'], -d['cost'], d['title'])
             s['morale'] = min(100,s['morale']+d['morale'])
             s['supporters'] = min(100,s['supporters']+d['supporters'])
@@ -219,12 +228,14 @@ def apply(s, action, payload):
         s['decision'] = None
         return 'Decision recorded.'
     if action == 'continue':
-        require(not s['season_done'], 'Season complete. Review your results or start another career.')
+        require(not s['season_done'], 'Season complete. Open Career to prepare the next season.')
         require(s['manager'] is not None, 'Appoint a manager in Staff before continuing.')
         require(s['decision'] is None, 'Resolve the pending chairman decision first.')
         require(s['match'] is None, 'Finish the current match first.')
         # Advance one committed day at a time. UI offers bounded batching to next fixture.
         tomorrow = s['day'] + 1
+        s['day']=tomorrow
+        career.process_day(s)
         if tomorrow % 7 == 0:
             due = (s['accrued_costs'] + payroll(s) + cfg['weekly_overheads']) // 7
             require(s['cash'] + cfg['weekly_sponsor'] >= due, 'Payroll shortfall: inject owner funds before Continue. No unpaid day has advanced.')
@@ -240,13 +251,17 @@ def apply(s, action, payload):
                 s['reports'][pid] = make_report(s, p)
                 del s['scouting'][pid]
                 news(s, 'Scouting report ready', f"{p['name']}: estimates are now available in Recruitment.")
-        if tomorrow in (3,24,45,66):
-            s['decision'] = dict(id=f'decision:{tomorrow}', title='Community open day' if tomorrow in (3,45) else 'Manager preparation camp',
-                cost=150000 if tomorrow in (3,45) else 350000, morale=2 if tomorrow in (3,45) else 7,
-                supporters=7 if tomorrow in (3,45) else 1)
+        season_day=tomorrow-s['career']['start']
+        if season_day in (3,24,45,66):
+            s['decision'] = dict(id=f'decision:{tomorrow}', title='Community open day' if season_day in (3,45) else 'Manager preparation camp',
+                cost=150000 if season_day in (3,45) else 350000, morale=2 if season_day in (3,45) else 7,
+                supporters=7 if season_day in (3,45) else 1)
             news(s, 'Chairman decision required', s['decision']['title'])
         fixtures = [f for f in s['fixtures'] if f['day']==tomorrow]
         if fixtures:
+            require(s['manager'] is not None,'Appoint a manager before the fixture.')
+            eligible=[p for p in s['players'] if p['club']=='c0' and not p['youth'] and not p['retired']]
+            require(len(eligible)>=11 and any(p['role']=='GK' for p in eligible),'Register at least eleven senior players including a goalkeeper before matchday.')
             own = next(f for f in fixtures if 'c0' in (f['home'],f['away']))
             s['match'] = start_match(s, own)
             return 'Matchday ready. Open Matchday to watch or skip.'
@@ -291,11 +306,13 @@ def apply(s, action, payload):
 
 
 def select_lineup(s, club):
-    pool=[p for p in s['players'] if p['club']==club]
+    pool=[p for p in s['players'] if p['club']==club and not p['youth'] and not p['retired']]
     chosen=[]
     for role,n in [('GK',1),('DEF',4),('MID',4),('FWD',2)]:
         key={'GK':'goalkeeping','DEF':'tackling','MID':'passing','FWD':'finishing'}[role]
-        chosen += sorted((p for p in pool if p['role']==role),key=lambda p:(-p['attrs'][key],p['id']))[:n]
+        chosen += sorted((p for p in pool if p['role']==role),key=lambda p:(p['injury_until']>s['day'],-p['attrs'][key],p['id']))[:n]
+    selected={p['id'] for p in chosen}
+    chosen+=sorted((p for p in pool if p['id'] not in selected),key=lambda p:(p['injury_until']>s['day'],-p['attrs']['passing'],p['id']))[:max(0,11-len(chosen))]
     return [p['id'] for p in chosen]
 
 
@@ -308,7 +325,8 @@ def start_match(s,f):
 
 def step_match(s,m):
     rng=restore_rng(m['rng']); m['minute']+=1
-    teams=[[next(p for p in s['players'] if p['id']==pid) for pid in lineup] for lineup in m['lineups']]
+    people={p['id']:p for p in s['players']}
+    teams=[[people[pid] for pid in lineup] for lineup in m['lineups']]
     strengths=[]
     for i,players in enumerate(teams):
         club=m['home'] if i==0 else m['away']
@@ -319,9 +337,9 @@ def step_match(s,m):
     other=1-side
     m['possession'][side]+=1
     if rng.random()<s['config']['shot_rate'] * m['risk'][side] * m['risk'][other]:
-        attackers=[p for p in teams[side] if p['role'] in ('MID','FWD')]
+        attackers=[p for p in teams[side] if p['role'] in ('MID','FWD')] or teams[side][1:]
         shooter=rng.choice(attackers)
-        keeper=next(p for p in teams[other] if p['role']=='GK')
+        keeper=next((p for p in teams[other] if p['role']=='GK'),teams[other][0])
         xg=rng.uniform(.04,.26)
         chance=max(.02,min(.98,xg+(shooter['attrs']['finishing']-keeper['attrs']['goalkeeping'])/600))
         m['shots'][side]+=1; m['xg'][side]+=xg
@@ -364,23 +382,24 @@ def settle_matchday(s):
     s['morale']=max(10,min(95,s['morale']+(4 if difference>0 else -3 if difference<0 else 0)))
     s['supporters']=max(5,min(95,s['supporters']+(3 if difference>0 else -2 if difference<0 else 0)))
     if own==0:
-        attendance=min(s['config']['capacity'],max(0,round((3800+s['supporters']*15)*(1800/s['tickets']))))
+        attendance=min(career.available_capacity(s),max(0,round((3800+s['supporters']*15)*(1800/s['tickets']))))
         posting(s,f"gate:{m['fixture']}",attendance*s['tickets'],'Match tickets')
         news(s,'Home attendance',f'{attendance:,} supporters paid £{s["tickets"]/100:.2f}.')
     news(s,'Match result',f"{s['clubs'][int(m['home'][1:])]['name']} {m['score'][0]}–{m['score'][1]} {s['clubs'][int(m['away'][1:])]['name']}")
     m['settled']=True
     if all(f['result'] is not None for f in s['fixtures']):
         position=next(i for i,c in enumerate(table(s)) if c['id']=='c0')
-        posting(s,'season:prize',s['config']['prizes'][position],'League prize')
+        prefix='season' if s['career']['season']==1 else f"season:{s['career']['season']}"
+        posting(s,prefix+':prize',s['config']['prizes'][position],'League prize')
         # Settle the final part-week of wages and overheads through the last match.
-        posting(s,'season:final-payroll',-(s['accrued_costs']//7),'Final pro-rata payroll and operations')
+        posting(s,prefix+':final-payroll',-(s['accrued_costs']//7),'Final pro-rata payroll and operations')
         s['accrued_costs']=0
         s['season_done']=True
-        news(s,'Season complete',f'Northbridge finished {position+1} of 8. Review the table and finances. This preview ends here; start a new career to try different decisions.')
+        news(s,'Season complete',f'Northbridge finished {position+1} of 8. Review the table and finances. Open Career to review contracts, preserve this season’s history and prepare the next campaign.')
 
 
 def validate(s):
-    require(s.get('schema')==2,'Unsupported save schema. This build supports schema 2.')
+    require(s.get('schema')==3,'Unsupported save schema. This build supports schema 3.')
     require(type(s['cash']) is int and type(s['owner_cash']) is int,'Invalid cash data.')
     require(s['cash']==s['config']['opening_cash']+sum(x['amount'] for x in s['ledger']),'Cash does not reconcile with the ledger.')
     require(len({x['id'] for x in s['ledger']})==len(s['ledger']),'Duplicate financial posting.')
@@ -388,6 +407,10 @@ def validate(s):
     require(len({p['id'] for p in s['players']})==len(s['players']),'Duplicate player identity.')
     require(all(c['played']==c['won']+c['drawn']+c['lost'] for c in s['clubs']),'League results do not reconcile.')
     require(all(c['points']==3*c['won']+c['drawn'] for c in s['clubs']),'League points do not reconcile.')
+    require(type(s['career']['season']) is int and s['career']['season']>=1,'Invalid season number.')
+    require(len({f['id'] for f in s['fixtures']})==len(s['fixtures']),'Duplicate fixture identity.')
+    require(all(p['wage']>=0 and type(p['wage']) is int for p in s['players']),'Invalid wages.')
+    require(all(p['status'] in ('feasibility','quoted','construction','operational','cancelled') for p in s['career']['projects']),'Invalid project status.')
     known = {p['id'] for p in s['players'] if p['club'] in (None, 'c0')}
     plan = s['planning']
     for key, limit in (('shortlist', len(known)), ('comparison', 4)):
@@ -402,16 +425,22 @@ def view(s):
     players=[]
     for p in s['players']:
         if p['club'] not in (None,'c0'):continue
-        row={k:p[k] for k in ('id','name','club','role','age','wage','fee','goals','appearances','contract_end')}
+        row={k:p[k] for k in ('id','name','club','role','age','wage','fee','goals','appearances','contract_end','youth','retired','injury_until','career_goals','career_appearances')}
         row['report']=deepcopy(s['reports'].get(p['id']))
         row['scout_due']=s['scouting'].get(p['id'])
         players.append(row)
     m=None if s['match'] is None else {k:deepcopy(v) for k,v in s['match'].items() if k!='rng'}
-    return dict(revision=s['revision'],date=calendar_date(s),day=s['day'],start_date=s['config']['start_date'],cash=s['cash'],owner_cash=s['owner_cash'],budget=s['budget'],
+    snapshot = dict(revision=s['revision'],date=calendar_date(s),day=s['day'],start_date=s['config']['start_date'],cash=s['cash'],owner_cash=s['owner_cash'],budget=s['budget'],
                 payroll=payroll(s),tickets=s['tickets'],manager=deepcopy(s['manager']),trust=s['trust'],morale=s['morale'],supporters=s['supporters'],
                 players=players,table=deepcopy(table(s)),clubs=deepcopy(s['clubs']),fixtures=deepcopy(s['fixtures']),
                 ledger=deepcopy(s['ledger']),inbox=deepcopy(s['inbox']),decision=deepcopy(s['decision']),match=m,
                 season_done=s['season_done'],seed=s['seed'],transfer_spend=s['transfer_spend'],planning=deepcopy(s['planning']),
                 terms={k:s['config'][k] for k in ('scout_fee','scout_days','operating_buffer','weekly_overheads','weekly_sponsor','capacity')},
                 accrued_costs=s['accrued_costs'],season_end=max(f['day'] for f in s['fixtures']),
-                public_players={p['id']:{k:p[k] for k in ('name','role')} for p in s['players']})
+                public_players={p['id']:{k:p[k] for k in ('name','role')} for p in s['players']},
+                season=s['career']['season'],season_start=s['career']['start'],window_end=career.window_end(s),
+                career=deepcopy(s['career']),reserved_cash=career.reservations(s)[0],reserved_wages=career.reservations(s)[1],
+                severance=career.manager_severance(s),career_settings=deepcopy(s['config']['career']),project_specs=deepcopy(s['config']['projects']))
+    snapshot['terms']['capacity']=career.available_capacity(s)
+    snapshot['terms']['physical_capacity']=s['config']['capacity']
+    return snapshot
