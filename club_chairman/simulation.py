@@ -41,13 +41,14 @@ def new_career(seed=42):
         raise ValueError('Seed must be between 0 and 999999.')
     cfg = definition()
     rng = rng_for(seed, 'world')
-    world = dict(schema=1, seed=seed, revision=0, day=0, config=cfg,
+    world = dict(schema=2, seed=seed, revision=0, day=0, config=cfg,
                  career_id=hashlib.sha256(f'preview:{seed}'.encode()).hexdigest()[:12],
                  cash=cfg['opening_cash'], owner_cash=cfg['owner_cash'],
                  budget=cfg['weekly_budget'], tickets=cfg['ticket_price'], manager=None,
                  trust=60, morale=55, supporters=60, clubs=[], players=[], reports={},
                  scouting={}, fixtures=[], ledger=[], inbox=[], receipts={},
-                 decision=None, match=None, season_done=False, transfer_spend=0, accrued_costs=0)
+                 decision=None, match=None, season_done=False, transfer_spend=0, accrued_costs=0,
+                 planning=dict(shortlist=[], comparison=[], notes={}, inbox_read=0))
     first = ['Daniel', 'Lewis', 'Oliver', 'Marcus', 'Jamie', 'Callum', 'Ethan', 'Noah', 'Theo', 'Ben', 'Isaac', 'Alex', 'Max', 'Owen', 'Sam', 'Ryan', 'Leon', 'Adam']
     last = ['Mercer', 'Reed', 'Hughes', 'Turner', 'Clarke', 'Shaw', 'Bennett', 'Price', 'Ward', 'Evans', 'Foster', 'Hayes', 'Brooks', 'Baker', 'Palmer', 'Collins', 'Morgan', 'Ellis']
     roles = ['GK'] * 2 + ['DEF'] * 6 + ['MID'] * 6 + ['FWD'] * 4
@@ -139,6 +140,20 @@ def execute(state, command):
 
 def apply(s, action, payload):
     cfg = s['config']
+    if action == 'planning':
+        key = payload.get('key'); value = payload.get('value')
+        known = {p['id'] for p in s['players'] if p['club'] in (None, 'c0')}
+        require(key in ('shortlist', 'comparison', 'notes', 'inbox_read'), 'Unknown planning record.')
+        if key in ('shortlist', 'comparison'):
+            require(isinstance(value, list) and all(isinstance(x, str) for x in value), 'Invalid player selection.')
+            require(len(value) == len(set(value)) and set(value) <= known, 'Select known players only.')
+            require(len(value) <= (4 if key == 'comparison' else len(known)), 'Compare up to four players.')
+        elif key == 'notes':
+            require(isinstance(value, dict) and set(value) <= known and all(isinstance(n, str) and len(n) <= 240 for n in value.values()), 'Notes must be 240 characters or fewer.')
+        else:
+            require(type(value) is int and 0 <= value <= len(s['inbox']), 'Invalid read marker.')
+        s['planning'][key] = deepcopy(value)
+        return 'Planning saved. Time and money are unchanged.'
     if action == 'hire':
         require(not s['season_done'] and s['match'] is None, 'Appointments are unavailable during a match or after season end.')
         require(s['manager'] is None, 'A manager is already appointed for this preview season.')
@@ -171,7 +186,7 @@ def apply(s, action, payload):
             require(s['cash'] >= cfg['scout_fee'] + cfg['operating_buffer'], 'Insufficient available cash for scouting.')
             posting(s, f"scout:{p['id']}", -cfg['scout_fee'], 'Scouting')
             s['scouting'][p['id']] = s['day'] + cfg['scout_days']
-            return 'Scouting commissioned. Report due in three days.'
+            return f"Scouting commissioned. Report due in {cfg['scout_days']} days."
         require(s['manager'] is not None, 'Appoint a manager before signing players.')
         require(s['day'] <= 28, 'The preview signing window has closed (day 28).')
         require(payroll(s) + p['wage'] <= s['budget'], 'Signing exceeds the weekly wage budget.')
@@ -365,7 +380,7 @@ def settle_matchday(s):
 
 
 def validate(s):
-    require(s.get('schema')==1,'Unsupported save schema. This build supports schema 1.')
+    require(s.get('schema')==2,'Unsupported save schema. This build supports schema 2.')
     require(type(s['cash']) is int and type(s['owner_cash']) is int,'Invalid cash data.')
     require(s['cash']==s['config']['opening_cash']+sum(x['amount'] for x in s['ledger']),'Cash does not reconcile with the ledger.')
     require(len({x['id'] for x in s['ledger']})==len(s['ledger']),'Duplicate financial posting.')
@@ -373,6 +388,13 @@ def validate(s):
     require(len({p['id'] for p in s['players']})==len(s['players']),'Duplicate player identity.')
     require(all(c['played']==c['won']+c['drawn']+c['lost'] for c in s['clubs']),'League results do not reconcile.')
     require(all(c['points']==3*c['won']+c['drawn'] for c in s['clubs']),'League points do not reconcile.')
+    known = {p['id'] for p in s['players'] if p['club'] in (None, 'c0')}
+    plan = s['planning']
+    for key, limit in (('shortlist', len(known)), ('comparison', 4)):
+        require(isinstance(plan[key], list) and all(isinstance(x, str) for x in plan[key]), 'Invalid saved planning selection.')
+        require(len(plan[key]) <= limit and len(plan[key]) == len(set(plan[key])) and set(plan[key]) <= known, 'Invalid saved planning selection.')
+    require(isinstance(plan['notes'], dict) and set(plan['notes']) <= known and all(isinstance(n, str) and len(n) <= 240 for n in plan['notes'].values()), 'Invalid saved notes.')
+    require(type(plan['inbox_read']) is int and 0 <= plan['inbox_read'] <= len(s['inbox']), 'Invalid saved read marker.')
 
 
 def view(s):
@@ -380,13 +402,16 @@ def view(s):
     players=[]
     for p in s['players']:
         if p['club'] not in (None,'c0'):continue
-        row={k:p[k] for k in ('id','name','club','role','age','wage','fee','goals','appearances')}
+        row={k:p[k] for k in ('id','name','club','role','age','wage','fee','goals','appearances','contract_end')}
         row['report']=deepcopy(s['reports'].get(p['id']))
         row['scout_due']=s['scouting'].get(p['id'])
         players.append(row)
     m=None if s['match'] is None else {k:deepcopy(v) for k,v in s['match'].items() if k!='rng'}
-    return dict(revision=s['revision'],date=calendar_date(s),day=s['day'],cash=s['cash'],owner_cash=s['owner_cash'],budget=s['budget'],
+    return dict(revision=s['revision'],date=calendar_date(s),day=s['day'],start_date=s['config']['start_date'],cash=s['cash'],owner_cash=s['owner_cash'],budget=s['budget'],
                 payroll=payroll(s),tickets=s['tickets'],manager=deepcopy(s['manager']),trust=s['trust'],morale=s['morale'],supporters=s['supporters'],
                 players=players,table=deepcopy(table(s)),clubs=deepcopy(s['clubs']),fixtures=deepcopy(s['fixtures']),
                 ledger=deepcopy(s['ledger']),inbox=deepcopy(s['inbox']),decision=deepcopy(s['decision']),match=m,
-                season_done=s['season_done'],seed=s['seed'],transfer_spend=s['transfer_spend'])
+                season_done=s['season_done'],seed=s['seed'],transfer_spend=s['transfer_spend'],planning=deepcopy(s['planning']),
+                terms={k:s['config'][k] for k in ('scout_fee','scout_days','operating_buffer','weekly_overheads','weekly_sponsor','capacity')},
+                accrued_costs=s['accrued_costs'],season_end=max(f['day'] for f in s['fixtures']),
+                public_players={p['id']:{k:p[k] for k in ('name','role')} for p in s['players']})

@@ -20,6 +20,16 @@ class SaveError(ValueError):
     pass
 
 
+def migrate(state):
+    """Upgrade a verified world in memory; never rewrite the source save."""
+    s = deepcopy(state)
+    if s.get('schema') == 1:
+        s['schema'] = 2
+        s['planning'] = dict(shortlist=[], comparison=[], notes={}, inbox_read=0)
+    validate(s)
+    return s
+
+
 def load(path):
     path=Path(path)
     try:
@@ -27,11 +37,12 @@ def load(path):
         with closing(sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True)) as db:
             if db.execute('PRAGMA integrity_check').fetchone() != ('ok',):raise SaveError('Save integrity check failed.')
             metadata=dict(db.execute('SELECT key, value FROM metadata'))
-            if metadata.get('schema')!='1':raise SaveError('Unsupported save version. This build supports schema 1.')
+            if metadata.get('schema') not in ('1','2'):raise SaveError('Unsupported save version. This build reads schemas 1 and 2.')
             raw=db.execute("SELECT payload FROM entities WHERE id='world'").fetchone()[0]
             if hashlib.sha256(raw.encode()).hexdigest()!=metadata['checksum']:raise SaveError('Save checksum does not match.')
-            s=json.loads(raw);validate(s)
-            return s
+            s=json.loads(raw)
+            if str(s.get('schema')) != metadata['schema']:raise SaveError('Save version does not match its metadata.')
+            return migrate(s)
     except (sqlite3.Error, OSError, KeyError, TypeError, IndexError, ValueError) as exc:
         raise SaveError(f'Cannot load {path.name}: {exc}') from exc
 
@@ -44,7 +55,7 @@ def save(state,path):
     try:
         with closing(sqlite3.connect(temp)) as db:
             db.executescript('CREATE TABLE metadata (key TEXT PRIMARY KEY,value TEXT NOT NULL); CREATE TABLE entities (id TEXT PRIMARY KEY,payload TEXT NOT NULL);')
-            db.executemany('INSERT INTO metadata VALUES (?,?)',[('schema','1'),('checksum',hashlib.sha256(raw.encode()).hexdigest()),('date',str(state['day'])),('content',state['config']['id'])])
+            db.executemany('INSERT INTO metadata VALUES (?,?)',[('schema',str(state['schema'])),('checksum',hashlib.sha256(raw.encode()).hexdigest()),('date',str(state['day'])),('content',state['config']['id'])])
             db.execute('INSERT INTO entities VALUES (?,?)',('world',raw));db.commit()
         load(temp)
         with open(temp,'r+b') as f:os.fsync(f.fileno())

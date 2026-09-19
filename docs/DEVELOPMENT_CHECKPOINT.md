@@ -1,5 +1,19 @@
 # Development checkpoint
 
+## PLAY-002 — Executive Update 0.2
+
+Date: 2026-09-19. User requested deeper functionality, QoL and UI improvements. Current living GDD revision 0.3 remains authoritative; reviewed chapters 37–39 and the approved overview/profile visuals. No design scope or GDD changes.
+
+Implemented: role/name/shortlist filters, stable authorised estimate sorting with unknowns last, saved shortlist and four-player comparison, private notes, combined signing cost/budget checks and a 28-day cash planning view. Forecast settlement follows existing daily accrual and weekly cash timing, caps at season end and excludes uncertain prizes/unapproved spending. Gate income uses today's public supporter mood and ticket price with a labelled ±15% attendance sensitivity. Pinning, notes and forecasts do not advance time or spend money; every signing still needs its own review. Signed players remain pinned with their registration status.
+
+Interface: revised dashboard with cash chart, wage headroom, recent form, linked reports and unread news; scouted attribute range bars; retained filter/sort/page workspace per career; Back/Forward and previous/next player navigation; persistent shortlists with undo until another command; note editor; contextual shortcuts; session Activity history; distinct read and approval states; replayable match reports with possession, lineups and key events. Dark charcoal with restrained green active states. Scouting terms and fixture dates now reflect the saved content configuration, resolving both PR #3 review findings.
+
+Persistence: schema 2 adds validated planning records. Schema 1 databases are integrity/checksum verified then upgraded in memory, retaining original files. Loading continues to create a separate save timeline and inherits the old timeline's presentation preferences. Saves retain RNG and command receipts. The previous executable cannot open schema 2. UI preferences use a separate versioned JSON record.
+
+Verification: 20 local tests passed, including schema 1 mid-match migration and exact resumed results; planning roundtrip; hidden-rating-invariant sort order; combined affordability and signed-pin handling; full-season forecast settlement reconciliation with uncertain gates isolated; old gameplay/finance/recovery checks; real Pygame hitbox and keyboard tests for navigation, notes, shortlist undo, stale confirmations, unread-versus-required decisions and read-only historical reports. Integrated full-career and graphical smoke checks pass. Inspected overview, recruitment, four-player comparison, profile, financial plan, report, confirmation and Help screenshots. Windows CI/package results are linked from the update PR; do not infer completion before that run passes.
+
+Remaining: first-season preview limitations below still apply. Manager replacement, negotiations, subsequent seasons and full football rules remain future gameplay work. This implements a coherent subset of QoL, not all chapter 37–39 acceptance gates: named multiple lists/scenarios, general draft system, side-panel profiles, adjustable columns, global search, text scaling/remapping and broader save management are pending. Next priority after feedback: manager replacement/contracts and a stronger recruitment negotiation loop, then season continuity and deeper match rules.
+
 ## PLAY-001 — First Season playable preview
 
 Date: 2026-09-19. Design references: current living GDD revision 0.3 chapters 3, 11–12, 14–19, 23–27 and 37–38. Reviewed current design excerpts and the approved overview/player visual references. The older attached revision 0.2 does not supersede revision 0.3. No GDD changes or scope removals were made.
