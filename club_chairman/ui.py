@@ -36,7 +36,7 @@ class App(CareerScreens):
         self.tab='Forecast';self.match_report=None;self.profile_ids=[];self.views={};self.history=[];self.forward=[]
         self.workspaces={};self.undo=None;self.editor=None;self.note_draft='';self.notification_log=[]
         self.modal_revision=None;self.modal_focus=0;self.message_seen='';self.note_active=False
-        self.key_events_only=False;self.offer_id=None;self.offer_draft=None;self.history_season=None
+        self.key_events_only=False;self.offer_id=None;self.offer_draft=None;self.history_season=None;self.load_cache=None
         self.reduced_motion=False;self.tooltips_enabled=True;self.explain_focus=False;self.help_regions=[]
         self.hover_key=None;self.hover_since=0;self.goal_until=0;self.last_score=None
         self.sound=Soundscape()
@@ -103,6 +103,7 @@ class App(CareerScreens):
         self.descending=False;self.only_shortlist=False;self.match_report=None;self.profile_ids=[];self.tab='Forecast'
 
     def nav(self,screen):
+        if screen=='Load' and self.screen!='Load':self.load_cache=None
         if self.screen!=screen:
             self.remember();self.history.append(self.position());self.forward=[]
             default=dict(screen=screen,page=0,profile=None,search='',role='All',sort='Name',descending=False,
@@ -240,7 +241,8 @@ class App(CareerScreens):
         self.wrap('Take the chair at Northbridge Athletic. Appoint your manager, strengthen the squad and balance ambition against the club bank account.',104,225,770,29,TEXT)
         self.wrap('An evolving ownership game: continuing seasons, contracts, academy development and facility investment in a compact fictional league. The full AA world remains in development.',104,330,800,24)
         if self.screen=='Load':
-            entries=self.store.entries();start=self.page*6
+            if self.load_cache is None:self.load_cache=self.store.entries()
+            entries=self.load_cache;start=self.page*6
             for i,e in enumerate(entries[start:start+6]):
                 self.button(e['label'],(104,430+i*52,920,44),lambda p=e['path']:self.load_entry(p),e['valid'])
             self.pager(104,760,len(entries),6)
