@@ -8,7 +8,7 @@ Project instructions were merged through pull request #1. This change brings the
 
 Implemented: Python 3.12 baseline, pinned Pygame 2.6.1 dependency, isolated-environment setup instructions, Windows setup script, environment diagnostic and GitHub Actions workflow. Existing README expanded; no existing gameplay code was present.
 
-Local verification: Python 3.12.14/Pygame 2.6.1 on Linux passed dependency consistency, headless display/font rendering, event delivery, SQLite disk round-trip and database integrity checks. GitHub Actions results are reported on the pull request; do not assume they passed from this record.
+Local verification: Python 3.12.14/Pygame 2.6.1 on Linux passed dependency consistency, headless display/font rendering, event delivery, SQLite disk round-trip and database integrity checks. Initial Windows CI caught an open SQLite handle during temporary-file cleanup. The diagnostic now explicitly commits and closes both database connections. GitHub Actions results are reported on the pull request; do not assume they passed from this record.
 
 Limitations: no game, career, Continue, game persistence, content or reusable UI is implemented. No Windows executable has been built. The Windows convenience script, physical input and audio have not been manually tested. Foundation remains incomplete.
 

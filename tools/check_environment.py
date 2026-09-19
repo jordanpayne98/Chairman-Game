@@ -1,5 +1,6 @@
 """Development prerequisites check; this is not the game or its save system."""
 import argparse
+from contextlib import closing
 import json
 import os
 from pathlib import Path
@@ -18,10 +19,11 @@ import pygame
 
 with tempfile.TemporaryDirectory() as temp:
     db = Path(temp) / 'check.sqlite3'
-    with sqlite3.connect(db) as connection:
+    with closing(sqlite3.connect(db)) as connection:
         connection.execute('CREATE TABLE checks (value INTEGER NOT NULL)')
         connection.execute('INSERT INTO checks VALUES (?)', (12345,))
-    with sqlite3.connect(db) as connection:
+        connection.commit()
+    with closing(sqlite3.connect(db)) as connection:
         assert connection.execute('SELECT value FROM checks').fetchone() == (12345,)
         assert connection.execute('PRAGMA integrity_check').fetchone() == ('ok',)
 
