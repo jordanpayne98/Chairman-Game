@@ -1,4 +1,4 @@
-name: Development checks
+name: Playable preview checks and Windows build
 on:
   push:
     branches: [main]
@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 jobs:
-  environment:
+  test:
     strategy:
       fail-fast: false
       matrix:
@@ -17,11 +17,35 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.12.10'
           cache: pip
-      - name: Install pinned dependencies
-        run: python -m pip install -r requirements.txt
-      - name: Check dependency consistency
-        run: python -m pip check
-      - name: Check graphics events and SQLite
-        run: python tools/check_environment.py --headless
+      - run: python -m pip install -r requirements.txt
+      - run: python -m pip check
+      - run: python -O tools/check_environment.py --headless
+      - run: python -m unittest discover -s tests -v
+      - run: python -m club_chairman --self-test
+      - run: python -m club_chairman --smoke
+  windows-build:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.10'
+          cache: pip
+      - run: python -m pip install -r requirements-build.txt
+      - run: python tools/build_windows.py
+      - name: Run packaged career and display checks
+        shell: pwsh
+        run: |
+          $career = Start-Process -FilePath '.\dist\ClubChairman\ClubChairman.exe' -ArgumentList '--self-test' -Wait -PassThru -NoNewWindow
+          if ($career.ExitCode -ne 0) { throw 'Packaged career check failed' }
+          $display = Start-Process -FilePath '.\dist\ClubChairman\ClubChairman.exe' -ArgumentList '--smoke' -Wait -PassThru -NoNewWindow
+          if ($display.ExitCode -ne 0) { throw 'Packaged display check failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ClubChairman-Windows-preview
+          path: dist/ClubChairman/
+          if-no-files-found: error
+          retention-days: 30

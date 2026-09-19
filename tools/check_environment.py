@@ -24,8 +24,10 @@ with tempfile.TemporaryDirectory() as temp:
         connection.execute('INSERT INTO checks VALUES (?)', (12345,))
         connection.commit()
     with closing(sqlite3.connect(db)) as connection:
-        assert connection.execute('SELECT value FROM checks').fetchone() == (12345,)
-        assert connection.execute('PRAGMA integrity_check').fetchone() == ('ok',)
+        if connection.execute('SELECT value FROM checks').fetchone() != (12345,):
+            raise RuntimeError('SQLite round-trip failed')
+        if connection.execute('PRAGMA integrity_check').fetchone() != ('ok',):
+            raise RuntimeError('SQLite integrity check failed')
 
 pygame.display.init()
 pygame.font.init()
@@ -38,7 +40,8 @@ try:
     surface.blit(font.render('Graphics and SQLite ready. No gameplay yet.', True, (170, 185, 174)), (40, 115))
     pygame.display.flip()
     pygame.event.post(pygame.event.Event(pygame.USEREVENT))
-    assert any(event.type == pygame.USEREVENT for event in pygame.event.get())
+    if not any(event.type == pygame.USEREVENT for event in pygame.event.get()):
+        raise RuntimeError('Event delivery failed')
     report = {'python': platform.python_version(), 'platform': platform.system(),
               'pygame': pygame.version.ver, 'sdl': list(pygame.get_sdl_version()),
               'sqlite': sqlite3.sqlite_version, 'video_driver': pygame.display.get_driver(),

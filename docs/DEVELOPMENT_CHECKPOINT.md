@@ -1,19 +1,23 @@
 # Development checkpoint
 
-## SETUP-002 — repository setup
+## PLAY-001 — First Season playable preview
 
-Date: 2026-09-19. Design references: GDD chapters 26 (technical architecture) and 27 (delivery stages).
+Date: 2026-09-19. Design references: current living GDD revision 0.3 chapters 3, 11–12, 14–19, 23–27 and 37–38. Reviewed current design excerpts and the approved overview/player visual references. The older attached revision 0.2 does not supersede revision 0.3. No GDD changes or scope removals were made.
 
-Project instructions were merged through pull request #1. This change brings the previously verified environment diagnostic into the dedicated game repository and adds Linux/Windows automation.
+Implemented: one owned fictional club, three manager candidates, 156 players, eight-club home/away season, manager selection and tactical risk, delayed scouting, fixed-term free-agent signings, wage limits, ticket prices and attendance, finite owner funding, accrued payroll, sponsorship, financial ledger, spending decisions, bench encouragement/request with possible refusal, text matches, table and final prize settlement. Playable through season end. All tuning data is provisional playtest content, not a newly approved design baseline.
 
-Implemented: Python 3.12 baseline, pinned Pygame 2.6.1 dependency, isolated-environment setup instructions, Windows setup script, environment diagnostic and GitHub Actions workflow. Existing README expanded; no existing gameplay code was present.
+Interface: main menu, load/recovery browser, Executive overview, inbox, squad/player profiles, staff, recruitment/search, finances/ledger, league/fixtures, live text match view and help. Collapsible sidebar, persistent top bar, confirmation dialogs, focus traversal, pagination and scaled window. UI renders authorised read models; hidden player attributes and simulation RNG are absent from those views. Dark charcoal/green direction follows the approved reference; bespoke art and typography are not complete.
 
-Local verification: Python 3.12.14/Pygame 2.6.1 on Linux passed dependency consistency, headless display/font rendering, event delivery, SQLite disk round-trip and database integrity checks. Initial Windows CI caught an open SQLite handle during temporary-file cleanup. The diagnostic now explicitly commits and closes both database connections. GitHub Actions results are reported on the pull request; do not assume they passed from this record.
+Persistence: SQLite schema 1 contains JSON world state plus metadata checksum. Atomic replacement verifies the new database and preserves a validated previous manual/auto backup. Three autosave slots, manual save and separate recovery timeline. Saves include command receipts, content snapshot and in-progress match RNG. No pickle. Normalised per-entity/indexed event storage and migrations beyond schema 1 remain future architecture work.
 
-Limitations: no game, career, Continue, game persistence, content or reusable UI is implemented. No Windows executable has been built. The Windows convenience script, physical input and audio have not been manually tested. Foundation remains incomplete.
+Verification performed locally: eleven automated tests cover connected UI hiring/scouting/signing/match/save/load, a complete season, duplicate/stale commands, atomic failure, uncertainty, ledger reconciliation, owner funding, mandatory decisions, live-versus-skip saved-resume equality, autosave rotation and failed-write/corrupt-save recovery. The integrated career smoke completes hiring, scouting, signing, bench intervention, mid-match save/reload and all 56 league fixtures. Headless UI screenshots inspected for overview, recruitment, staff, finances, league, matchday, help and confirmation. Linux source checks pass. Windows CI and packaged executable results must be read from the implementation PR rather than assumed from this file.
 
-## Design source and next task
+Review follow-up: diagnostic SQLite handles were already fixed; replaced removable diagnostic assertions with explicit runtime errors so Python optimisation cannot bypass checks.
 
-The supplied attachment identifies itself as GDD revision 0.2. The existing living GDD was separately identified as revision 0.3. This setup uses the established Python/Pygame stack and does not change design. Before gameplay work, read the relevant sections of the current living GDD and inspect the approved visual references, including newer QoL requirements.
+Known limitations: one-season end point, no promotion/cups/academy/aging; four prototype attributes; fixed free-agent signing terms; manager hiring cannot be undone/replaced in this build; simplified manager delegation and match engine; no cards/injuries/substitutions/stoppage-time; no audio or authentic club artwork; no normalised save migrations; no full settings/accessibility system. Financial presentation covers cash and payroll rather than full accrual accounts and regulation. Neither the full Foundation acceptance gate nor the complete Ownership/Season milestone is claimed complete.
 
-Next implementation unit: runnable application shell, followed by new career, one fictional club, validated commands, calendar progression and recoverable saves. Preserve the full Foundation acceptance gate, including one calendar month, knowledge filtering and packaged-build verification. Do not call Foundation complete until all required behaviours pass.
+Next: use playtest feedback to improve the connected loop; expand manager contracts/replacement and recruitment negotiation; then deepen football rules and season continuity. Preserve all approved long-term scope. Do not restart project setup.
+
+## Earlier setup
+
+PR #1 added project instructions. PR #2 introduced the repeatable Python/Pygame environment and passed headless graphics/events/SQLite checks on Windows and Linux after fixing database-handle cleanup. Both were merged before PLAY-001 work.

@@ -1,14 +1,41 @@
-# Club Chairman
+# Club Chairman — First Season
 
-A football owner-chairman simulation built with Python and Pygame.
+A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic through a complete 14-match season in an eight-club fictional league.
 
-## Current status
+## Play on Windows
 
-Development setup only. The repository contains coding-agent instructions, pinned graphics dependencies, an environment diagnostic and automated Linux/Windows checks. There is no playable game yet. Foundation remains incomplete.
+Download **ClubChairman-Windows-preview** from the successful GitHub Actions run linked in the implementation pull request. Extract the entire ZIP into a folder, then open **ClubChairman.exe**. Keep the `_internal` folder beside the executable. Python installation is not required for the packaged build.
 
-## Setup
+1. Choose New career and appoint a manager in Staff.
+2. Scout free agents in Recruitment. Reports arrive after three days; signings must fit cash and the weekly wage budget.
+3. Review the wage limit and ticket price in Finances. Owner funds and club cash are separate.
+4. Continue one day or advance to the next fixture. Required chairman decisions interrupt time.
+5. Watch text matches at 1x/2x/4x or skip. Your manager selects the team. Encourage them or request more attacking football; they can refuse.
+6. Complete all fourteen fixtures and review the final table, prize money and cash ledger.
 
-Use Python 3.12 and run these commands from the repository root:
+Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
+
+Tab and Shift+Tab move focus; Enter activates the focused control. Escape cancels an overlay or stops progression. Search is available in Squad and Recruitment. The sidebar collapses and the window scales with letterboxing.
+
+## What works
+
+- New seeded career, eight clubs, 156 players and a home/away fixture list.
+- Three manager candidates; manager-controlled lineup selection and tactical risk.
+- Paid scouting with delayed uncertain reports; cash- and wage-validated free-agent signings.
+- Wage budgets, home ticket demand, owner equity injections, payroll, sponsorship, ledger and league prizes.
+- Chairman spending decisions and a manager response to bench messages.
+- Connected match simulation, commentary, statistics, league standings and season completion.
+- Versioned atomic SQLite saves, integrity checks, backups and recoverable timelines.
+
+## Preview boundaries
+
+This is an early playable version, not the finished AA game. It supports one existing club and one season. Career creation/acquisition choices, full 37-attribute profiles, potential/development, full contract negotiations, staff replacement, broader delegation, academies, injuries, cards, substitutions, cups, promotion/relegation, later seasons, multi-club ownership, stadium projects, outside investments and succession are not implemented yet. Match simulation is a simplified possession/chance model, not the complete GDD match engine. There is no sound or authored club artwork yet.
+
+All amounts, player distributions and the preview league are provisional implementation fixtures for playtesting. They do not replace the approved full-game design. The current living GDD revision 0.3 remains authoritative and is not duplicated in this repository. See [AGENTS.md](AGENTS.md) and [the development checkpoint](docs/DEVELOPMENT_CHECKPOINT.md).
+
+## Run from source
+
+Use Python 3.12:
 
 ```sh
 python -m venv .venv
@@ -18,24 +45,24 @@ On Windows:
 
 ```powershell
 .venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe tools\check_environment.py
+.venv\Scripts\python.exe -m club_chairman
 ```
 
-On Linux or macOS:
+On Linux:
 
 ```sh
 .venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python tools/check_environment.py
+.venv/bin/python -m club_chairman
 ```
 
-For a server without a display, add `--headless` to the check command. The diagnostic creates a temporary SQLite database, checks write/read integrity, renders text and processes an event, then exits. It does not implement or test game saves. Audio and physical input are not checked.
+Checks:
 
-Windows users with Python 3.12 and the Python launcher installed can also run `setup_windows.cmd`. This convenience script creates the environment, installs dependencies and runs the diagnostic. It is not a game launcher.
+```sh
+python -m unittest discover -s tests -v
+python -m club_chairman --self-test
+python -m club_chairman --smoke
+```
 
-## Working on the project
+Run these using the virtual environment's Python. The smoke display uses SDL's dummy driver; it does not prove physical input, audio, accessibility or performance on every PC. GitHub Actions runs Linux and Windows tests, builds with PyInstaller, then runs both career and display checks against the Windows executable. Build artifacts expire after 30 days and can be regenerated from source.
 
-Read [AGENTS.md](AGENTS.md) and [the development checkpoint](docs/DEVELOPMENT_CHECKPOINT.md) before making changes. Consult the current living GDD for relevant design requirements; it is not included in this repository yet. Do not infer gameplay rules from this README or create a competing design document.
-
-The technical baseline uses Python 3.12 and Pygame 2.6.1. SQLite, JSON, logging and unittest are available in the Python standard library. No supporting UI framework or packaging tool has been selected yet. Windows is the intended initial game platform; Linux CI is an engineering check, not a commitment to release on Linux.
-
-Development checks run on pull requests and on pushes to main. They verify installation, dependency consistency, graphics initialization, event handling and basic database operations. Passing them does not constitute a playable milestone or packaged Windows validation.
+Licensing dependencies are documented in [THIRD_PARTY.md](docs/THIRD_PARTY.md).
