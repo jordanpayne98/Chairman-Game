@@ -1,6 +1,6 @@
-# Club Chairman — Divisions Update (0.11)
+# Club Chairman — National Calendars Update (0.12)
 
-A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic through continuing 14-match league seasons and a domestic knockout cup across two eight-club divisions in a fictional development world. This is a playable development version; the approved full AA game is still being built.
+A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic in the compact Northshire world or an England, Wales or Brazil national development scenario, with continuing league seasons and domestic cups. This is a playable development version; the approved full AA game is still being built.
 
 ## Play on Windows
 
@@ -15,13 +15,32 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1–0.10 / schema 1–8 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 9. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1–0.11 / schema 1–9 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 10. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
 Ctrl+K opens global search for known players, clubs, departments and help topics. Settings > Interface size cycles through 100/125/150/175% zoom. Mouse wheel pans vertically at larger sizes; Shift+wheel pans horizontally, and keyboard focus follows controls into view. Ctrl+0 restores 100%. This is whole-interface zoom; full responsive text reflow is still pending.
 
-## New in 0.11
+## New in 0.12
+
+On the main menu, click **Scenario** to cycle through Compact, England, Wales and Brazil, then choose **New career** and review the selection. National scenarios currently simulate one country at a time; other countries are not running in the background. Existing saves keep their world, calendar, contracts and results. The compact scenario remains available.
+
+| Scenario | Divisions | Clubs | League matches per club | Calendar |
+| --- | --- | --- | --- | --- |
+| Compact | 2 × 8 | 16 | 14 | Short development seasons |
+| England | 5 × 20 | 100 | 38 | August–May |
+| Wales | 2 × 12 | 24 | 22 | August–May |
+| Brazil | 3 × 18 | 54 | 34 | February–November |
+
+All active clubs enter their country's knockout cup. England exchanges three clubs between adjacent tiers; Wales and Brazil exchange two. Larger league tables and archives paginate, retaining promotion/relegation markers, match reports and recorded tie-breaks. The lowest playable tiers currently have no feeder exchanges.
+
+National careers reserve league and cup dates together with a minimum three-day recovery gap. Optional blackout ranges are supported; impossible configurations produce an explanation and preserve the current career. No international windows are enabled yet. Annual season anchors, leap years, contract duration, new extension options, academy admission previews and financial planning now share calendar dates. Preparing next season does not jump time: summer wages, deadlines and construction still process day by day. New national contracts use season-end dates; previous signed terms are never recalculated on load.
+
+`data/nations.json` records all 14 approved formats (38 divisions / 636 senior clubs), with explicit incomplete content families. Only the three national scenarios above are enabled. USA's closed system and top-eight playoff are recorded as requirements, not silently replaced with promotion/relegation. National scenarios use provisional city-based club identities, 18-player squads, existing staff/player name pools, GBP finances and simplified registration windows. Northbridge remains the owned development club. Full authored history, country-specific population/finance/eligibility content, reserve/youth squads, feeders, other active countries and international/continental competitions remain required.
+
+Weekly AI review avoids repeated squad-cover, cash, payroll and equivalent registration calculations. Decisions retain the same rules and observations. Large national careers still need performance work: this is not a claim that the full-world performance gate has passed.
+
+## Included from 0.11
 
 Competitions lets you switch between the Northshire Premier and Championship. Each division has eight clubs playing fourteen home-and-away league matches; all sixteen enter the shared four-round cup. Three clubs are automatically promoted and three relegated at season end. Final tables and movements are recorded immediately, and **Career > Prepare next season** applies membership changes with the next fixtures. Your club, staff, contracts, cash and scouting records continue in its new division.
 
@@ -50,7 +69,7 @@ The approved Figma Executive interface is now rendered by the actual Pygame game
 - Squad/recruitment tables, department panels, tooltips, reviews, settings and save recovery share the new components. Long reviews paginate without hiding their controls. Fixtures provides a full paginated season list and opens saved match reports.
 - The main menu can continue the latest valid save, resume an active career, open all checkpoints and change presentation settings before starting a career. Original save files are preserved by the existing recovery-timeline workflow.
 
-No simulation rules or save schema changed. The internal canvas remains 1440 × 900, scaled to the window, with the existing 100–175% zoom and focus following. Full responsive reflow, arbitrary dashboard arrangement, single-click person drawers, content management, career-creation choices and multi-club/wealth systems are still open. The full 30-frame Figma prototype is not claimed to be implemented gameplay. See [Figma implementation coverage](docs/FIGMA_UI_IMPLEMENTATION.md).
+No simulation rules or save schema changed. The internal canvas remains 1440 × 900, scaled to the window, with the existing 100–175% zoom and focus following. Full responsive reflow, arbitrary dashboard arrangement, single-click person drawers, content management, full career-creation choices and multi-club/wealth systems are still open. The full 30-frame Figma prototype is not claimed to be implemented gameplay. See [Figma implementation coverage](docs/FIGMA_UI_IMPLEMENTATION.md).
 
 ## Included from 0.8
 
@@ -133,7 +152,7 @@ Full clause coverage, advanced loan restrictions and complete staff/authority be
 
 ## What works
 
-- New seeded career, sixteen clubs, 300 players and division-specific home/away fixture lists.
+- New seeded career, compact or national scenarios with division-specific home/away fixture lists.
 - Three manager candidates; manager-controlled lineup selection and tactical risk.
 - Paid scouting with delayed uncertain reports; cash- and wage-validated free-agent signings.
 - Wage budgets, home ticket demand, owner equity injections, payroll, sponsorship, ledger and league prizes.
@@ -143,7 +162,7 @@ Full clause coverage, advanced loan restrictions and complete staff/authority be
 
 ## Preview boundaries
 
-This is an early playable version, not the finished AA game. The compact two-division calendar remains development content. Full 14-nation world content, career creation/acquisitions, owner succession, multi-club groups, complete role/scouting/development behaviour, complete staff agreements, capability effects and group delegation, full transfer/loan clauses and competition rules, complete football/set-piece/tactical models, full national/continental competition structures, complete commercial demand and rights obligations, full AI financial parity, detailed assets and the remaining accessibility/QoL requirements are still pending. The new career systems are connected playable implementations of a subset of their approved scope.
+This is an early playable version, not the finished AA game. Compact and national scenarios remain development content. Full 14-nation world content, career creation/acquisitions, owner succession, multi-club groups, complete role/scouting/development behaviour, complete staff agreements, capability effects and group delegation, full transfer/loan clauses and competition rules, complete football/set-piece/tactical models, full national/continental competition structures, complete commercial demand and rights obligations, full AI financial parity, detailed assets and the remaining accessibility/QoL requirements are still pending. The new career systems are connected playable implementations of a subset of their approved scope.
 
 See [release readiness](docs/RELEASE_READINESS.md) for the complete retained scope and [the asset register](docs/ASSET_REGISTER.md) for artwork/audio provenance. No full AA release gate is claimed complete.
 

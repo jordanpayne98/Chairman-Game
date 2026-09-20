@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues
+from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations
 from .football import finished as match_finished
 
 
@@ -39,7 +39,7 @@ def restore_rng(state):
     return rng
 
 
-def new_career(seed=42):
+def new_career(seed=42,scenario='compact'):
     if type(seed) is not int or not 0 <= seed <= 999999:
         raise ValueError('Seed must be between 0 and 999999.')
     cfg = definition()
@@ -87,12 +87,16 @@ def new_career(seed=42):
     staff.initialise(world);delegation.initialise(world);club_ai.initialise(world)
     competitions.initialise(world,legacy=True)
     leagues.initialise(world)
+    world['calendar']=None
+    if scenario!='compact':nations.configure(world,scenario)
     competitions.start_season(world)
-    world['schema']=9
+    world['schema']=10
     for p in world['players']:
-        if p['club']:p['contract_end']=316
+        if p['club']:p['contract_end']=career.contractual_end(world,3)
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
-    news(world, 'Welcome to Northbridge', 'Appoint a manager, review your wage budget, and request scouting before the first match. The two-division development world includes promotion, relegation and the Northshire Cup, with continuing seasons.')
+    if world['calendar']:
+        news(world,'National development scenario',f"{world['config']['nation']['name']}: one active national pyramid. Club identities, squads and finances are provisional content; feeder pools and continental competitions are pending.")
+    news(world, 'Welcome to Northbridge', 'Appoint a manager, review your wage budget, and request scouting before the first match. Review your divisions and domestic cup under Competitions.')
     return world
 
 
@@ -452,8 +456,9 @@ def close_season(s):
 
 
 def validate(s):
-    require(s.get('schema')==9,'Unsupported save schema. This build supports schema 9.')
+    require(s.get('schema')==10,'Unsupported save schema. This build supports schema 10.')
     leagues.validate(s)
+    nations.validate(s)
     competitions.validate(s)
     staff.validate(s);delegation.validate(s);club_ai.validate(s)
     people.validate(s);registration.validate(s)
@@ -509,6 +514,9 @@ def view(s):
                 season=s['career']['season'],season_start=s['career']['start'],window_end=career.window_end(s),
                 career=deepcopy(s['career']),reserved_cash=career.reservations(s)[0],reserved_wages=career.reservations(s)[1],
                 severance=career.manager_severance(s),career_settings=deepcopy(s['config']['career']),project_specs=deepcopy(s['config']['projects']))
+    snapshot['calendar']=deepcopy(s.get('calendar'))
+    snapshot['nation']=deepcopy(s['config'].get('nation'))
+    snapshot['contract_ends']={str(n):career.contractual_end(s,n) for n in (1,2,3)}
     snapshot['leagues']=leagues.snapshot(s)
     snapshot['competitions']=deepcopy(s['competitions'])
     snapshot['market']={k:deepcopy(s['market'][k]) for k in ('deals','loans','obligations')}

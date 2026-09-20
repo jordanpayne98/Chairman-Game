@@ -33,14 +33,14 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
     def __init__(self,save_root=None):
         pygame.display.init();pygame.font.init()
         self.window=pygame.display.set_mode((1280,800),pygame.RESIZABLE)
-        pygame.display.set_caption('Club Chairman — Divisions 0.11')
+        pygame.display.set_caption('Club Chairman — National Calendars 0.12')
         self.canvas=pygame.Surface((WIDTH,HEIGHT))
         self.fonts={};self.inbox_selection=None;self.inbox_reader_page=0;self.inbox_reader_key=None;self._nav_style=None;self._inbox_style=None
         self.state=None;self.v=None;self.screen='Home';self.buttons=[];self.focus=0;self.running=True
         self.message='';self.modal=None;self.modal_page=0;self.collapsed=False;self.page=0;self.profile=None;self.search='';self.typing=False
         self.store=SaveStore(save_root);self.play=False;self.speed=1;self.elapsed=0;self.batch=False
         self.role='All';self.sort='Name';self.descending=False;self.only_shortlist=False
-        self.league_id=None;self.league_season=None;self.history_division=None
+        self.league_id=None;self.league_season=None;self.history_division=None;self.history_table_page=0;self.new_scenario='compact'
         self.tab='Forecast';self.match_report=None;self.profile_ids=[];self.views={};self.history=[];self.forward=[]
         self.workspaces={};self.undo=None;self.editor=None;self.note_draft='';self.notification_log=[]
         self.modal_revision=None;self.modal_focus=0;self.message_seen='';self.note_active=False
@@ -232,8 +232,11 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
         except ValueError as exc:
             self.message=str(exc);self.play=False;self.batch=False;return False
 
-    def start(self):
-        self.state=new_career(secrets.randbelow(1000000));self.state['career_id']=uuid.uuid4().hex[:16]
+    def start(self,scenario=None):
+        try:state=new_career(secrets.randbelow(1000000),scenario or self.new_scenario)
+        except ValueError as exc:
+            self.message='Cannot start career: '+str(exc);return False
+        self.state=state;self.state['career_id']=uuid.uuid4().hex[:16]
         self.reset_workspace();self.v=view(self.state);self.nav('Overview');self.message='Welcome. Start by appointing your manager in Staff.'
         try:self.store.autosave(self.state)
         except SaveError as exc:self.message=str(exc)

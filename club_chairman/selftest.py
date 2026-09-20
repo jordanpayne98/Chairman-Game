@@ -6,7 +6,20 @@ from .persistence import save, load
 from .planning import forecast, signing_terms
 
 
+def national_check():
+    # The executable must include and use the new nation data, calendars and saves.
+    for id,total in (('wales',24),('brazil',54),('england',100)):
+        national=new_career(71,id);validate(national)
+        if len(national['clubs'])!=total:raise RuntimeError('Missing national scenario clubs')
+        if national['calendar']['cup_days'][-1]!=national['calendar']['end']:raise RuntimeError('Unreserved national final')
+        with tempfile.TemporaryDirectory() as root:
+            path=Path(root)/'national.sqlite3';save(national,path)
+            if load(path)!=national:raise RuntimeError('National scenario save failed')
+    print('National scenarios passed: England, Wales and Brazil definitions, reserved annual calendars and SQLite roundtrips.')
+
+
 def run():
+    national_check()
     s=new_career(71)
     def act(action,**data):
         nonlocal s

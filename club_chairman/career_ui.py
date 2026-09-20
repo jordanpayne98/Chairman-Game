@@ -152,9 +152,9 @@ class CareerScreens(ClauseScreens):
             current=m and m['id']==candidate['id']
             def review(c=candidate):
                 if not m:
-                    self.confirm('Appoint '+c['name'],f"Pay {money(c['fee'])} now and {money(c['wage'])} per week. The initial appointment covers three compact league seasons. Notice is capped at four weeks’ salary or remaining guaranteed salary, whichever is less. Selection and tactics remain delegated.",lambda:self.command('hire',id=c['id']))
+                    self.confirm('Appoint '+c['name'],f"Pay {money(c['fee'])} now and {money(c['wage'])} per week. The initial appointment covers three league seasons. Notice is capped at four weeks’ salary or remaining guaranteed salary, whichever is less. Selection and tactics remain delegated.",lambda:self.command('hire',id=c['id']))
                 else:
-                    self.confirm('Replace '+m['name']+' with '+c['name'],f"Immediate notice payment {money(cost)} plus signing fee {money(c['fee'])}. New weekly salary {money(c['wage'])} through next season. Existing player contracts and accrued payroll remain. The working relationship with the new manager starts afresh.",lambda:self.command('manager_replace',id=c['id'],duration=2))
+                    self.confirm('Replace '+m['name']+' with '+c['name'],f"Immediate notice payment {money(cost)} plus signing fee {money(c['fee'])}. New weekly salary {money(c['wage'])} through the agreed season end. Existing player contracts and accrued payroll remain. The working relationship with the new manager starts afresh.",lambda:self.command('manager_replace',id=c['id'],duration=2))
             self.button('Appointed' if current else 'Review '+candidate['name'],(1110,y+34,270,44),review,not current and not v['match'])
         self.text('Open People for departmental recruitment, then Responsibilities to allocate capacity and authority.',x,797,21,MUTED)
 
@@ -162,7 +162,8 @@ class CareerScreens(ClauseScreens):
         v=self.v;self.panel(x,195,1400-x,190,'Career journal')
         self.text('Northbridge Athletic / Season '+str(v['season']),x+20,245,36,GREEN)
         self.text('Current campaign ends '+dated(v,v['season_end']),x+20,293,24)
-        self.wrap('Each eight-club division has fourteen league matches, plus a shared knockout cup. Preseason lasts two weeks; wages, medicals and construction continue day by day.',x+20,333,1080,21)
+        division=next(d for d in v['leagues']['divisions'] if d['id']==v['leagues']['own_division'])
+        self.wrap(f"{len(division['members'])} clubs in your division, {2*(len(division['members'])-1)} league matches plus the domestic cup. Wages, medicals and construction continue day by day through preseason.",x+20,333,1080,21)
         self.button('Prepare next season',(x,408,240,44),lambda:self.confirm('Prepare the next campaign', 'Archive this season’s table, cup winner and match reports, apply confirmed promotion/relegation, reset seasonal statistics and generate the next fixtures. Days will not skip: preseason wages and contract expiries process through Continue. Unfinished offers expire. Review renewals first; expired players become free agents.',lambda:self.command('next_season')),v['season_done'] and not v['match'])
         change=next((m for m in v['leagues']['movements'] if m['club']=='c0'),None)
         if change:self.text(change['kind']+' at next season preparation',x+570,424,21,GREEN)
@@ -171,13 +172,13 @@ class CareerScreens(ClauseScreens):
         history=list(reversed(v['career']['history']))
         for i,h in enumerate(history[self.page*4:self.page*4+4]):
             y=525+i*55;own=next(c for c in h['table'] if c['id']=='c0');position=next(j+1 for j,c in enumerate(h['table']) if c['id']=='c0')
-            self.text(f"Season {h['season']} / {position} of 8 / {own['points']} pts / {own['gf']} goals / cash {money(h['cash'])}",x+15,y,24)
+            self.text(f"Season {h['season']} / {position} of {len(h['table'])} / {own['points']} pts / {own['gf']} goals / cash {money(h['cash'])}",x+15,y,24)
             self.button('Season report',(1190,y-9,205,38),lambda season=h['season']:self.open_season_history(season))
         if not history:self.text('Completed campaigns appear here when the next season is prepared.',x+15,543,25,MUTED)
         self.pager(x,780,len(history),4)
 
     def open_season_history(self,season):
-        self.nav('History');self.history_season=season;self.history_division=None;self.page=0
+        self.nav('History');self.history_season=season;self.history_division=None;self.history_table_page=0;self.page=0
 
     def draw_history(self,x):
         h=next((h for h in self.v['career']['history'] if h['season']==self.history_season),None)
@@ -194,10 +195,13 @@ class CareerScreens(ClauseScreens):
             d=next(d for d in league['divisions'] if d['id']==selected)
             rows=league['tables'][selected];index=league['divisions'].index(d)
             target=league['divisions'][(index+1)%len(league['divisions'])]['id']
-            self.button('Switch division',(974,194,205,40),lambda:setattr(self,'history_division',target),len(league['divisions'])>1)
+            self.button('Switch division',(974,194,205,40),lambda:(setattr(self,'history_division',target),setattr(self,'history_table_page',0)),len(league['divisions'])>1)
             self.text(d['name'],x+20,238,18,MUTED)
-        for i,c in enumerate(rows):
-            self.text(f"{i+1}  {c['name']}",x+20,270+i*33,24)
+        self.history_table_page=min(self.history_table_page,max(0,(len(rows)-1)//8))
+        self.button('Previous clubs',(620,194,160,40),lambda:setattr(self,'history_table_page',self.history_table_page-1),self.history_table_page>0)
+        self.button('Next clubs',(793,194,160,40),lambda:setattr(self,'history_table_page',self.history_table_page+1),(self.history_table_page+1)*8<len(rows))
+        for i,c in enumerate(rows[self.history_table_page*8:self.history_table_page*8+8]):
+            self.clipped_text(f"{self.history_table_page*8+i+1}  {c['name']}",x+20,270+i*33,530,24)
             move=next((m for m in (league or {}).get('movements',[]) if m['club']==c['id']),None)
             if move:self.text(move['kind'],815,270+i*33,18,GREEN)
             self.text(f"{c['points']} pts   {c['won']}W  {c['drawn']}D  {c['lost']}L",1050,270+i*33,23,MUTED)
@@ -224,7 +228,7 @@ class CareerScreens(ClauseScreens):
             interval=r['ranges'][key] if r else None
             self.text((key.capitalize()+f' {interval[0]}–{interval[1]}' if interval else 'Unknown ability')+' / '+('Enrolled' if p['club'] else 'Trial candidate'),x+78,y+45,21,MUTED)
             if p['club'] is None:
-                span=v['season_end']-v['season_start']+v['career_settings']['season_gap'];end=v['season_end']+span*(3 if v['season_done'] else 2)
+                end=v['contract_ends']['3']
                 self.button('Review admission',(1165,y+17,220,42),lambda p=p,end=end:self.confirm('Admit '+p['name'],f"Admission fee {money(v['career_settings']['academy_admission_fee'])}. Academy wage {money(p['wage'])} per week until {dated(v,end)}, included in the club wage budget. Future wages approximately {money(p['wage']*max(0,end-v['day'])//7)}. Future ability is uncertain.",lambda:self.command('academy_admit',id=p['id'])))
             else:self.button('Promote to seniors',(1165,y+17,220,42),lambda p=p:self.confirm('Promote '+p['name'],'Move this player into the senior squad on existing financial terms. Selection and minutes remain the manager’s decision.',lambda:self.command('academy_promote',id=p['id'])),p['age']>=16 and not v['match'])
         if not rows:self.wrap('Your academy has no enrolled prospects yet. Arrange trials, review the evidence and choose whom to admit.',x+20,370,1020,29,TEXT)

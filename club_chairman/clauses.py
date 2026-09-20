@@ -42,9 +42,11 @@ def sign(s, p, offer):
     if not any(terms(offer).values()): return
     from .career import season_end
     span = season_end(s) - s['career']['start'] + s['config']['career']['season_gap']
+    from .nations import add_year
+    option_end=add_year(s['config']['start_date'],offer['end']) if s.get('calendar') else offer['end']+span
     s['clauses']['employment'][p['id']] = dict(
         id=offer['id'] + ':clauses', player=p['id'], employer='c0', start=s['day'],
-        end=offer['end'], **terms(offer), option_end=offer['end'] + span,
+        end=offer['end'], **terms(offer), option_end=option_end,
         option_status='available' if offer.get('club_option') else 'none', cap=None)
 
 

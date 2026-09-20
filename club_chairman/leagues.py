@@ -95,7 +95,7 @@ def schedule(s):
             for j,(a,b) in enumerate(pairings[r%(n-1)]):
                 if r>=n-1:a,b=b,a
                 prefix='' if season==1 and d['tier']==1 else f"s{season}-" if d['tier']==1 else f"s{season}-{d['id']}-"
-                s['fixtures'].append(dict(id=f'{prefix}f{r}-{j}',day=start+5+r*7,home=a,away=b,result=None,
+                s['fixtures'].append(dict(id=f'{prefix}f{r}-{j}',day=s['calendar']['league_days'][r] if s.get('calendar') else start+5+r*7,home=a,away=b,result=None,
                     division=d['id'],competition_name=d['name']))
     s['fixtures'].sort(key=lambda f:(f['day'],f['id']))
 
