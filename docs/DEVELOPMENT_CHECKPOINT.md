@@ -1,5 +1,21 @@
 # Development checkpoint
 
+## PLAY-005 — Transfer and Commercial Update 0.5
+
+Date: 20 September 2026. User authorised proceeding with all remaining systems; the full AA scope stays open, implemented in dependency order. PR #6 was merged with its verified head. Current GDD revision 0.3 chapters 12, 18–19 and existing UI rules govern this work; no design document replaced or new design approval invented.
+
+Implemented connected departments: selling-club proposals/counters, immediate/deferred transfer fees, linked personal contracts/medical/atomic registration; outgoing sales with receiving-club funding checks; incoming/outgoing senior loans, wage splits, preserved employer contract, automatic return and explicit prorated recall refunds; dated inter-club settlement and counterparty cash/payroll bookkeeping. Market values and weekly AI operating income are provisional compact-league tuning, not full economic parity. Signed transfer liabilities survive a later sale and season rollover. Loaned employment is not overwritten by AI season rollover.
+
+Commercial supports training, digital and stadium inventory, income/duration proposals and counters, conflict checks, weekly payments, expiry and supporter consequences. Naming rights appear on Facilities. No upfront sponsor income. The complete clause catalogue, rights/service obligation system, supporter segments, youth loans and autonomous AI transfer/finance policy remain open.
+
+UI: Transfers desk with Deals/Loans/Payments, club offer review, receiving-club picker, market filter and external scouting/profiles, Commercial inventory and agreement review, linked medical stops, financial previews and existing tooltip/keyboard infrastructure. Loan duration is currently quoted at up to 56 days in the interface; command model accepts 14–84. Forecasts include signed sponsorships, dated obligations and loan wage changes. Deferred fees are separate from personal signing fees. Closed contract financial screens label their historical what-if calculation explicitly.
+
+Persistence: schema 4 adds market and commercial records. Schema 1–3 migration preserves existing money, employment, receipts and match RNG; opening AI balances are explicit upgrade-time fixtures. Existing saves are never overwritten on load. New schema-4 saves require this build.
+
+Verification: 54 local tests pass, including transaction conservation, atomic refusal, concurrent reservations, last-keeper protection, exact forecasts, cross-season loan/debt continuity, sponsor exclusivity/payment timing, same-day recall exploit prevention, save roundtrip and rendered input flows. The executable self-test now covers purchases, instalments, sale, loan return and sponsor payments alongside the prior two-season / 112-fixture career. Genuine published 0.4 source generated a minute-27 save; schema-4 resume produced exact cash/players/ledger/table/fixture equality and unchanged original bytes. New screens rendered and inspected; Windows/Linux and package evidence belongs in the implementation PR after completion.
+
+Remaining full-game dependency order is retained in RELEASE_READINESS.md: richer player/staff/football models and autonomy, valid expanded competitions, ownership/group/succession, complete commercial/assets/economy, then remaining UI/content/accessibility and full-world release gates. Do not call this milestone all systems complete. Continue from this code rather than restarting setup.
+
 ## PLAY-004 — Contracts Update 0.4
 
 Date: 2026-09-19. Continue the full AA goal; current living GDD revision 0.3 checked (chapters 12, 21–24), including both approved embedded references. Started from merged main after PR #5. No GDD changes or reduced scope.

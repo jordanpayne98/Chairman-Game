@@ -4,6 +4,7 @@ from .planning import dated
 from .contract_review import review, CLOSED
 from .presentation import crest,portrait,pitch
 from .simulation import MANAGERS
+from .commercial import venue_name
 
 TEXT=(231,238,238);MUTED=(159,179,187);GREEN=(98,214,161);RED=(246,150,142)
 def money(value):return f'£{value/100:,.0f}'
@@ -31,7 +32,7 @@ class CareerScreens:
                 y=292+i*90;self.panel(x,y,1400-x,78)
                 self.text(p['name']+' / '+p['role'],x+20,y+15,26)
                 self.text(dated(self.v,p['contract_end'])+f" / {max(0,p['contract_end']-self.v['day'])} days remaining / {money(p['wage'])} per week",x+20,y+48,21,RED if p['contract_end']-self.v['day']<=28 else MUTED)
-                self.button('Discuss renewal',(1180,y+19,200,42),lambda pid=p['id']:self.contract_open(pid),not self.v['match'])
+                self.button('Discuss renewal',(1180,y+19,200,42),lambda pid=p['id']:self.contract_open(pid),not self.v['match'] and not p.get('loan'))
             self.pager(x,780,len(rows),5);return
         self.button('Current' if self.tab=='History' else 'History',(940,190,190,42),lambda:(setattr(self,'tab','Discussions' if self.tab=='History' else 'History'),setattr(self,'page',0)))
         self.text(f"Reserved cash {money(self.v['reserved_cash'])}  /  Reserved wages {money(self.v['reserved_wages'])} per week",x,241,24)
@@ -86,15 +87,15 @@ class CareerScreens:
             for line in lines[page*3:page*3+3]:y=self.wrap(line,x+24,y,1350-x,24,TEXT)+22
             self.pager(x,706,len(lines),3)
         elif self.offer_tab=='Cash review':
-            self.panel(x,360,1400-x,353,'Historical terms against current finances' if archived else 'Draft scenario' if editable else 'Reviewed package')
-            rows=[('Signing fee now',money(terms['fee'])),('Cash after completion',money(details['cash_after'])),
+            self.panel(x,360,1400-x,353,'Recorded terms against current finances' if archived or o['status'] in CLOSED else 'Draft scenario' if editable else 'Reviewed package')
+            rows=[('Personal fee / club payment now',money(terms['fee'])+' / '+money(details['upfront'])),('Cash after completion',money(details['cash_after'])),
                   ('Other reserved fees',money(details['reserved_cash'])),('Available above operating reserve',money(details['available'])),
                   ('Weekly payroll change',money(details['wage_delta'])),('Weekly headroom after other offers',money(details['headroom'])),
-                  ('Future salary / total package',money(details['future'])+' / '+money(details['total'])),
+                  ('Deferred fee / total package',money(details['deferred'])+' / '+money(details['total'])),
                   ('Additional exposure over current contract',money(details['additional']))]
             for i,(label,value) in enumerate(rows):
                 y=408+i*35;self.text(label,x+24,y,23,MUTED);self.text(value,x+625,y,24,TEXT)
-            self.text('Assumes completion today; excludes accrued wages. Drafts spend nothing.',x+20,727,21,MUTED)
+            self.text('Historical what-if only; cash is not charged again.' if archived or o['status'] in CLOSED else 'Assumes completion today; excludes accrued wages. Drafts spend nothing.',x+20,727,21,MUTED)
         else:
             self.panel(x,360,560,351,'Editable draft / not yet sent' if editable else 'Recorded terms')
             for i,(key,label,value,step) in enumerate([('wage','Weekly salary',money(terms['wage']),5000),('fee','Signing fee',money(terms['fee']),50000),('duration','Seasons',str(terms['duration']),1)]):
@@ -119,9 +120,9 @@ class CareerScreens:
             self.text('Closed discussion. Its recorded terms cannot be edited or submitted again.',x,789,23,MUTED)
         elif editable:
             self.button('Send proposal',(x,779,190,44),lambda:self.offer_action('propose_offer',o),not self.v['match'])
-            self.button('Review conditional acceptance',(x+210,779,335,44),lambda:self.confirm('Reserve capacity for '+p['name'],f"Latest agent terms: {money(o['fee'])} fee; {money(o['wage'])} per week to {dated(self.v,o['end'])}. Cash after completion {money(accepted['cash_after'])}; remaining weekly headroom {money(accepted['headroom'])}. Unsent draft edits are excluded. A medical and final review follow; nothing is paid now. Medical due {dated(self.v,accepted['due'])}. Registration must complete within the offer deadline and registration window.",lambda:self.offer_action('accept_offer',o)),o['status'] in ('counter','agreed') and not accepted['reasons'])
+            self.button('Review conditional acceptance',(x+210,779,335,44),lambda:self.confirm('Reserve capacity for '+p['name'],f"Latest agent terms: {money(o['fee'])} personal fee + {money(accepted['upfront'])} club fee now, {money(accepted['deferred'])} deferred; {money(o['wage'])} per week to {dated(self.v,o['end'])}. Cash after completion {money(accepted['cash_after'])}; remaining weekly headroom {money(accepted['headroom'])}. Unsent draft edits are excluded. A medical and final review follow; nothing is paid now. Medical due {dated(self.v,accepted['due'])}. Registration must complete within the offer deadline and registration window.",lambda:self.offer_action('accept_offer',o)),o['status'] in ('counter','agreed') and not accepted['reasons'])
         elif o['status']=='ready':
-            self.button('Review completion',(x,779,230,44),lambda:self.confirm('Complete '+p['name']+' contract',f"Pay {money(o['fee'])} now and {money(o['wage'])} per week until {dated(self.v,o['end'])}. Total exposure approximately {money(accepted['total'])}; cash after completion {money(accepted['cash_after'])}; weekly headroom {money(accepted['headroom'])}. {o['medical']} Completion changes employment and registration together and cannot be undone.",lambda:self.offer_action('complete_offer',o)),not accepted['reasons'])
+            self.button('Review completion',(x,779,230,44),lambda:self.confirm('Complete '+p['name']+' contract',f"Pay {money(o['fee']+accepted['upfront'])} now plus {money(accepted['deferred'])} in dated transfer obligations, and {money(o['wage'])} per week until {dated(self.v,o['end'])}. Total exposure approximately {money(accepted['total'])}; cash after completion {money(accepted['cash_after'])}; weekly headroom {money(accepted['headroom'])}. {o['medical']} Completion changes employment and registration together and cannot be undone.",lambda:self.offer_action('complete_offer',o)),not accepted['reasons'])
         elif o['status']=='medical':self.text('Continue to the medical date, then review completion.',x,789,23,GREEN)
         if not archived and o['status'] not in CLOSED:
             self.button('Withdraw',(1225,779,175,44),lambda:self.confirm('Withdraw this discussion?','No contract will be signed. Reserved cash and wage capacity will be released. The transcript will be retained.',lambda:self.offer_action('withdraw_offer',o)),not self.v['match'])
@@ -206,7 +207,7 @@ class CareerScreens:
 
     def draw_facilities(self,x):
         v=self.v;projects=v['career']['projects'];tick=pygame.time.get_ticks()
-        self.panel(x,190,575,275,'Northbridge ground')
+        self.panel(x,190,575,275,venue_name(v))
         closed=any(p['status']=='construction' and p['closure'] for p in projects)
         pitch(self.canvas,(x+20,239,535,200),closed,tick,self.reduced_motion)
         inspect=lambda:self.confirm('East stand and venue capacity',f"Usable seats: {v['terms']['capacity']:,}. Physical capacity: {v['terms']['physical_capacity']:,}. Construction closes 800 seats until the agreed opening milestone; completed expansion adds 800 seats. Attendance is demand-limited, so extra capacity is not guaranteed revenue.",None)
@@ -252,6 +253,22 @@ class CareerScreens:
 
     def control_help(self,label,enabled):
         hints={
+            'Transfers':'Review club consent, sales, loans, return dates and dated transfer payments. Nothing changes registration without final completion.',
+            'Commercial':'Negotiate exclusive sponsorship rights. Signed income is paid weekly on its own schedule and included in cash forecasts.',
+            'Club enquiry':'Ask the current club for a transfer quote. A club agreement is separate from personal terms and medical consent.',
+            'Discuss loan':'Open a temporary-registration quote. Existing employment survives; wages return to the employer when the loan ends.',
+            'Review sale':'Choose a receiving club and review its offer. Fees, consent and squad cover are checked before final registration.',
+            'Review loan':'Arrange a temporary move to another club. A loan cannot outlast the parent employment agreement.',
+            'Personal terms':'Continue an agreed club transfer through Contracts. Both agreements must remain valid until completion.',
+            'Send club offer':'Submit the draft club fee and payment schedule. A counteroffer remains separate from your unsent edits.',
+            'Review club consent':'Agree the latest selling-club terms. No fee is paid or reserved until conditional personal acceptance.',
+            'Review conditional deal':'Reserve receiving-club capacity while medical and player-consent checks finish. Registration remains unchanged.',
+            'Review registration':'Complete the reviewed sale or loan. Club payments and registration update in one transaction.',
+            'Payments':'Inspect guaranteed dated transfer fees. They remain due after a season change or subsequent player sale.',
+            'Loans':'Inspect borrower, parent club, wage contribution and return dates. Recall requires an open registration window.',
+            'Send sponsor proposal':'Submit proposed income and duration. Signing uses the latest sponsor response, not unsent draft edits.',
+            'Review sponsor agreement':'Review exclusive rights, total payments and supporter consequences before a binding agreement.',
+
             'Continue  >':'Advance one committed day. Pending chairman decisions, staffing gaps and match reviews must be resolved first. Browsing never advances time.',
             'Next fixture':'Advance toward the next match, stopping at mandatory decisions. Use Stop or Escape to cancel between committed days.',
             'Save':'Write a manual career save. Ctrl+S also saves. Autosaves follow committed management actions; saves include match RNG and accepted obligations.',
