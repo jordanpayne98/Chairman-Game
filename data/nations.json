@@ -1,0 +1,555 @@
+{
+  "version": 1,
+  "expected_divisions": 38,
+  "expected_clubs": 636,
+  "nations": [
+    {
+      "id": "england",
+      "name": "England",
+      "division_sizes": [
+        20,
+        20,
+        20,
+        20,
+        20
+      ],
+      "exchange": 3,
+      "closed": false,
+      "playoff_top": 0,
+      "start_month": 8,
+      "end_month": 5,
+      "playable": true,
+      "cities": [
+        "Bristol",
+        "Liverpool",
+        "Manchester",
+        "Birmingham",
+        "Leeds",
+        "Sheffield",
+        "London",
+        "Newcastle",
+        "Nottingham",
+        "Leicester",
+        "Southampton",
+        "Portsmouth",
+        "Plymouth",
+        "Norwich",
+        "Reading",
+        "York",
+        "Derby",
+        "Oxford",
+        "Cambridge",
+        "Peterborough"
+      ],
+      "club_suffixes": [
+        "Athletic",
+        "Borough",
+        "Rovers",
+        "Union",
+        "Sporting"
+      ],
+      "minimum_rest_days": 3,
+      "blackout_ranges": [],
+      "first_fixture_day": 7,
+      "registration_days": 28,
+      "top_prize": 15000000,
+      "bottom_prize": 1000000,
+      "tier_prize_percent": 70,
+      "initial_ability": [
+        40,
+        62
+      ],
+      "content_status": "Development scenario"
+    },
+    {
+      "id": "scotland",
+      "name": "Scotland",
+      "division_sizes": [
+        12,
+        12,
+        12
+      ],
+      "exchange": 2,
+      "closed": false,
+      "playoff_top": 0,
+      "start_month": 8,
+      "end_month": 5,
+      "playable": false,
+      "cities": [],
+      "club_suffixes": [
+        "Athletic",
+        "Borough",
+        "Rovers",
+        "Union",
+        "Sporting"
+      ],
+      "minimum_rest_days": 3,
+      "blackout_ranges": [],
+      "first_fixture_day": 7,
+      "registration_days": 28,
+      "top_prize": 15000000,
+      "bottom_prize": 1000000,
+      "tier_prize_percent": 70,
+      "initial_ability": [
+        40,
+        62
+      ],
+      "content_status": "Format defined; scenario content pending"
+    },
+    {
+      "id": "wales",
+      "name": "Wales",
+      "division_sizes": [
+        12,
+        12
+      ],
+      "exchange": 2,
+      "closed": false,
+      "playoff_top": 0,
+      "start_month": 8,
+      "end_month": 5,
+      "playable": true,
+      "cities": [
+        "Cardiff",
+        "Swansea",
+        "Newport",
+        "Wrexham",
+        "Bangor",
+        "St Davids",
+        "Aberystwyth",
+        "Llandudno",
+        "Carmarthen",
+        "Merthyr Tydfil",
+        "Barry",
+        "Caernarfon"
+      ],
+      "club_suffixes": [
+        "Athletic",
+        "Borough",
+        "Rovers",
+        "Union",
+        "Sporting"
+      ],
+      "minimum_rest_days": 3,
+      "blackout_ranges": [],
+      "first_fixture_day": 7,
+      "registration_days": 28,
+      "top_prize": 15000000,
+      "bottom_prize": 1000000,
+      "tier_prize_percent": 70,
+      "initial_ability": [
+        40,
+        62
+      ],
+      "content_status": "Development scenario"
+    },
+    {
+      "id": "northern-ireland",
+      "name": "Northern Ireland",
+      "division_sizes": [
+        12,
+        12
+      ],
+      "exchange": 2,
+      "closed": false,
+      "playoff_top": 0,
+      "start_month": 8,
+      "end_month": 5,
+      "playable": false,
+      "cities": [],
+      "club_suffixes": [
+        "Athletic",
+        "Borough",
+        "Rovers",
+        "Union",
+        "Sporting"
+      ],
+      "minimum_rest_days": 3,
+      "blackout_ranges": [],
+      "first_fixture_day": 7,
+      "registration_days": 28,
+      "top_prize": 15000000,
+      "bottom_prize": 1000000,
+      "tier_prize_percent": 70,
+      "initial_ability": [
+        40,
+        62
+      ],
+      "content_status": "Format defined; scenario content pending"
+    },
+    {
+      "id": "ireland",
+      "name": "Republic of Ireland",
+      "division_sizes": [
+        12,
+        12
+      ],
+      "exchange": 2,
+      "closed": false,
+      "playoff_top": 0,
+      "start_month": 8,
+      "end_month": 5,
+      "playable": false,
+      "cities": [],
+      "club_suffixes": [
+        "Athletic",
+        "Borough",
+        "Rovers",
+        "Union",
+        "Sporting"
+      ],
+      "minimum_rest_days": 3,
+      "blackout_ranges": [],
+      "first_fixture_day": 7,
+      "registration_days": 28,
+      "top_prize": 15000000,
+      "bottom_prize": 1000000,
+      "tier_prize_percent": 70,
+      "initial_ability": [
+        40,
+        62
+      ],
+      "content_status": "Format defined; scenario content pending"
+    },
+    {
+      "id": "germany",
+      "name": "Germany",
+      "division_sizes": [
+        18,
+        18,
+        18
+      ],
+      "exchange": 2,
+      "closed": false,
+      "playoff_top": 0,
+      "start_month": 8,
+      "end_month": 5,
+      "playable": false,
+      "cities": [],
+      "club_suffixes": [
+        "Athletic",
+        "Borough",
+        "Rovers",
+        "Union",
+        "Sporting"
+      ],
+      "minimum_rest_days": 3,
+      "blackout_ranges": [],
+      "first_fixture_day": 7,
+      "registration_days": 28,
+      "top_prize": 15000000,
+      "bottom_prize": 1000000,
+      "tier_prize_percent": 70,
+      "initial_ability": [
+        40,
+        62
+      ],
+      "content_status": "Format defined; scenario content pending"
+    },
+    {
+      "id": "france",
+      "name": "France",
+      "division_sizes": [
+        18,
+        18,
+        18
+      ],
+      "exchange": 2,
+      "closed": false,
+      "playoff_top": 0,
+      "start_month": 8,
+      "end_month": 5,
+      "playable": false,
+      "cities": [],
+      "club_suffixes": [
+        "Athletic",
+        "Borough",
+        "Rovers",
+        "Union",
+        "Sporting"
+      ],
+      "minimum_rest_days": 3,
+      "blackout_ranges": [],
+      "first_fixture_day": 7,
+      "registration_days": 28,
+      "top_prize": 15000000,
+      "bottom_prize": 1000000,
+      "tier_prize_percent": 70,
+      "initial_ability": [
+        40,
+        62
+      ],
+      "content_status": "Format defined; scenario content pending"
+    },
+    {
+      "id": "spain",
+      "name": "Spain",
+      "division_sizes": [
+        18,
+        18,
+        18
+      ],
+      "exchange": 2,
+      "closed": false,
+      "playoff_top": 0,
+      "start_month": 8,
+      "end_month": 5,
+      "playable": false,
+      "cities": [],
+      "club_suffixes": [
+        "Athletic",
+        "Borough",
+        "Rovers",
+        "Union",
+        "Sporting"
+      ],
+      "minimum_rest_days": 3,
+      "blackout_ranges": [],
+      "first_fixture_day": 7,
+      "registration_days": 28,
+      "top_prize": 15000000,
+      "bottom_prize": 1000000,
+      "tier_prize_percent": 70,
+      "initial_ability": [
+        40,
+        62
+      ],
+      "content_status": "Format defined; scenario content pending"
+    },
+    {
+      "id": "netherlands",
+      "name": "Netherlands",
+      "division_sizes": [
+        18,
+        18
+      ],
+      "exchange": 2,
+      "closed": false,
+      "playoff_top": 0,
+      "start_month": 8,
+      "end_month": 5,
+      "playable": false,
+      "cities": [],
+      "club_suffixes": [
+        "Athletic",
+        "Borough",
+        "Rovers",
+        "Union",
+        "Sporting"
+      ],
+      "minimum_rest_days": 3,
+      "blackout_ranges": [],
+      "first_fixture_day": 7,
+      "registration_days": 28,
+      "top_prize": 15000000,
+      "bottom_prize": 1000000,
+      "tier_prize_percent": 70,
+      "initial_ability": [
+        40,
+        62
+      ],
+      "content_status": "Format defined; scenario content pending"
+    },
+    {
+      "id": "portugal",
+      "name": "Portugal",
+      "division_sizes": [
+        18,
+        18
+      ],
+      "exchange": 2,
+      "closed": false,
+      "playoff_top": 0,
+      "start_month": 8,
+      "end_month": 5,
+      "playable": false,
+      "cities": [],
+      "club_suffixes": [
+        "Athletic",
+        "Borough",
+        "Rovers",
+        "Union",
+        "Sporting"
+      ],
+      "minimum_rest_days": 3,
+      "blackout_ranges": [],
+      "first_fixture_day": 7,
+      "registration_days": 28,
+      "top_prize": 15000000,
+      "bottom_prize": 1000000,
+      "tier_prize_percent": 70,
+      "initial_ability": [
+        40,
+        62
+      ],
+      "content_status": "Format defined; scenario content pending"
+    },
+    {
+      "id": "italy",
+      "name": "Italy",
+      "division_sizes": [
+        18,
+        18,
+        18
+      ],
+      "exchange": 2,
+      "closed": false,
+      "playoff_top": 0,
+      "start_month": 8,
+      "end_month": 5,
+      "playable": false,
+      "cities": [],
+      "club_suffixes": [
+        "Athletic",
+        "Borough",
+        "Rovers",
+        "Union",
+        "Sporting"
+      ],
+      "minimum_rest_days": 3,
+      "blackout_ranges": [],
+      "first_fixture_day": 7,
+      "registration_days": 28,
+      "top_prize": 15000000,
+      "bottom_prize": 1000000,
+      "tier_prize_percent": 70,
+      "initial_ability": [
+        40,
+        62
+      ],
+      "content_status": "Format defined; scenario content pending"
+    },
+    {
+      "id": "brazil",
+      "name": "Brazil",
+      "division_sizes": [
+        18,
+        18,
+        18
+      ],
+      "exchange": 2,
+      "closed": false,
+      "playoff_top": 0,
+      "start_month": 2,
+      "end_month": 11,
+      "playable": true,
+      "cities": [
+        "Curitiba",
+        "São Paulo",
+        "Rio de Janeiro",
+        "Brasília",
+        "Salvador",
+        "Fortaleza",
+        "Recife",
+        "Porto Alegre",
+        "Manaus",
+        "Belém",
+        "Goiânia",
+        "Santos",
+        "Campinas",
+        "Natal",
+        "Maceió",
+        "João Pessoa",
+        "Vitória",
+        "Florianópolis"
+      ],
+      "club_suffixes": [
+        "Athletic",
+        "Borough",
+        "Rovers",
+        "Union",
+        "Sporting"
+      ],
+      "minimum_rest_days": 3,
+      "blackout_ranges": [],
+      "first_fixture_day": 7,
+      "registration_days": 28,
+      "top_prize": 15000000,
+      "bottom_prize": 1000000,
+      "tier_prize_percent": 70,
+      "initial_ability": [
+        40,
+        62
+      ],
+      "content_status": "Development scenario"
+    },
+    {
+      "id": "argentina",
+      "name": "Argentina",
+      "division_sizes": [
+        18,
+        18,
+        18
+      ],
+      "exchange": 2,
+      "closed": false,
+      "playoff_top": 0,
+      "start_month": 2,
+      "end_month": 11,
+      "playable": false,
+      "cities": [],
+      "club_suffixes": [
+        "Athletic",
+        "Borough",
+        "Rovers",
+        "Union",
+        "Sporting"
+      ],
+      "minimum_rest_days": 3,
+      "blackout_ranges": [],
+      "first_fixture_day": 7,
+      "registration_days": 28,
+      "top_prize": 15000000,
+      "bottom_prize": 1000000,
+      "tier_prize_percent": 70,
+      "initial_ability": [
+        40,
+        62
+      ],
+      "content_status": "Format defined; scenario content pending"
+    },
+    {
+      "id": "usa",
+      "name": "USA",
+      "division_sizes": [
+        16,
+        16
+      ],
+      "exchange": 0,
+      "closed": true,
+      "playoff_top": 8,
+      "start_month": 2,
+      "end_month": 11,
+      "playable": false,
+      "cities": [],
+      "club_suffixes": [
+        "Athletic",
+        "Borough",
+        "Rovers",
+        "Union",
+        "Sporting"
+      ],
+      "minimum_rest_days": 3,
+      "blackout_ranges": [],
+      "first_fixture_day": 7,
+      "registration_days": 28,
+      "top_prize": 15000000,
+      "bottom_prize": 1000000,
+      "tier_prize_percent": 70,
+      "initial_ability": [
+        40,
+        62
+      ],
+      "content_status": "Format defined; scenario content pending"
+    }
+  ],
+  "release_ready": false,
+  "pending_content": [
+    "Validated background feeder pools",
+    "Connected multi-country simulation",
+    "Continental allocations and supporting entrants",
+    "USA championship playoffs",
+    "Authored identities, twenty-season histories and national population pools",
+    "Complete senior/youth/reserve squads and financial tuning"
+  ]
+}

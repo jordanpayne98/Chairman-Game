@@ -75,6 +75,16 @@ def process_day(s):
         log(s,cid,'registration',d['reason'],player=p['id'],fee=d['fee']+d['signing_fee'])
         news(s,'League recruitment',next(c['name'] for c in s['clubs'] if c['id']==cid)+' signed '+p['name']+'.')
     if day%cfg['review_days']:return
+    # Employment does not change inside the review phase. Cache release cover
+    # once; pending bids still get their normal per-player checks below.
+    cover={}
+    for p in s['players']:
+        if p['club'] and not p['retired'] and not p['youth']:
+            row=cover.setdefault(p['club'],[0,0]);row[0]+=1;row[1]+=int(p['role']=='GK')
+    market_cfg=s['config']['market']
+    releasable={p['id'] for p in s['players'] if p['club'] in cover
+                and cover[p['club']][0]-1>=market_cfg['minimum_squad']
+                and cover[p['club']][1]-int(p['role']=='GK')>=market_cfg['minimum_goalkeepers']}
     for club in s['clubs'][1:]:
         cid=club['id'];s['club_ai']['last_review'][cid]=day;b=budgets(s,cid)
         squad=[p for p in s['players'] if p['club']==cid and not p['retired'] and not p['youth']]
@@ -97,17 +107,24 @@ def process_day(s):
                 p['contract_end']=contractual_end(s,3);log(s,cid,'player renewal','Retain existing squad cover at affordable current terms.',player=p['id'])
         log(s,cid,'finance','Checked current payroll, all dated transfer bills and three weeks of running-cost cover.',cash=market.club_cash(s,cid),payroll=market.club_payroll(s,cid),reserve=b['reserve'])
         if day>=window_end(s)-cfg['medical_days'] or len(squad)>=cfg['max_squad'] or any(d['club']==cid and d['status']=='medical' for d in s['club_ai']['decisions']):continue
-        candidates=[]
+        candidates=[];current_cash=market.club_cash(s,cid);current_payroll=market.club_payroll(s,cid)
+        arrival_cache={}
         for p in s['players']:
             if p['club'] in ('c0',cid) or p['youth'] or p['retired'] or market.active_loan(s,p['id']) or pending_for(s,p['id']) or market.active_deal(s,p['id']):continue
             o=s['career']['offers'].get(p['id'])
             if o and o['status'] not in market.TERMINAL:continue
-            if p['club'] and not market.can_release(s,p,p['club']):continue
+            if p['club'] and p['id'] not in releasable:continue
             fee=market.quote(s,p) if p['club'] else 0;signing=p['fee']
-            if market.club_cash(s,cid)-fee-signing-b['fees']-b['bills']<b['reserve']+p['wage']*cfg['reserve_weeks']:continue
-            if market.club_payroll(s,cid)+p['wage']+b['wages']>b['wage_limit']:continue
-            try:registration.check_arrival(s,p,cid)
-            except ValueError:continue
+            if current_cash-fee-signing-b['fees']-b['bills']<b['reserve']+p['wage']*cfg['reserve_weeks']:continue
+            if current_payroll+p['wage']+b['wages']>b['wage_limit']:continue
+            # Candidates have no active deal, bid or target-club employment.
+            # Eligibility here varies only by these three registration traits.
+            rules=s['config']['competition']
+            signature=(p['age']>=rules['exempt_under'],p['age']<rules['minimum_age'],p['homegrown'])
+            if signature not in arrival_cache:
+                try:registration.check_arrival(s,p,cid);arrival_cache[signature]=True
+                except ValueError:arrival_cache[signature]=False
+            if not arrival_cache[signature]:continue
             current=[q for q in squad if q['role']==p['role']]
             worst=min((observation(s,cid,q)['estimate'] for q in current),default=0)
             estimate=observation(s,cid,p)['estimate'];need=max(0,{'GK':2,'DEF':6,'MID':6,'FWD':4}[p['role']]-len(current))

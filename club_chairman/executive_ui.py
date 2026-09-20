@@ -8,7 +8,7 @@ from .presentation import crest
 
 TITLES = {'Overview': "Chairman’s overview", 'Inbox': 'Decision centre', 'Squad': 'First-team squad',
           'Recruitment': 'Recruitment', 'Facilities': 'Stadium & facilities', 'League': 'Competitions',
-          'CupHistory': 'Archived Northshire Cup', 'Cup': 'Northshire Cup', 'Career': 'Club history & career', 'Comparison': 'Player comparison'}
+          'CupHistory': 'Archived domestic cup', 'Cup': 'Domestic cup', 'Career': 'Club history & career', 'Comparison': 'Player comparison'}
 DESCRIPTIONS = {'Overview': 'Your club, your decisions. Here’s what needs your attention.',
     'Squad': 'Contracts, registration and availability. Selection belongs to your manager.',
     'Recruitment': 'Build your shortlist with evidence, context and clear commitments.',
@@ -126,15 +126,25 @@ class ExecutiveScreens:
         callback=(lambda:self.nav('Matchday' if self.v['match'] else 'Overview')) if self.state else (lambda:self.load_entry(latest['path'])) if latest else (lambda:None)
         self.button('Resume career' if self.state else 'Continue career',(104,489,359,53),callback,bool(self.state or latest))
         self.clipped_text(self.club('c0')+'  /  '+self.v['date'] if self.state else latest['label'] if latest else 'No saved career yet. Begin your first story.',104,552,359,18,MUTED)
-        self.button('New career',(104,602,359,48),lambda:self.confirm('Start a new career?','Begin with Northbridge Athletic in the Northshire Premier, with a second division and promotion/relegation. A fresh seed creates the squad. Existing saved careers are kept.',self.start))
+        from . import nations
+        choices=[dict(id='compact',name='Compact',division_sizes=[8,8],start_month=8,end_month=11)]+[n for n in nations.catalogue()['nations'] if n['playable']]
+        chosen=next(n for n in choices if n['id']==self.new_scenario)
+        self.button('New career',(104,602,359,48),lambda:self.confirm('Start a new career?',f"Begin with Northbridge Athletic in the {chosen['name']} scenario: {len(chosen['division_sizes'])} divisions and {sum(chosen['division_sizes'])} clubs. A fresh seed creates the squads. National scenarios simulate one country; other nations, feeder pools and continental cups are not active yet. Existing saved careers are kept.",lambda id=chosen['id']:self.start(id)))
+        self.panel(914,225,422,302)
+        self.text('CAREER SCENARIO',938,250,16,GREEN)
+        index=choices.index(chosen)
+        self.button('Scenario: '+chosen['name'],(938,286,374,46),lambda:setattr(self,'new_scenario',choices[(index+1)%len(choices)]['id']))
+        desc=f"{len(chosen['division_sizes'])} divisions / {sum(chosen['division_sizes'])} clubs\n{2*(chosen['division_sizes'][0]-1)} league matches per club\n"+('Compact calendar' if chosen['id']=='compact' else 'August–May' if chosen['start_month']==8 else 'February–November')
+        self.wrap(desc,938,350,370,23,MUTED)
+        self.wrap('One playable national system. Development club content; wider world still to come.' if chosen['id']!='compact' else 'Short seasons in the familiar Northshire development world.',938,443,370,20,MUTED)
         self.button('Load / recover career',(104,664,359,48),lambda:self.nav('Load'))
         self.button('Settings',(104,728,166,43),lambda:self.nav('Settings'))
         self.button('Quit',(285,728,178,43),self.quit_request)
         self.panel(914,560,422,214)
         self.text('THE OWNERSHIP GAME',938,587,16,GREEN)
         self.wrap('Appoint the people.\nMake the big decisions.\nLeave a lasting club.',938,627,370,29,TEXT)
-        self.text('DIVISIONS UPDATE 0.11',104,820,16,FAINT)
-        self.text('Two divisions  /  Playable development build',914,820,16,FAINT)
+        self.text('NATIONAL CALENDARS 0.12',104,820,16,FAINT)
+        self.text('Single-country scenarios / Development build',914,820,16,FAINT)
 
     def executive_overview(self,x):
         from .ui import money
@@ -320,18 +330,19 @@ class ExecutiveScreens:
         self.text(d['name'].upper(),x,200,24,GREEN)
         other=data['divisions'][(index+1)%len(data['divisions'])]
         self.button('Switch division',(974,190,205,42),lambda:(setattr(self,'league_id',other['id']),setattr(self,'page',0)),len(data['divisions'])>1)
-        self.button('Northshire Cup',(1200,190,200,42),lambda:self.nav('Cup'))
+        self.button(self.v['competitions']['cup']['name'] if self.v['competitions']['cup'] else 'Northshire Cup',(1200,190,200,42),lambda:self.nav('Cup'))
         self.text('CLUB',x+15,245,20,MUTED)
         for i,t in enumerate(['P','W','D','L','GF','GA','PTS']):self.text(t,890+i*70,245,20,MUTED)
         count=data['exchange']
-        for i,c in enumerate(rows):
-            y=285+i*43
+        self.page=min(self.page,max(0,(len(rows)-1)//8))
+        for local,c in enumerate(rows[self.page*8:self.page*8+8]):
+            i=self.page*8+local;y=285+local*43
             if c['id']=='c0':pygame.draw.rect(self.canvas,SELECTED,(x,y-8,1400-x,40),border_radius=4)
-            self.text(f"{i+1}   {c['name']}",x+15,y,24)
+            self.clipped_text(f"{i+1}   {c['name']}",x+15,y,540,24)
             marker='UP' if index>0 and i<count else 'DOWN' if index<len(data['divisions'])-1 and i>=len(rows)-count else ''
             if marker:self.text(marker,815,y+4,16,GREEN if marker=='UP' else WARNING)
             for j,key in enumerate(['played','won','drawn','lost','gf','ga','points']):self.text(c[key],890+j*70,y,24)
-        rule='Legacy season: second division added next season.' if data['legacy'] else f'{count} clubs move each way. '+('No lower feeder division in this development world.' if index else f'Bottom {count} relegated to the Championship.')
+        rule='Legacy season: second division added next season.' if data['legacy'] else f'{count} clubs move each way. '+('No lower feeder division in this development world.' if index==len(data['divisions'])-1 else f'Bottom {count} move to the next division.')
         self.clipped_text(rule,x+15,636,1100,18,MUTED)
         self.text('Tie-breaks: points, goal difference, goals scored, head-to-head points, recorded draw.' if not data['legacy'] else 'This saved season retains its original tie-break rules.',x+15,662,17,MUTED)
         if data['closed']:
@@ -341,8 +352,9 @@ class ExecutiveScreens:
             self.button('Season review',(1160,700,240,42),lambda:self.nav('Career'))
         else:
             self.text('Membership is fixed for this season. Results determine next season’s division.',x+15,714,20,MUTED)
-        self.button('Your division',(x,781,200,42),lambda:setattr(self,'league_id',data['own_division']))
-        self.button('Fixtures & reports',(x+225,781,240,42),lambda:self.nav('Fixtures'))
+        self.pager(x,781,len(rows),8)
+        self.button('Your division',(x+465,781,170,42),lambda:(setattr(self,'league_id',data['own_division']),setattr(self,'page',0)))
+        self.button('Fixtures & reports',(x+650,781,230,42),lambda:self.nav('Fixtures'))
 
         played=[f for f in self.v['fixtures'] if f['result'] is not None and 'c0' in (f['home'],f['away'])]
         self.button('Open match report',(1160,781,240,42),lambda:self.open_report(played[-1]['id']),bool(played))

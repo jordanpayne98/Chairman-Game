@@ -4,7 +4,7 @@ Domain functions operate only on the caller's uncommitted state copy. Simulation
 imports are local to keep the existing match engine separate from career policy.
 """
 from copy import deepcopy
-from . import market, clauses, people, registration, staff, club_ai, leagues
+from . import market, clauses, people, registration, staff, club_ai, leagues, nations
 
 CAREER_DEFAULTS = dict(season_gap=14, offer_lifetime=7,
                       medical_days=2, manager_notice_weeks=4, academy_trial_fee=200000,
@@ -34,11 +34,12 @@ def initialise(s):
 
 
 def season_end(s):
+    if s.get('calendar'):return s['calendar']['end']
     # Undrawn knockout rounds already reserve real dates in this campaign.
     cup=s.get('competitions',{}).get('cup')
     dates=cup['dates'] if cup else []
     return max([f['day'] for f in s['fixtures']]+dates)
-def window_end(s):return s['career']['start']+28
+def window_end(s):return s['career']['start']+s['config'].get('nation',{}).get('registration_days',28)
 
 
 def available_capacity(s):
@@ -60,7 +61,9 @@ def manager_severance(s):
 
 
 def contractual_end(s,duration):
-    # The compact test league has fourteen weekly rounds and a two-week preseason.
+    if s.get('calendar'):
+        return nations.contract_end(s['config']['nation'],s['config']['start_date'],s['calendar']['year'],duration,s['season_done'])
+    # Compact saves retain their original season-length arithmetic.
     span=season_end(s)-s['career']['start']+s['config']['career']['season_gap']
     return season_end(s)+span*(duration-1 if not s['season_done'] else duration)
 
@@ -91,7 +94,9 @@ def new_person(s,role,age,level,key,youth=False):
                 attrs=attrs,wage=(100 if youth else 450+level*13)*100,fee=(500 if youth else 3000+level*350)*100,
                 goals=0,appearances=0,career_goals=0,career_appearances=0,contract_end=None,youth=youth,retired=False,
                 birth_day=s['day']-age*365-rng.randrange(365),injury_until=0)
-    return people.enrich(s,result) if 'people' in s['config'] else result
+    if 'people' in s['config']:result=people.enrich(s,result)
+    if s['config'].get('nation'):result.update(nationality=s['config']['nation']['name'],homegrown=True)
+    return result
 
 
 def process_day(s):
@@ -310,10 +315,12 @@ def apply(s,action,data):
         from . import competitions
         c['history'][-1]['competitions']=deepcopy(s['competitions'])
         c['history'][-1]['leagues']=leagues.snapshot(s)
+        if s.get('calendar'):c['history'][-1]['calendar']=deepcopy(s['calendar'])
         for o in c['offers'].values():
             if o['status'] not in ('completed','withdrawn','expired','rejected'):
                 o['status']='expired';market.close_purchase(s,o,'Season closed before registration.');o['transcript'].append('Season closed: unfinished discussion expired and reserved capacity released.')
         old_end=season_end(s);c['season']+=1;c['start']=old_end+settings['season_gap'];s['season_done']=False
+        if s.get('calendar'):nations.prepare(s,s['calendar']['year']+1)
         leagues.rollover(s)
         for club in s['clubs']:
             for key in ('played','won','drawn','lost','gf','ga','points'):club[key]=0
@@ -328,12 +335,13 @@ def apply(s,action,data):
             for role,count in (('GK',2),('DEF',6),('MID',6),('FWD',4)):
                 pool=[p for p in s['players'] if p['club']==club['id'] and p['role']==role and not p['retired']]
                 for i in range(max(0,count-len(pool))):
-                    p=new_person(s,role,19,48+int(club['id'][1:]),f"background:{c['season']}:{club['id']}:{role}:{i}")
-                    p.update(club=club['id'],contract_end=c['start']+96);s['players'].append(p)
+                    level=sum(s['config']['nation']['initial_ability'])//2 if s.get('calendar') else 48+int(club['id'][1:])
+                    p=new_person(s,role,19,level,f"background:{c['season']}:{club['id']}:{role}:{i}")
+                    p.update(club=club['id'],contract_end=season_end(s) if s.get('calendar') else c['start']+96);s['players'].append(p)
         active_free=[p for p in s['players'] if p['club'] is None and not p['youth'] and not p['retired']]
         for i in range(max(0,12-len(active_free))):s['players'].append(new_person(s,('GK','DEF','MID','FWD')[i%4],21,45+i%20,f"market:{c['season']}:{i}"))
         leagues.schedule(s)
         competitions.start_season(s)
-        news(s,'New season prepared',f"Season {c['season']} is ready. The two-week preseason advances normally with wages and deadlines. Review expiring contracts before Continue.")
+        news(s,'New season prepared',f"Season {c['season']} is ready. Preseason advances normally with wages and deadlines until the new fixtures begin. Review expiring contracts before Continue.")
         return 'New fixtures created. History retained. No days or recurring payments have been skipped.'
     return None

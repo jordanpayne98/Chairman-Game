@@ -23,8 +23,8 @@ def start_season(s):
     cfg=s['config']['cup'];members=sorted(c['id'] for c in s['clubs'])
     require(len(members)>=2,'A cup needs at least two entrants.')
     count=(len(members)-1).bit_length()
-    require(len(cfg['round_days'])>=count,'The cup calendar has too few round dates.')
-    dates=[s['career']['start']+d for d in cfg['round_days'][-count:]]
+    require(s.get('calendar') or len(cfg['round_days'])>=count,'The cup calendar has too few round dates.')
+    dates=list(s['calendar']['cup_days']) if s.get('calendar') else [s['career']['start']+d for d in cfg['round_days'][-count:]]
     require(all(type(d) is int for d in dates) and dates==sorted(set(dates)), 'Cup dates must be distinct and increasing.')
     require(all(b-a>=cfg['minimum_rest_days'] for a,b in zip(dates,dates[1:])), 'Cup rounds do not allow enough recovery.')
     require(all(abs(f['day']-day)>=cfg['minimum_rest_days'] for f in s['fixtures'] for day in dates), 'Cup dates conflict with league recovery time.')

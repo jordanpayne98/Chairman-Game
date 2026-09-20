@@ -31,7 +31,7 @@ def signing_terms(v, players):
     """An illustrative completion-today scenario, using current agent terms when known."""
     targets = [p for p in players if p['club']!='c0' and not p.get('loan')]
     span=v['season_end']-v.get('season_start',0)+v.get('career_settings',{}).get('season_gap',14)
-    default_end=v['season_end']+span*(2 if v['season_done'] else 1)
+    default_end=v.get('contract_ends',{}).get('2',v['season_end']+span*(2 if v['season_done'] else 1))
     offers=v.get('career',{}).get('offers',{})
     contracts=[]
     for p in targets:
