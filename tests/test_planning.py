@@ -36,7 +36,7 @@ class PlanningTests(unittest.TestCase):
             self.assertEqual(old[key],self.s[key],key)
         with tempfile.TemporaryDirectory() as root:
             path=Path(root)/'save.sqlite3';save(self.s,path);self.assertEqual(load(path),self.s)
-        for key,value in [('comparison',['p144']*2),('comparison',[f'p{i}' for i in range(144,149)]),('shortlist',['p90']),('notes',{'p144':'x'*241}),('inbox_read',5)]:
+        for key,value in [('comparison',['p144']*2),('comparison',[f'p{i}' for i in range(144,149)]),('shortlist',['p999']),('notes',{'p144':'x'*241}),('inbox_read',5)]:
             with self.assertRaises(ValueError):self.act('planning',key=key,value=value)
 
     def test_schema_one_midmatch_upgrade_preserves_original_and_rng(self):
@@ -52,7 +52,7 @@ class PlanningTests(unittest.TestCase):
                 db.execute('INSERT INTO entities VALUES (?,?)',('world',raw));db.commit()
             finally:db.close()
             original=path.read_bytes();upgraded=load(path)
-            self.assertEqual(path.read_bytes(),original);self.assertEqual(upgraded['schema'],3)
+            self.assertEqual(path.read_bytes(),original);self.assertEqual(upgraded['schema'],4)
             original_finish,_=execute(self.s,Command('end',self.s['revision'],'match_step',{'minutes':90}))
             loaded_finish,_=execute(upgraded,Command('end',upgraded['revision'],'match_step',{'minutes':90}))
             for key in ('fixtures','cash','clubs','players','ledger'):

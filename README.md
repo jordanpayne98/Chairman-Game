@@ -1,4 +1,4 @@
-# Club Chairman — Contracts Update (0.4)
+# Club Chairman — Transfer and Commercial Update (0.5)
 
 A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic through continuing 14-match seasons in an eight-club fictional development league. This is a playable development version; the approved full AA game is still being built.
 
@@ -15,11 +15,24 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1 and 0.2 / schema 1 and 2 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 3. Older executables cannot read these new saves. Existing contracts retain their original expiry dates; renew before advancing beyond them. New careers start with longer contracts to introduce the continuing-season loop. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1–0.4 / schema 1–3 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 4. Older executables cannot read these new saves. Existing contracts retain their original expiry dates; renew before advancing beyond them. New careers start with longer contracts to introduce the continuing-season loop. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
-## New in 0.4
+## New in 0.5
+
+- Recruitment includes contracted players, with retained market filters, scouting, notes, shortlists and authorised comparisons. True abilities remain hidden.
+- Transfers desk: negotiate a selling-club fee, immediate percentage and deferred date, then complete personal terms and medical through Contracts. Club and player consent must both be valid; cash, registration and future obligations commit together.
+- Player sales: select a receiving club, obtain a persisted quote, complete consent/medical checks and confirm registration. Both clubs record the same cash transfer; insufficient counterparty funds or inadequate remaining squad cover blocks completion.
+- Incoming and outgoing senior loans: borrower wage shares from 50–100%, consent, medical and final review, preserved original employment, automatic return and window-limited recall. Early recall refunds the unserved fee proportion, shown before approval. Current UI uses a 56-day quote; shorter employment shortens it. The command model supports 14–84 days.
+- Dated transfer obligations survive season changes and are paid exactly once. Transfers > Payments lists them. Loans > Review recall shows refunds and returning wage responsibility.
+- Commercial: training, digital and stadium rights; editable income/duration proposals, counteroffers, exclusivity validation, weekly settlements, expiry and naming-rights supporter effects. Active naming rights appear on the ground screen. The legacy core sponsorship remains separate.
+- Forecasts include signed sponsorship schedules, deferred transfer payments and loan wage returns. Proposed acquisitions remain explicitly hypothetical; draft and competing reservations are separated.
+- Counterparty club cash ledgers, daily wage accrual, provisional weekly operating income and retained unpaid accrual support these transactions. This is a limited counterparty model, not completed AI financial management.
+
+Existing careers migrate to schema 4 in memory, without rewriting the source save or changing existing employment/match RNG. New files cannot be opened by old executables. No lost historical club financial records are invented: counterparty accounts begin at upgrade with explicit provisional opening balances.
+
+## Included from 0.4
 
 - One senior-player signing workflow: enquiry, agent terms, conditional acceptance, medical and final registration. The instant-signing bypass is removed; existing signed contracts are unchanged.
 - Contract progress strip, editable Terms, Cash review and paginated Conversation tabs. Counteroffer changes, deadlines, competing reservations and renewal exposure are visible before approval.
@@ -28,7 +41,7 @@ Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves,
 - Reopening a closed discussion retains its transcript and outcome in Contracts > History. Older saves have no invented past history; records accumulate from this update onward.
 - Late medicals that cannot finish before registration closes are rejected without reserving capacity. Completion rechecks manager availability, cash and wages.
 
-Saves remain schema 3, with optional retained offer history. Existing schema 1–3 careers load without altering the source file or existing employment. This completes a focused recruitment workflow, not the entire GDD contract catalogue or AA release.
+The 0.4 release used schema 3 with retained offer history; 0.5 carries those records into schema 4 without altering source saves or existing employment. This completes a focused recruitment workflow, not the entire GDD contract catalogue or AA release.
 
 ## Included from 0.3
 
@@ -41,7 +54,7 @@ Saves remain schema 3, with optional retained offer history. Existing schema 1�
 - Contextual hover explanations and keyboard F2 help; financial assumptions available through Why this forecast?; cached presentation snapshots for the expanded screens.
 - Correct forecast settlement during a paused final away match and a verified migration from an actual 0.2 mid-match save.
 
-Full transfers, loans, clauses and delegation remain on the release checklist. Senior-player free-agent signings and renewals now share the reviewed contract workflow.
+Full clause coverage, advanced loan restrictions and delegation remain on the release checklist. Senior-player free-agent signings and renewals now share the reviewed contract workflow.
 
 ## Included from 0.2
 
@@ -65,7 +78,7 @@ Full transfers, loans, clauses and delegation remain on the release checklist. S
 
 ## Preview boundaries
 
-This is an early playable version, not the finished AA game. The eight-club compact calendar remains development content. Full 14-nation world content, career creation/acquisitions, owner succession, multi-club groups, full attributes/potential, all staff roles/delegation, club transfers/loans/clauses, full football rules, promotion/cups, commercial systems, AI finances, detailed assets and the remaining accessibility/QoL requirements are still pending. The new career systems are connected playable implementations of a subset of their approved scope.
+This is an early playable version, not the finished AA game. The eight-club compact calendar remains development content. Full 14-nation world content, career creation/acquisitions, owner succession, multi-club groups, full attributes/potential, all staff roles/delegation, full transfer/loan clauses and rules, full football rules, promotion/cups, complete commercial demand and rights obligations, autonomous AI finances, detailed assets and the remaining accessibility/QoL requirements are still pending. The new career systems are connected playable implementations of a subset of their approved scope.
 
 See [release readiness](docs/RELEASE_READINESS.md) for the complete retained scope and [the asset register](docs/ASSET_REGISTER.md) for artwork/audio provenance. No full AA release gate is claimed complete.
 

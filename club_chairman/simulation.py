@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career
+from . import career, market, commercial
 
 
 @dataclass(frozen=True)
@@ -78,6 +78,8 @@ def new_career(seed=42):
             if rnd >= 7: a,b = b,a
             world['fixtures'].append(dict(id=f'f{rnd}-{j}', day=5+rnd*7, home=f'c{a}', away=f'c{b}', result=None))
     career.initialise(world)
+    market.initialise(world)
+    commercial.initialise(world)
     for p in world['players']:
         if p['club']:p['contract_end']=316
     news(world, 'Welcome to Northbridge', 'Appoint a manager, review your wage budget, and request scouting before the first match. The compact eight-club league now continues into further seasons.')
@@ -106,7 +108,7 @@ def posting(s, key, amount, reason):
 
 
 def payroll(s):
-    return sum(p['wage'] for p in s['players'] if p['club'] == 'c0') + (s['manager']['wage'] if s['manager'] else 0)
+    return market.club_payroll(s,'c0') if 'market' in s else sum(p['wage'] for p in s['players'] if p['club']=='c0')+(s['manager']['wage'] if s['manager'] else 0)
 
 
 def table(s):
@@ -144,11 +146,15 @@ def execute(state, command):
 
 def apply(s, action, payload):
     cfg = s['config']
+    result=market.apply(s,action,payload)
+    if result is not None:return result
+    result=commercial.apply(s,action,payload)
+    if result is not None:return result
     result=career.apply(s,action,payload)
     if result is not None:return result
     if action == 'planning':
         key = payload.get('key'); value = payload.get('value')
-        known = {p['id'] for p in s['players'] if p['club'] in (None, 'c0')}
+        known = {p['id'] for p in s['players']}
         require(key in ('shortlist', 'comparison', 'notes', 'inbox_read'), 'Unknown planning record.')
         if key in ('shortlist', 'comparison'):
             require(isinstance(value, list) and all(isinstance(x, str) for x in value), 'Invalid player selection.')
@@ -188,7 +194,7 @@ def apply(s, action, payload):
     if action == 'scout':
         require(not s['season_done'] and s['match'] is None, 'Recruitment is closed during matchday or after season end.')
         p = next((x for x in s['players'] if x['id'] == payload.get('id')), None)
-        require(p is not None and p['club'] is None, 'This player is no longer a free agent.')
+        require(p is not None and p['club'] != 'c0', 'This player is already at your club.')
         require(not p['retired'] and not p['youth'],'Use Academy for youth admissions; retired people cannot be signed.')
         require(p['id'] not in s['scouting'] and p['id'] not in s['reports'], 'A report exists or scouting is already in progress.')
         require(career.free_cash(s,cfg['scout_fee']), 'Insufficient available cash for scouting.')
@@ -222,7 +228,10 @@ def apply(s, action, payload):
         # Advance one committed day at a time. UI offers bounded batching to next fixture.
         tomorrow = s['day'] + 1
         s['day']=tomorrow
+        commercial.process_day(s)
+        market.process_day(s)
         career.process_day(s)
+        market.accrue_accounts(s)
         if tomorrow % 7 == 0:
             due = (s['accrued_costs'] + payroll(s) + cfg['weekly_overheads']) // 7
             require(s['cash'] + cfg['weekly_sponsor'] >= due, 'Payroll shortfall: inject owner funds before Continue. No unpaid day has advanced.')
@@ -386,7 +395,9 @@ def settle_matchday(s):
 
 
 def validate(s):
-    require(s.get('schema')==3,'Unsupported save schema. This build supports schema 3.')
+    require(s.get('schema')==4,'Unsupported save schema. This build supports schema 4.')
+    market.validate(s)
+    commercial.validate(s)
     require(type(s['cash']) is int and type(s['owner_cash']) is int,'Invalid cash data.')
     require(s['cash']==s['config']['opening_cash']+sum(x['amount'] for x in s['ledger']),'Cash does not reconcile with the ledger.')
     require(len({x['id'] for x in s['ledger']})==len(s['ledger']),'Duplicate financial posting.')
@@ -398,7 +409,7 @@ def validate(s):
     require(len({f['id'] for f in s['fixtures']})==len(s['fixtures']),'Duplicate fixture identity.')
     require(all(p['wage']>=0 and type(p['wage']) is int for p in s['players']),'Invalid wages.')
     require(all(p['status'] in ('feasibility','quoted','construction','operational','cancelled') for p in s['career']['projects']),'Invalid project status.')
-    known = {p['id'] for p in s['players'] if p['club'] in (None, 'c0')}
+    known = {p['id'] for p in s['players']}
     plan = s['planning']
     for key, limit in (('shortlist', len(known)), ('comparison', 4)):
         require(isinstance(plan[key], list) and all(isinstance(x, str) for x in plan[key]), 'Invalid saved planning selection.')
@@ -411,10 +422,11 @@ def view(s):
     """Authorised UI snapshot. Latent attributes and random states never leave here."""
     players=[]
     for p in s['players']:
-        if p['club'] not in (None,'c0'):continue
         row={k:p[k] for k in ('id','name','club','role','age','wage','fee','goals','appearances','contract_end','youth','retired','injury_until','career_goals','career_appearances')}
         row['report']=deepcopy(s['reports'].get(p['id']))
         row['scout_due']=s['scouting'].get(p['id'])
+        row['transfer_quote']=market.quote(s,p) if p['club'] not in (None,'c0') else 0
+        row['loan']=deepcopy(market.active_loan(s,p['id']))
         players.append(row)
     m=None if s['match'] is None else {k:deepcopy(v) for k,v in s['match'].items() if k!='rng'}
     snapshot = dict(revision=s['revision'],date=calendar_date(s),day=s['day'],start_date=s['config']['start_date'],cash=s['cash'],owner_cash=s['owner_cash'],budget=s['budget'],
@@ -428,6 +440,10 @@ def view(s):
                 season=s['career']['season'],season_start=s['career']['start'],window_end=career.window_end(s),
                 career=deepcopy(s['career']),reserved_cash=career.reservations(s)[0],reserved_wages=career.reservations(s)[1],
                 severance=career.manager_severance(s),career_settings=deepcopy(s['config']['career']),project_specs=deepcopy(s['config']['projects']))
+    snapshot['market']={k:deepcopy(s['market'][k]) for k in ('deals','loans','obligations')}
+    snapshot['commercial']=deepcopy(s['commercial'])
+    snapshot['market_settings']=deepcopy(s['config']['market'])
+    snapshot['commercial_settings']=deepcopy(s['config']['commercial'])
     snapshot['terms']['capacity']=career.available_capacity(s)
     snapshot['terms']['physical_capacity']=s['config']['capacity']
     return snapshot
