@@ -362,7 +362,7 @@ class CareerScreens(ClauseScreens):
         if not target:return
         rect,message,_=target;w=435
         x=max(12,min(1440-w-12,rect.x));y=rect.bottom+10
-        font=self.fonts.setdefault(22,pygame.font.Font(None,22));lines=1;line=''
+        font=self.get_font(22);lines=1;line=''
         for word in message.split():
             if font.size(line+' '+word)[0]>w-32:lines+=1;line=word
             else:line+=' '+word

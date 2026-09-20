@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import sys
 
-subprocess.run([sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onedir','--console','--hide-console','hide-early','--name','ClubChairman','--add-data','data:data','launch.py'],check=True)
+subprocess.run([sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onedir','--console','--hide-console','hide-early','--name','ClubChairman','--add-data','data:data','--add-data','assets:assets','launch.py'],check=True)
 out=Path('dist/ClubChairman')
 shutil.copyfile('README.md',out/'READ-ME.md')
 shutil.copyfile('AGENTS.md',out/'AGENTS.md')

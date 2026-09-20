@@ -4,6 +4,9 @@ import math
 import random
 from array import array
 import pygame
+from .theme import ASSETS
+
+_crest_cache = {}
 
 PALETTES=[((52,133,104),(236,222,181)),((55,94,143),(220,232,241)),((163,68,60),(245,223,182)),
           ((121,82,155),(226,216,241)),((51,128,137),(215,235,225)),((168,139,60),(39,48,57)),
@@ -17,6 +20,15 @@ def palette(key):
 
 def crest(surface,key,rect):
     r=pygame.Rect(rect);primary,trim=palette(key)
+    if key=='c0':
+        # Exact Northbridge asset from the approved Figma file. Other clubs keep
+        # their established identities; sample Figma opponents are not game data.
+        size=(r.w,r.h)
+        if size not in _crest_cache:
+            image=pygame.image.load(str(ASSETS/'figma/crest.png')).convert_alpha()
+            scale=min(r.w/image.get_width(),r.h/image.get_height())
+            _crest_cache[size]=pygame.transform.smoothscale(image,(max(1,round(image.get_width()*scale)),max(1,round(image.get_height()*scale))))
+        image=_crest_cache[size];surface.blit(image,image.get_rect(center=r.center));return
     points=[(r.x+r.w*.1,r.y+r.h*.1),(r.centerx,r.y),(r.right-r.w*.1,r.y+r.h*.1),
             (r.right-r.w*.14,r.y+r.h*.65),(r.centerx,r.bottom),(r.x+r.w*.14,r.y+r.h*.65)]
     pygame.draw.polygon(surface,trim,points)
