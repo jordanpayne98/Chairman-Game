@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai
+from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions
 from .football import finished as match_finished
 
 
@@ -85,11 +85,12 @@ def new_career(seed=42):
     clauses.initialise(world)
     people.initialise(world);registration.initialise(world);football.initialise(world)
     staff.initialise(world);delegation.initialise(world);club_ai.initialise(world)
-    world['schema']=7
+    competitions.initialise(world)
+    world['schema']=8
     for p in world['players']:
         if p['club']:p['contract_end']=316
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
-    news(world, 'Welcome to Northbridge', 'Appoint a manager, review your wage budget, and request scouting before the first match. The compact eight-club league now continues into further seasons.')
+    news(world, 'Welcome to Northbridge', 'Appoint a manager, review your wage budget, and request scouting before the first match. The eight-club development world includes the Northshire League and Cup, with continuing seasons.')
     return world
 
 
@@ -286,7 +287,12 @@ def apply(s, action, payload):
         fixtures = [f for f in s['fixtures'] if f['day']==tomorrow]
         if fixtures:
             require(s['manager'] is not None,'Appoint a manager before the fixture.')
-            own = next(f for f in fixtures if 'c0' in (f['home'],f['away']))
+            own = next((f for f in fixtures if 'c0' in (f['home'],f['away'])),None)
+            if own is None:
+                settle_background(s)
+                competitions.progress(s)
+                close_season(s)
+                return 'Other clubs’ fixtures completed. Results are available in Competitions.'
             s['match'] = start_match(s, own)
             if match_finished(s['match']):settle_matchday(s)
             return 'Matchday ready. Open Matchday to watch or skip.'
@@ -393,10 +399,11 @@ def record_result(s,m):
     f['result']=football.public_match(m) if m.get('engine')==2 else deepcopy({k:m[k] for k in ('score','events','shots','on_target','xg','possession','lineups')})
     for side,cid in enumerate([m['home'],m['away']]):
         c=next(c for c in s['clubs'] if c['id']==cid);gf,ga=m['score'][side],m['score'][1-side]
-        c['played']+=1;c['gf']+=gf;c['ga']+=ga
-        key='won' if gf>ga else 'drawn' if gf==ga else 'lost'
-        c[key]+=1;c['points']+=3 if gf>ga else 1 if gf==ga else 0
-        c['form'].append('W' if gf>ga else 'D' if gf==ga else 'L')
+        if not f.get('knockout'):
+            c['played']+=1;c['gf']+=gf;c['ga']+=ga
+            key='won' if gf>ga else 'drawn' if gf==ga else 'lost'
+            c[key]+=1;c['points']+=3 if gf>ga else 1 if gf==ga else 0
+            c['form'].append('W' if gf>ga else 'D' if gf==ga else 'L')
         for pid in m.get('participants',m['lineups'])[side]:next(p for p in s['players'] if p['id']==pid)['appearances']+=1
 
 
@@ -404,11 +411,7 @@ def settle_matchday(s):
     m=s['match']
     if m['settled']:return
     record_result(s,m)
-    for f in s['fixtures']:
-        if f['day']==s['day'] and f['result'] is None:
-            other=start_match(s,f) if m.get('engine')==2 else legacy_start_match(s,f)
-            while not match_finished(other):step_match(s,other)
-            record_result(s,other)
+    settle_background(s,legacy=m.get('engine')!=2)
     own=0 if m['home']=='c0' else 1
     difference=m['score'][own]-m['score'][1-own]
     s['morale']=max(10,min(95,s['morale']+(4 if difference>0 else -3 if difference<0 else 0)))
@@ -419,7 +422,21 @@ def settle_matchday(s):
         news(s,'Home attendance',f'{attendance:,} supporters paid £{s["tickets"]/100:.2f}.')
     news(s,'Match result',f"{s['clubs'][int(m['home'][1:])]['name']} {m['score'][0]}–{m['score'][1]} {s['clubs'][int(m['away'][1:])]['name']}")
     m['settled']=True
-    if all(f['result'] is not None for f in s['fixtures']):
+    competitions.progress(s)
+    close_season(s)
+    clauses.settle_payables(s)
+
+
+def settle_background(s,legacy=False):
+    for f in list(s['fixtures']):
+        if f['day']==s['day'] and f['result'] is None:
+            other=legacy_start_match(s,f) if legacy else start_match(s,f)
+            while not match_finished(other):step_match(s,other)
+            record_result(s,other)
+
+
+def close_season(s):
+    if not s['season_done'] and competitions.complete(s) and all(f['result'] is not None for f in s['fixtures']):
         position=next(i for i,c in enumerate(table(s)) if c['id']=='c0')
         prefix='season' if s['career']['season']==1 else f"season:{s['career']['season']}"
         posting(s,prefix+':prize',s['config']['prizes'][position],'League prize')
@@ -432,7 +449,8 @@ def settle_matchday(s):
 
 
 def validate(s):
-    require(s.get('schema')==7,'Unsupported save schema. This build supports schema 7.')
+    require(s.get('schema')==8,'Unsupported save schema. This build supports schema 8.')
+    competitions.validate(s)
     staff.validate(s);delegation.validate(s);club_ai.validate(s)
     people.validate(s);registration.validate(s)
     clauses.validate(s)
@@ -482,11 +500,12 @@ def view(s):
                 ledger=deepcopy(s['ledger']),inbox=deepcopy(s['inbox']),decision=deepcopy(s['decision']),match=m,
                 season_done=s['season_done'],seed=s['seed'],transfer_spend=s['transfer_spend'],planning=deepcopy(s['planning']),
                 terms={k:s['config'][k] for k in ('scout_fee','scout_days','operating_buffer','weekly_overheads','weekly_sponsor','capacity')},
-                accrued_costs=s['accrued_costs'],season_end=max(f['day'] for f in s['fixtures']),
+                accrued_costs=s['accrued_costs'],season_end=career.season_end(s),
                 public_players={p['id']:{k:p[k] for k in ('name','role')} for p in s['players']},
                 season=s['career']['season'],season_start=s['career']['start'],window_end=career.window_end(s),
                 career=deepcopy(s['career']),reserved_cash=career.reservations(s)[0],reserved_wages=career.reservations(s)[1],
                 severance=career.manager_severance(s),career_settings=deepcopy(s['config']['career']),project_specs=deepcopy(s['config']['projects']))
+    snapshot['competitions']=deepcopy(s['competitions'])
     snapshot['market']={k:deepcopy(s['market'][k]) for k in ('deals','loans','obligations')}
     snapshot['registration']=registration.snapshot(s)
     snapshot['staff']=staff.snapshot(s)

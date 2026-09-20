@@ -83,7 +83,7 @@ class CareerTests(unittest.TestCase):
                 else:self.act('match_close')
             else:self.act('continue')
         self.assertTrue(all(c['played']==14 for c in self.s['clubs']))
-        self.assertEqual(len([f for f in self.s['fixtures'] if f['result']]),56)
+        self.assertEqual(len([f for f in self.s['fixtures'] if f['result']]),63)
         self.assertEqual(sum(c['gf'] for c in self.s['clubs']),sum(c['ga'] for c in self.s['clubs']))
         self.assertEqual(len([e for e in self.s['ledger'] if e['id']=='season:prize']),1)
         for f in self.s['fixtures']:

@@ -2,7 +2,13 @@
 
 Implementation tracking against the **approved living GDD revision 0.3**. This is an engineering checklist, not a replacement design document, new design approval or a reduced release scope. The full AA game is **not release-ready**. No percentage-complete claim is made.
 
-## Current presentation scope: Figma UI Update 0.9
+## Current gameplay scope: Competitions Update 0.10
+
+The compact domestic cup now connects seeded draws, byes, extra time/penalties, background rounds after elimination, fixture/report UI, trophy history and schema-8 persistence. League standings exclude cup results. Existing saves retain their original schedule until the next season. This closes the generated-cup portion of the next dependency, not the complete competition milestone.
+
+Still open: promotion/relegation, multi-division membership and qualified replacements, continental/international qualification and calendar graphs, multiple competition registrations and per-competition player statistics, full financial parity and the approved world content. No cup prize is budgeted in the current development data. Shared domestic bans and an explicit double-forfeit draw are documented provisional rules.
+
+## Inherited presentation scope: Figma UI Update 0.9
 
 The approved Figma visual system now runs in Pygame across existing game screens. Overview, split inbox, player evidence/profile, menu, save manager and fixture list use their connected runtime implementations. Fonts, icons and the Northbridge crest are bundled for offline operation. Long report/review readers paginate and preserve confirmation checks. This changes presentation and navigation only; schema 7 and simulation behaviour are unchanged.
 
@@ -91,7 +97,7 @@ This is a working compact-league foundation. AI clubs still receive provisional 
 
 ## Next dependency sequence
 
-1. Expand valid competition and season structures on the registration/staff/AI foundation; connect promotion/relegation and generated cups before scaling world content.
+1. Build multiple divisions and validated promotion/relegation on the new domestic-cup foundation before scaling world content.
 2. Add academy competitions and long-term population policy, while completing contract/loan clauses, staff capability effects and AI financial parity.
 3. Connect career creation, ownership/group management, succession, group delegation, promises and commercial/asset obligations.
 4. Complete UI/accessibility/content families and perform full-world simulation, performance, exploit, usability and release gates.

@@ -33,7 +33,11 @@ def initialise(s):
         s['manager'].setdefault('notice_weeks',s['config']['career']['manager_notice_weeks'])
 
 
-def season_end(s):return max(f['day'] for f in s['fixtures'])
+def season_end(s):
+    # Undrawn knockout rounds already reserve real dates in this campaign.
+    cup=s.get('competitions',{}).get('cup')
+    dates=cup['dates'] if cup else []
+    return max([f['day'] for f in s['fixtures']]+dates)
 def window_end(s):return s['career']['start']+28
 
 
@@ -303,6 +307,8 @@ def apply(s,action,data):
         require(s['decision'] is None,'Resolve the outstanding chairman decision.')
         if not any(h['season']==c['season'] for h in c['history']):
             c['history'].append(dict(season=c['season'],table=deepcopy(table(s)),fixtures=deepcopy(s['fixtures']),cash=s['cash'],day=s['day']))
+        from . import competitions
+        c['history'][-1]['competitions']=deepcopy(s['competitions'])
         for o in c['offers'].values():
             if o['status'] not in ('completed','withdrawn','expired','rejected'):
                 o['status']='expired';market.close_purchase(s,o,'Season closed before registration.');o['transcript'].append('Season closed: unfinished discussion expired and reserved capacity released.')
@@ -333,6 +339,7 @@ def apply(s,action,data):
             for j,(a,b) in enumerate(pairs[r%7]):
                 if r>=7:a,b=b,a
                 s['fixtures'].append(dict(id=f"s{c['season']}-f{r}-{j}",day=c['start']+5+r*7,home=f'c{a}',away=f'c{b}',result=None))
+        competitions.start_season(s)
         news(s,'New season prepared',f"Season {c['season']} is ready. The two-week preseason advances normally with wages and deadlines. Review expiring contracts before Continue.")
         return 'New fixtures created. History retained. No days or recurring payments have been skipped.'
     return None

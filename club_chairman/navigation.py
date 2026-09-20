@@ -1,7 +1,8 @@
 """Search routes through public snapshots; results never execute transactions."""
 SCREENS=('Overview','Inbox','Squad','Staff','Recruitment','Contracts','Transfers','Commercial',
-         'Academy','Facilities','Finances','League','Fixtures','Matchday','Career','Settings','Help','Activity')
+         'Academy','Facilities','Finances','League','Cup','Fixtures','Matchday','Career','Settings','Help','Activity')
 HELP={
+    'cup knockout draw trophy competition penalties':'Cup',
     'staff people recruitment interview appointment delegation responsibilities approvals authority capacity':'Staff',
     'cash budget payroll funding forecast':'Finances',
     'registration eligibility suspension injury fitness training':'Squad',
