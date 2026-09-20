@@ -155,6 +155,14 @@ class FootballScreens:
         self.text(f"{self.club(m['home'])}   {m['score'][0]} – {m['score'][1]}   {self.club(m['away'])}",x+82,221,30)
         status='FT' if finished(m) else m.get('clock',str(m['minute']))+"'"
         self.text(f"{status}  |  Shots {m['shots'][0]}–{m['shots'][1]}  |  On target {m['on_target'][0]}–{m['on_target'][1]}  |  xG {m['xg'][0]:.2f}–{m['xg'][1]:.2f}",x+82,278,22,GREEN)
+        fixture=historical or next((f for f in self.v['fixtures'] if f['id']==m.get('fixture')),None)
+        if fixture and fixture.get('knockout'):
+            from .competitions import label
+            detail=label(fixture)
+            if finished(m) and m.get('winner'):
+                detail+='  /  Advances: '+self.club(m['winner'])
+                if any(m.get('kicks',[0,0])):detail+=f"  /  Pens {m['shootout'][0]}–{m['shootout'][1]}"
+            self.clipped_text(detail,x+82,305,1040,16,MUTED)
         self.button('Show commentary' if self.tab in ('Lineups','Statistics') else 'Commentary',(x,340,185,38),lambda:(setattr(self,'tab','Commentary'),setattr(self,'page',0)))
         self.button('Lineups',(x+200,340,125,38),lambda:(setattr(self,'tab','Lineups'),setattr(self,'page',0)))
         self.button('Statistics',(x+340,340,145,38),lambda:(setattr(self,'tab','Statistics'),setattr(self,'page',0)))
@@ -178,7 +186,7 @@ class FootballScreens:
             for i,(label,a,b) in enumerate(rows):
                 y=411+i*32;self.text(a,x+170,y,24,GREEN);self.text(label,x+350,y,23);self.text(b,1210,y,24,GREEN)
         else:
-            kinds=('goal','period','bench','yellow','red','injury','substitution','penalty','shootout','abandonment','tactic')
+            kinds=('goal','period','bench','yellow','red','injury','substitution','penalty','shootout','abandonment','administrative_draw','tactic')
             events=[e for e in m['events'] if not self.key_events_only or e['kind'] in kinds]
             self.page=min(self.page,max(0,(len(events)-1)//10))
             for i,e in enumerate(events[max(0,len(events)-10-self.page*10):len(events)-self.page*10 if self.page else None]):

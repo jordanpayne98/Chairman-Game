@@ -89,9 +89,11 @@ def run():
     if s['clauses']['sell_on'][0]['percent']!=10:raise RuntimeError('Sell-on right was lost')
     p=next(p for p in s['players'] if p['id']=='p4')
     if not p['development']['history'] or p['development']['focus']!='Technical':raise RuntimeError('Development plan or history was lost')
+    if not s['competitions']['cup']['settled'] or not s['career']['history'][0]['competitions']['cup']['winner']:raise RuntimeError('Missing cup completion or archived trophy')
+    if sum(len(h['fixtures']) for h in s['career']['history'])+len(s['fixtures'])!=126:raise RuntimeError('Incomplete league/cup fixture inventory')
     results=[f['result'] for f in s['fixtures']]
     if not all(m['engine']==2 and m['finished'] for m in results):raise RuntimeError('Football match did not finish')
     if not any(any(e['kind']=='substitution' for e in m['events']) for m in results):raise RuntimeError('Manager substitutions missing')
     if not delegated or not any(e['action']=='decision' for e in s['delegation']['log']):raise RuntimeError('Staff recruitment or autonomous club decisions missing')
     if not any(d['status']=='completed' for d in s['club_ai']['decisions']):raise RuntimeError('Rival club recruitment did not complete')
-    print('Packaged career check passed: staff interviews and contracts, delegated decisions, rival recruitment, football rules and substitutions, registration, development, bonuses, options, sell-on rights, transfers, instalments, loans, sponsorship, two seasons, academy, facilities, manager replacement, save/resume and 112 fixtures.')
+    print('Packaged career check passed: staff interviews and contracts, delegated decisions, rival recruitment, football rules and substitutions, registration, development, bonuses, options, sell-on rights, transfers, instalments, loans, sponsorship, two seasons, academy, facilities, manager replacement, save/resume, domestic cups, and 126 fixtures.')

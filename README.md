@@ -1,6 +1,6 @@
-# Club Chairman — Figma UI Update (0.9)
+# Club Chairman — Competitions Update (0.10)
 
-A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic through continuing 14-match seasons in an eight-club fictional development league. This is a playable development version; the approved full AA game is still being built.
+A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic through continuing 14-match league seasons and a domestic knockout cup in an eight-club fictional development world. This is a playable development version; the approved full AA game is still being built.
 
 ## Play on Windows
 
@@ -15,13 +15,21 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1–0.8 / schema 1–7 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 7. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1–0.9 / schema 1–7 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 8. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
 Ctrl+K opens global search for known players, clubs, departments and help topics. Settings > Interface size cycles through 100/125/150/175% zoom. Mouse wheel pans vertically at larger sizes; Shift+wheel pans horizontally, and keyboard focus follows controls into view. Ctrl+0 restores 100%. This is whole-interface zoom; full responsive text reflow is still pending.
 
-## New in 0.9
+## New in 0.10
+
+Competitions > Northshire Cup shows the seeded draw, round dates, results and archived match reports. New careers enter the cup immediately; existing saves finish their original schedule and enter it from the next season. League and cup fixtures appear together in Fixtures. Defeat ends your cup run, but remaining rounds continue without blocking the career.
+
+Knockout draws go to extra time and penalties. League standings remain league-only; player seasonal totals cover both competitions. Domestic registration, loan-parent restrictions and bans are shared. Cup dates reserve at least three days from league matches. Draws, advancement, the winner and reports persist through saves and season history. Match speed and save/resume do not reroll them.
+
+This is a competition milestone, not the complete world: promotion/relegation, multiple divisions, continental/international calendars and the 636-club database remain unfinished. The compact cup has no prize money yet; owner home fixtures use existing gate receipts. AI finances still use their provisional aggregate income. Both clubs failing the minimum-player rule advances one through a recorded seeded administrative draw without player appearances or goals; this development fallback is not a real-world rule.
+
+## Inherited Figma UI in 0.9
 
 The approved Figma Executive interface is now rendered by the actual Pygame game. Shared charcoal/sage tokens, bundled IBM Plex Sans/Lora fonts, exported navigation icons and the Northbridge crest work offline. The application stays in Python/Pygame.
 

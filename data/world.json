@@ -48,5 +48,16 @@
     "minimum_upfront_percent": 50,
     "max_installment_days": 56,
     "minimum_loan_days": 14
+  },
+  "cup": {
+    "id": "northshire-cup",
+    "name": "Northshire Cup",
+    "round_days": [
+      22,
+      50,
+      78
+    ],
+    "minimum_rest_days": 3,
+    "winner_prize": 0
   }
 }

@@ -162,8 +162,8 @@ class CareerScreens(ClauseScreens):
         v=self.v;self.panel(x,195,1400-x,190,'Career journal')
         self.text('Northbridge Athletic / Season '+str(v['season']),x+20,245,36,GREEN)
         self.text('Current campaign ends '+dated(v,v['season_end']),x+20,293,24)
-        self.wrap('A compact eight-club development league with fourteen matches per season. Preseason lasts two weeks; wages, medicals and construction continue day by day.',x+20,333,1080,21)
-        self.button('Prepare next season',(x,408,240,44),lambda:self.confirm('Prepare the next campaign', 'Archive this season’s table and match reports, reset seasonal statistics and generate the next fixtures. Days will not skip: preseason wages and contract expiries process through Continue. Unfinished offers expire. Review renewals first; expired players become free agents.',lambda:self.command('next_season')),v['season_done'] and not v['match'])
+        self.wrap('An eight-club development world with fourteen league matches and a knockout cup each season. Preseason lasts two weeks; wages, medicals and construction continue day by day.',x+20,333,1080,21)
+        self.button('Prepare next season',(x,408,240,44),lambda:self.confirm('Prepare the next campaign', 'Archive this season’s table, cup winner and match reports, reset seasonal statistics and generate the next fixtures. Days will not skip: preseason wages and contract expiries process through Continue. Unfinished offers expire. Review renewals first; expired players become free agents.',lambda:self.command('next_season')),v['season_done'] and not v['match'])
         self.button('Review squad contracts',(x+260,408,280,44),lambda:self.nav('Squad'))
         self.text('SEASON HISTORY',x,486,21,MUTED)
         history=list(reversed(v['career']['history']))
@@ -181,14 +181,19 @@ class CareerScreens(ClauseScreens):
         h=next((h for h in self.v['career']['history'] if h['season']==self.history_season),None)
         if not h:self.wrap('Choose a completed season in Career.',x,220,1000,28);return
         self.text('ARCHIVE / SEASON '+str(h['season']),x,204,25,GREEN)
+        cup=h.get('competitions',{}).get('cup')
+        if cup and cup['winner']:
+            self.text('Cup winners: '+self.club(cup['winner']),x,548,21,GREEN)
+            self.button('Archived cup',(1200,194,200,40),lambda:self.nav('CupHistory'))
         for i,c in enumerate(h['table']):
             self.text(f"{i+1}  {c['name']}",x+20,254+i*36,24)
             self.text(f"{c['points']} pts   {c['won']}W  {c['drawn']}D  {c['lost']}L",1050,254+i*36,23,MUTED)
         fixtures=[f for f in h['fixtures'] if 'c0' in (f['home'],f['away'])]
         self.page=min(self.page,len(fixtures)-1);f=fixtures[self.page]
         self.panel(x,575,1400-x,152)
-        self.text(self.fixture_date(f),x+20,598,23,MUTED)
-        self.text(f"{self.club(f['home'])}   {f['result']['score'][0]}–{f['result']['score'][1]}   {self.club(f['away'])}",x+20,638,30)
+        from .competitions import label, result_text
+        self.text(self.fixture_date(f)+' / '+label(f),x+20,598,20,MUTED)
+        self.text(f"{self.club(f['home'])}   {result_text(f)}   {self.club(f['away'])}",x+20,638,30)
         self.button('Archived match',(x+20,678,220,36),lambda:self.open_report(f['id']))
         self.pager(x,780,len(fixtures),1)
 
@@ -306,6 +311,8 @@ class CareerScreens(ClauseScreens):
             'Staff':'Managers control selection and tactics. Replacement pays the current manager’s contractual notice plus the incoming manager’s signing fee.',
             'Inbox':'Unread news is separate from unresolved approvals. Marking messages read never authorises a payment or clears a required decision.',
             'Squad':'Review senior players, scouting estimates, records and contracts. Renew before the expiry date; opening discussions alone does not extend employment.',
+            'Northshire Cup':'Open the seeded domestic cup draw, round results and match reports. Extra time and penalties resolve drawn ties.',
+            'Cup report':'Open the saved knockout report, including extra time, penalties and the advancing club. No simulation is replayed.',
             'League':'Current standings and fixtures. Select a completed fixture to reopen its stored report without replaying the simulation.',
             'Matchday':'Watch the current match or an archived report. The owner may contact the bench, but team selection and tactical decisions belong to the manager.',
             'Settings':'Presentation preferences apply immediately and remain separate from career saves. Reduced motion removes decorative animation.',

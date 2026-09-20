@@ -8,7 +8,7 @@ from .presentation import crest
 
 TITLES = {'Overview': "Chairman’s overview", 'Inbox': 'Decision centre', 'Squad': 'First-team squad',
           'Recruitment': 'Recruitment', 'Facilities': 'Stadium & facilities', 'League': 'Competitions',
-          'Career': 'Club history & career', 'Comparison': 'Player comparison'}
+          'CupHistory': 'Archived Northshire Cup', 'Cup': 'Northshire Cup', 'Career': 'Club history & career', 'Comparison': 'Player comparison'}
 DESCRIPTIONS = {'Overview': 'Your club, your decisions. Here’s what needs your attention.',
     'Squad': 'Contracts, registration and availability. Selection belongs to your manager.',
     'Recruitment': 'Build your shortlist with evidence, context and clear commitments.',
@@ -17,7 +17,7 @@ DESCRIPTIONS = {'Overview': 'Your club, your decisions. Here’s what needs your
     'Facilities': 'Plan your club’s future and review the full cost of each project.',
     'Commercial': 'Balance commercial income with the identity of your club.',
     'Fixtures': 'Your season, results and the next match in one place.',
-    'League': 'Standings and results from your current competition.',
+    'Cup': 'Follow the draw, results and trophy through the season.', 'League': 'Standings and results from your current competition.',
     'Settings': 'Presentation preferences apply immediately and are saved on this device.'}
 
 
@@ -66,6 +66,7 @@ class ExecutiveScreens:
                 callback=(lambda:self.open_responsibilities()) if name=='Responsibilities' else (lambda n=name:self.nav(n))
                 active=(self.screen==name and not (name=='Staff' and self.staff_tab=='Responsibilities')) or (name=='Responsibilities' and self.screen=='Staff' and self.staff_tab=='Responsibilities')
                 if self.screen=='Comparison' and name=='Recruitment':active=True
+                if self.screen in ('Cup','CupHistory') and name=='League':active=True
                 self._nav_style=(icon,active)
                 self.button(name,(14,y,sw-28,29),callback)
                 self._nav_style=None
@@ -132,7 +133,7 @@ class ExecutiveScreens:
         self.panel(914,560,422,214)
         self.text('THE OWNERSHIP GAME',938,587,16,GREEN)
         self.wrap('Appoint the people.\nMake the big decisions.\nLeave a lasting club.',938,627,370,29,TEXT)
-        self.text('FIGMA UI UPDATE 0.9',104,820,16,FAINT)
+        self.text('COMPETITIONS UPDATE 0.10',104,820,16,FAINT)
         self.text('Northshire League  /  Playable development build',914,820,16,FAINT)
 
     def executive_overview(self,x):
@@ -256,8 +257,9 @@ class ExecutiveScreens:
         self.save_preferences()
 
     def draw_fixtures(self,x):
+        from .competitions import label as fixture_label, result_text
         rows=[f for f in self.v['fixtures'] if 'c0' in (f['home'],f['away'])]
-        self.text('NORTHSHIRE LEAGUE  /  Season '+str(self.v['season']),x,200,22,GREEN)
+        self.text('LEAGUE & CUP  /  Season '+str(self.v['season']),x,200,22,GREEN)
         self.button('League table',(1220,190,180,42),lambda:self.nav('League'))
         self.page=min(self.page,max(0,(len(rows)-1)//7))
         pygame.draw.rect(self.canvas,RAISED,(x,253,1400-x,43),border_radius=5)
@@ -266,7 +268,44 @@ class ExecutiveScreens:
             y=299+i*64
             if i%2==0:pygame.draw.rect(self.canvas,PANEL,(x,y,1400-x,63))
             self.text(self.fixture_date(f),x+18,y+21,21,MUTED)
-            self.clipped_text(self.club(f['home'])+'  v  '+self.club(f['away']),x+200,y+21,630,22)
-            self.text('–'.join(map(str,f['result']['score'])) if f['result'] else 'Scheduled',1100,y+21,21,GREEN if f['result'] else MUTED)
+            self.clipped_text(self.club(f['home'])+'  v  '+self.club(f['away']),x+200,y+7,585,22)
+            self.text(fixture_label(f),x+200,y+34,16,MUTED)
+            self.clipped_text(result_text(f),1080,y+21,152,18,GREEN if f['result'] else MUTED)
             self.button('Match report',(1240,y+12,145,40),lambda fid=f['id']:self.open_report(fid),f['result'] is not None)
         self.pager(x,789,len(rows),7)
+
+
+    def cup_screen(self,x,archived=False):
+        from .competitions import result_text
+        from .planning import dated
+        source=next((h for h in self.v['career']['history'] if h['season']==self.history_season),{}) if archived else self.v
+        cup=source.get('competitions',{}).get('cup')
+        self.button('League table',(1200,190,200,42),lambda:self.nav('League'))
+        if not cup:
+            self.wrap('This saved season keeps its original schedule. The Northshire Cup begins when you prepare the next season.',x,263,1050,28)
+            return
+        self.text('SINGLE MATCH TIES  /  Extra time and penalties',x,205,22,GREEN)
+        self.wrap('Shared domestic registration and bans. No replays. Your home ties use current ticket pricing. No cup prize money in this development database.',x,253,1090,19,MUTED)
+        if cup['winner']:
+            self.heading('Winners  '+self.club(cup['winner']),x,305,30)
+        else:
+            self.text('Current round  /  '+cup['rounds'][-1]['label'],x,308,26)
+        rows=[]
+        fixtures={f['id']:f for f in source.get('fixtures',[])}
+        for r in cup['rounds']:
+            for cid in r['byes']:rows.append((r,None,cid))
+            for fid in r['fixtures']:rows.append((r,fixtures[fid],None))
+        self.page=min(self.page,max(0,(len(rows)-1)//5))
+        for i,(r,f,bye) in enumerate(rows[self.page*5:self.page*5+5]):
+            y=357+i*81
+            self.panel(x,y,1400-x,73)
+            self.text(r['label']+'  /  '+dated(self.v,r['day']),x+16,y+9,17,MUTED)
+            if bye:
+                self.text(self.club(bye)+' — bye to the next round',x+16,y+36,23)
+            else:
+                self.clipped_text(self.club(f['home'])+' v '+self.club(f['away']),x+16,y+36,630,23)
+                self.text(result_text(f),x+655,y+38,20,GREEN if f['result'] else MUTED)
+                self.button('Cup report',(1238,y+21,145,39),lambda fid=f['id']:self.open_report(fid),f['result'] is not None)
+        self.pager(x,787,len(rows),5)
+        future=cup['dates'][len(cup['rounds']):]
+        self.clipped_text('Later round dates reserved: '+', '.join(dated(self.v,d) for d in future) if future else 'All rounds drawn. Results and the winner are saved with season history.',x,832,1130,15,MUTED)

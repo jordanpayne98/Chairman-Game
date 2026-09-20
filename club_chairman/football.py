@@ -67,6 +67,11 @@ def start(s,f):
             side=1 if under[0] else 0;m['score'][side]=3
             m['winner']=m['home'] if side==0 else m['away']
             for _ in range(3):event(m,'goal','Administrative goal: opponent could not field seven eligible players.',side=side)
+        elif m['knockout']:
+            # Both clubs fail the minimum-player rule. A recorded seeded draw
+            # advances one club; it is not a played win or a player achievement.
+            m['winner']=rng_for(s['seed'],'cup-admin:'+f['id']).choice(sorted((f['home'],f['away'])))
+            event(m,'administrative_draw','Both clubs cannot field seven eligible players. A seeded administrative draw advances '+m['winner']+'.')
         event(m,'abandonment','Fixture awarded under the minimum-player rule. No player appearance or performance bonus is earned.')
         m['participants']=[[],[]]
     else:event(m,'kickoff','Kick-off. Managers have selected eligible teams and their substitutes.')

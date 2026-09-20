@@ -33,7 +33,7 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
     def __init__(self,save_root=None):
         pygame.display.init();pygame.font.init()
         self.window=pygame.display.set_mode((1280,800),pygame.RESIZABLE)
-        pygame.display.set_caption('Club Chairman — Figma UI 0.9')
+        pygame.display.set_caption('Club Chairman — Competitions 0.10')
         self.canvas=pygame.Surface((WIDTH,HEIGHT))
         self.fonts={};self.inbox_selection=None;self.inbox_reader_page=0;self.inbox_reader_key=None;self._nav_style=None;self._inbox_style=None
         self.state=None;self.v=None;self.screen='Home';self.buttons=[];self.focus=0;self.running=True
@@ -486,6 +486,7 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
         for dx in range(0,round(plot_w),10):pygame.draw.line(self.canvas,MUTED,(plot_x+dx,reserve_y),(min(plot_x+plot_w,plot_x+dx+4),reserve_y))
 
     def draw_league(self,x):
+        self.button('Northshire Cup',(1200,190,200,42),lambda:self.nav('Cup'))
         self.text('NORTHSHIRE LEAGUE  •  8 clubs / home and away',x,200,24,GREEN)
         self.text('CLUB',x+15,245,20,MUTED)
         for i,t in enumerate(['P','W','D','L','GF','GA','PTS']):self.text(t,890+i*70,245,20,MUTED)
@@ -501,6 +502,10 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
         self.text(f"{self.fixture_date(f)}   {self.club(f['home'])}  {score}  {self.club(f['away'])}",x+15,715,24)
         self.pager(x,785,len(fs),1)
         self.button('Open match report',(1160,785,240,42),lambda:self.open_report(f['id']),f['result'] is not None)
+
+    def draw_cup(self,x):self.cup_screen(x)
+
+    def draw_cuphistory(self,x):self.cup_screen(x,archived=True)
 
     def draw_matchday(self,x):self.football_screen(x)
 
