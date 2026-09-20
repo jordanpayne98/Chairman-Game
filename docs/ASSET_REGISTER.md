@@ -10,4 +10,10 @@ Goal emphasis and the moving construction indicator are decorative presentation 
 
 Click, goal and notice sounds are original short sine-wave envelopes generated locally. They contain no external recordings. The current build exposes interface sound on/off; missing audio hardware gracefully disables playback. Full channel mixing, ambience, music and unfocused muting remain release work.
 
-Typography uses the font bundled with Pygame. Dependency notices are included by the Windows packaging script; see THIRD_PARTY.md. No additional external fonts were introduced.
+## Figma UI assets (0.9)
+
+Source: the user’s approved Club Chairman file `Q0grGlgTJOhObKeOgWelbo`, exported 20 September 2026. `assets/figma/provenance.json` records the exact node IDs. Navigation icons and the Northbridge crest are unmodified PNG exports at 3x, loaded locally and scaled to explicit dimensions. Figma is not contacted at runtime. Other clubs keep the original procedural crests; the Figma sample opponents are not substituted for game clubs. Portraits and the stadium plan retain their stable procedural identities.
+
+`assets/figma/tokens.json` copies the approved handoff palette and reference dimensions. The existing runtime translates those reference dimensions to its 1440 × 900 canvas. `assets/fonts/IBMPlexSans.ttf` and `Lora.ttf` are the unmodified font files from the design handoff. Their SIL Open Font License 1.1 notices are stored beside them. PyInstaller includes the full assets tree and therefore the font notices.
+
+The earlier procedural-asset description above records the 0.3 origin; 0.9 adds these explicit Figma exports and replaces Pygame’s default interface font. No real club branding or external person likenesses have been introduced.

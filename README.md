@@ -1,4 +1,4 @@
-# Club Chairman — Staff and Delegation Update (0.8)
+# Club Chairman — Figma UI Update (0.9)
 
 A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic through continuing 14-match seasons in an eight-club fictional development league. This is a playable development version; the approved full AA game is still being built.
 
@@ -15,13 +15,26 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1–0.7 / schema 1–6 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 7. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1–0.8 / schema 1–7 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 7. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
 Ctrl+K opens global search for known players, clubs, departments and help topics. Settings > Interface size cycles through 100/125/150/175% zoom. Mouse wheel pans vertically at larger sizes; Shift+wheel pans horizontally, and keyboard focus follows controls into view. Ctrl+0 restores 100%. This is whole-interface zoom; full responsive text reflow is still pending.
 
-## New in 0.8
+## New in 0.9
+
+The approved Figma Executive interface is now rendered by the actual Pygame game. Shared charcoal/sage tokens, bundled IBM Plex Sans/Lora fonts, exported navigation icons and the Northbridge crest work offline. The application stays in Python/Pygame.
+
+- Grouped, collapsible navigation and a persistent top bar retain live club/date/decision context, search, saving and Continue. Stadium maps to the existing Facilities system; Competitions maps to League; History & career maps to Career. Responsibilities opens the working staff authority screen.
+- The overview shows real cash, budget usage, standings, supporter mood, urgent reviews, fixtures, dated cash forecasts and project status. Sample figures and clubs from the design are not simulation data.
+- The split inbox separates unread news from unresolved decisions, keeps message selection, paginates long reports and opens the existing validated approve/decline actions. Reading never approves a decision.
+- Player profiles add estimate/confidence cards, grouped attribute rows and an evidence panel. Unknown attributes remain unknown, all 37 attributes stay available, and negotiation, scouting, development, notes and comparison remain connected.
+- Squad/recruitment tables, department panels, tooltips, reviews, settings and save recovery share the new components. Long reviews paginate without hiding their controls. Fixtures provides a full paginated season list and opens saved match reports.
+- The main menu can continue the latest valid save, resume an active career, open all checkpoints and change presentation settings before starting a career. Original save files are preserved by the existing recovery-timeline workflow.
+
+No simulation rules or save schema changed. The internal canvas remains 1440 × 900, scaled to the window, with the existing 100–175% zoom and focus following. Full responsive reflow, arbitrary dashboard arrangement, single-click person drawers, content management, career-creation choices and multi-club/wealth systems are still open. The full 30-frame Figma prototype is not claimed to be implemented gameplay. See [Figma implementation coverage](docs/FIGMA_UI_IMPLEMENTATION.md).
+
+## Included from 0.8
 
 - Staff > People adds nine departmental roles, assessed capability ranges, shortlists, next-day interviews, salary counters, contract duration, protected approval terms, dated appointments, renewals and notice payments. Recruiting from another club pays compensation and respects a joining delay. Pending salary counts against your wage limit and dated forecast.
 - Staff > Responsibilities lets you assign available staff, review coverage and apply Hands-on, Balanced or Executive presets. Each department has approval mode, maximum contract duration and a rolling commitment limit; a shared club limit prevents splitting expenditure between departments. Vacancies remain with the owner and your manager still controls match selection and tactics.

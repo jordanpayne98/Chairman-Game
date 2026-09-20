@@ -16,27 +16,28 @@ from .business_ui import BusinessScreens
 from .football_ui import FootballScreens
 from .navigation import NavigationScreens
 from .staff_ui import StaffScreens
+from .executive_ui import ExecutiveScreens, TITLES, DESCRIPTIONS
+from .theme import BG,PANEL,BORDER,TEXT,MUTED,GREEN,BUTTON,RED,RAISED,SELECTED,FAINT, font as themed_font
 from .football import finished as match_finished
 from .contract_review import attention
 from .presentation import crest, portrait, Soundscape
 from .planning import ATTRIBUTES, SORTS, dated, player_rows, signing_terms, forecast
 
-BG=(15,22,28);PANEL=(24,33,40);BORDER=(47,62,70);TEXT=(231,238,238);MUTED=(159,179,187);GREEN=(98,214,161);BUTTON=(32,77,65);RED=(246,150,142)
 WIDTH,HEIGHT=1440,900
 
 
 def money(v):return f'£{v/100:,.0f}'
 
 
-class App(StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
+class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
     def __init__(self,save_root=None):
         pygame.display.init();pygame.font.init()
         self.window=pygame.display.set_mode((1280,800),pygame.RESIZABLE)
-        pygame.display.set_caption('Club Chairman — Staff & Delegation 0.8')
+        pygame.display.set_caption('Club Chairman — Figma UI 0.9')
         self.canvas=pygame.Surface((WIDTH,HEIGHT))
-        self.fonts={}
+        self.fonts={};self.inbox_selection=None;self.inbox_reader_page=0;self.inbox_reader_key=None;self._nav_style=None;self._inbox_style=None
         self.state=None;self.v=None;self.screen='Home';self.buttons=[];self.focus=0;self.running=True
-        self.message='';self.modal=None;self.collapsed=False;self.page=0;self.profile=None;self.search='';self.typing=False
+        self.message='';self.modal=None;self.modal_page=0;self.collapsed=False;self.page=0;self.profile=None;self.search='';self.typing=False
         self.store=SaveStore(save_root);self.play=False;self.speed=1;self.elapsed=0;self.batch=False
         self.role='All';self.sort='Name';self.descending=False;self.only_shortlist=False
         self.tab='Forecast';self.match_report=None;self.profile_ids=[];self.views={};self.history=[];self.forward=[]
@@ -62,38 +63,69 @@ class App(StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationS
         except (OSError,ValueError,TypeError,AttributeError):pass
         if not isinstance(self.workspaces,dict):self.workspaces={}
 
+    def get_font(self,size,heading=False):
+        key=(size,heading)
+        if key not in self.fonts:self.fonts[key]=themed_font(size,heading)
+        return self.fonts[key]
+
     def text(self,text,x,y,size=22,color=TEXT):
-        if size not in self.fonts:self.fonts[size]=pygame.font.Font(None,size)
-        self.canvas.blit(self.fonts[size].render(str(text),True,color),(x,y))
+        self.canvas.blit(self.get_font(size).render(str(text),True,color),(x,y))
+
+    def heading(self,text,x,y,size=40,color=TEXT,width=None):
+        font=self.get_font(size,True);value=str(text)
+        if width and font.size(value)[0]>width:
+            while value and font.size(value+'…')[0]>width:value=value[:-1]
+            value+='…'
+        self.canvas.blit(font.render(value,True,color),(x,y))
 
     def wrap(self,text,x,y,width,size=22,color=MUTED):
-        font=self.fonts.setdefault(size,pygame.font.Font(None,size))
-        line=''
-        for word in str(text).split():
-            if font.size(line+' '+word)[0]>width and line:
-                self.text(line,x,y,size,color);y+=size+4;line=word
-            else:line=(line+' '+word).strip()
-        if line:self.text(line,x,y,size,color)
-        return y+size+4
+        font=self.get_font(size);line_height=max(font.get_linesize(),round(size*1.10))
+        for paragraph in str(text).split('\n'):
+            line=''
+            for word in paragraph.split():
+                if font.size((line+' '+word).strip())[0]>width and line:
+                    self.text(line,x,y,size,color);y+=line_height;line=word
+                else:line=(line+' '+word).strip()
+            if line:self.text(line,x,y,size,color)
+            y+=line_height
+        return y
 
     def panel(self,x,y,w,h,title=None):
-        pygame.draw.rect(self.canvas,PANEL,(x,y,w,h),border_radius=7)
-        pygame.draw.rect(self.canvas,BORDER,(x,y,w,h),1,border_radius=7)
-        if title:self.text(title.upper(),x+20,y+18,20,MUTED)
+        pygame.draw.rect(self.canvas,PANEL,(x,y,w,h),border_radius=8)
+        pygame.draw.rect(self.canvas,BORDER,(x,y,w,h),1,border_radius=8)
+        if title:
+            self.text(title,x+20,y+16,21,MUTED)
+            pygame.draw.line(self.canvas,BORDER,(x+20,y+43),(x+w-20,y+43))
 
     def button(self,label,rect,callback,enabled=True):
-        r=pygame.Rect(rect);idx=len(self.buttons)
-        active=(r.x==14 and label in (self.screen,self.screen[:2])) or label.startswith('• ')
-        primary=label in ('Continue  >','Confirm','New career','Negotiate contract','Review completion','Play','Save note')
-        fill=BUTTON if enabled and (active or primary) else (28,41,48) if enabled else PANEL
-        pygame.draw.rect(self.canvas,fill,r,border_radius=5)
-        pygame.draw.rect(self.canvas,GREEN if idx==self.focus else BORDER,r,2 if idx==self.focus else 1,border_radius=5)
-        self.text(label,r.x+12,r.y+12,21,TEXT if enabled else MUTED)
+        r=pygame.Rect(rect);idx=len(self.buttons);nav=self._nav_style
+        active=nav[1] if nav else label.startswith('• ') or self._inbox_style is True
+        primary=label in ('Continue  >','Confirm','New career','Resume career','Continue career','Negotiate contract','Review completion','Play','Save note','Send proposal')
+        mouse=pygame.mouse.get_pos();scale=getattr(self,'scale',1);offset=getattr(self,'offset',(0,0))
+        hover=r.collidepoint((mouse[0]-offset[0])/scale,(mouse[1]-offset[1])/scale) and not (self.modal or self.editor or self.palette is not None)
+        fill=SELECTED if active else BUTTON if enabled and primary else RAISED if enabled and hover else PANEL if nav or not enabled else RAISED
+        pygame.draw.rect(self.canvas,fill,r,border_radius=6)
+        if not nav or idx==self.focus:pygame.draw.rect(self.canvas,GREEN if idx==self.focus else BORDER,r,2 if idx==self.focus else 1,border_radius=6)
+        if active and nav:pygame.draw.rect(self.canvas,GREEN,(r.x,r.y+4,3,r.h-8),border_radius=2)
+        display={'Continue  >':'Continue →','Facilities':'Stadium','League':'Competitions','Career':'History & career'}.get(label,label)
+        if nav:
+            self.icon(nav[0],r.x+10,r.centery-9,18)
+            if not self.collapsed:self.clipped_text(display,r.x+38,r.centery-9,r.w-47,19,TEXT if active else MUTED)
+        elif self._inbox_style is not None:
+            self.clipped_text(display,r.x+15,r.y+14,r.w-30,21,TEXT)
+        else:
+            if label=='Search':display='Search people, clubs, actions  ·  Ctrl K'
+            font=self.get_font(19 if r.h<=38 else 20)
+            shown=display
+            while shown and font.size(shown)[0]>r.w-20:shown=shown[:-1]
+            if shown!=display:shown=shown[:-1]+'…'
+            image=font.render(shown,True,TEXT if enabled else FAINT)
+            self.canvas.blit(image,(r.centerx-image.get_width()//2,r.centery-image.get_height()//2))
         self.buttons.append((r,callback,enabled))
-        self.help_regions.append((r,self.control_help(label,enabled),idx))
+        self.help_regions.append((r,label+' — '+self.control_help(label,enabled),idx))
 
     def position(self):
-        return {key:getattr(self,key) for key in ('screen','page','profile','search','role','sort','descending','only_shortlist','tab','match_report','profile_ids','offer_id','offer_draft','offer_tab','offer_archive','history_season','market_scope','market_id','market_draft','market_tab','outgoing_player','outgoing_kind','sponsor_right','sponsor_draft','profile_tab','registration_draft','staff_tab','staff_person','staff_draft','staff_scope','staff_role','responsibility','authority_draft','staff_league')}
+        return {key:getattr(self,key) for key in ('screen','page','inbox_selection','profile','search','role','sort','descending','only_shortlist','tab','match_report','profile_ids','offer_id','offer_draft','offer_tab','offer_archive','history_season','market_scope','market_id','market_draft','market_tab','outgoing_player','outgoing_kind','sponsor_right','sponsor_draft','profile_tab','registration_draft','staff_tab','staff_person','staff_draft','staff_scope','staff_role','responsibility','authority_draft','staff_league')}
 
     def restore_position(self,position):
         for key,value in position.items():
@@ -112,6 +144,7 @@ class App(StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationS
         except OSError:self.message='Could not save interface preferences.'
 
     def reset_workspace(self,views=None):
+        self.inbox_selection=None;self.inbox_reader_page=0;self.inbox_reader_key=None
         self.staff_tab='Manager';self.staff_person=None;self.staff_draft=None;self.staff_scope='Candidates';self.staff_role='All roles'
         self.responsibility=None;self.authority_draft=None;self.staff_league=False
         self.views=views if isinstance(views,dict) else {};self.history=[];self.forward=[];self.undo=None;self.editor=None
@@ -122,7 +155,7 @@ class App(StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationS
         self.descending=False;self.only_shortlist=False;self.match_report=None;self.profile_ids=[];self.tab='Forecast'
 
     def nav(self,screen):
-        if screen=='Load' and self.screen!='Load':self.load_cache=None
+        if screen in ('Home','Load') and self.screen!=screen:self.load_cache=None
         if self.screen!=screen:
             self.remember();self.history.append(self.position());self.forward=[]
             default=dict(screen=screen,page=0,profile=None,search='',role='All',sort='Name',descending=False,
@@ -177,7 +210,7 @@ class App(StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationS
 
     def confirm(self,title,body,callback):
         self.play=False;self.batch=False;self.typing=False
-        self.modal=(title,body,callback);self.modal_revision=self.state['revision'] if self.state else None;self.modal_focus=self.focus;self.focus=0;self.focus_reveal=True
+        self.modal=(title,body,callback);self.modal_page=0;self.modal_revision=self.state['revision'] if self.state else None;self.modal_focus=self.focus;self.focus=0;self.focus_reveal=True
 
     def command(self,action,**payload):
         try:
@@ -251,14 +284,17 @@ class App(StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationS
         else:
             if self.v is None or self.v['revision']!=self.state['revision']:self.v=view(self.state)
             self.chrome();x=100 if self.collapsed else 245
-            self.text(self.screen if self.screen!='Overview' else "Chairman's Overview",x,100,40)
-            self.text('NORTHBRIDGE ATHLETIC  /  '+self.screen.upper()+('  /  PLAYER PROFILE' if self.profile else ''),x,147,19,MUTED)
+            title=TITLES.get(self.screen,self.screen)
+            if self.profile:title=next((p['name'] for p in self.v['players'] if p['id']==self.profile),title)
+            self.heading(title,x,104,40)
+            self.clipped_text(DESCRIPTIONS.get(self.screen,'NORTHBRIDGE ATHLETIC  /  '+self.screen.upper()) if not self.profile else self.screen.upper()+'  /  PLAYER PROFILE  /  ESTIMATES, NOT CERTAINTIES',x,151,1135,18,MUTED)
             self.button('< Back',(1160,100,112,38),self.go_back,bool(self.history))
             self.button('Forward >',(1283,100,117,38),self.go_forward,bool(self.forward))
             getattr(self,'draw_'+self.screen.lower())(x)
         if self.message and self.message!=self.message_seen:
             self.notification_log.append(self.message);self.notification_log=self.notification_log[-40:];self.message_seen=self.message
-        self.text(self.message[:116],26,HEIGHT-39,20,GREEN)
+        pygame.draw.line(self.canvas,BORDER,(245 if not self.collapsed else 100,850),(1400,850))
+        self.clipped_text(self.message,245 if self.state and not self.collapsed else 26,HEIGHT-34,1120,18,GREEN)
         if self.undo and self.undo[0]==self.state['revision']:
             self.button('Undo',(1280,850,120,34),self.undo_planning)
         if self.editor:self.draw_note_editor()
@@ -268,108 +304,14 @@ class App(StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationS
         scale,size,self.offset=self.fit_viewport();self.scale=scale
         self.window.fill((8,12,16));self.window.blit(pygame.transform.smoothscale(self.canvas,size),self.offset);pygame.display.flip()
 
-    def home(self):
-        self.text('CLUB CHAIRMAN',100,100,60)
-        self.text('STAFF & DELEGATION 0.8  /  NORTHSHIRE LEAGUE',104,170,25,GREEN)
-        self.wrap('Take the chair at Northbridge Athletic. Appoint your manager, strengthen the squad and balance ambition against the club bank account.',104,225,770,29,TEXT)
-        self.wrap('An evolving ownership game: continuing seasons, contracts, academy development and facility investment in a compact fictional league. The full AA world remains in development.',104,330,800,24)
-        if self.screen=='Load':
-            if self.load_cache is None:self.load_cache=self.store.entries()
-            entries=self.load_cache;start=self.page*6
-            for i,e in enumerate(entries[start:start+6]):
-                self.button(e['label'],(104,430+i*52,920,44),lambda p=e['path']:self.load_entry(p),e['valid'])
-            self.pager(104,760,len(entries),6)
-            self.button('Back',(1100,760,150,44),lambda:self.nav('Home'))
-            if not entries:self.text('No saved careers yet.',104,450)
-            return
-        self.button('New career',(104,445,240,52),lambda:self.confirm('Start a new career?', 'A new seed creates a fresh fictional squad. Existing saved careers are kept. This preview begins with an already-owned club.',self.start))
-        self.button('Load / recover career',(104,515,240,52),lambda:self.nav('Load'))
-        if self.state:self.button('Resume career',(104,585,240,52),lambda:self.nav('Matchday' if self.v['match'] else 'Overview'))
-        self.button('Quit',(104,655,240,52),self.quit_request)
-        self.panel(960,150,380,505,'How to play')
-        y=210
-        for text in ['1  Hire a manager in Staff.','2  Scout free agents in Recruitment.','3  Review budgets in Finances.','4  Continue to decisions and fixtures.','5  Watch, intervene or skip matches.','6  Renew contracts and start the next season.']:
-            y=self.wrap(text,980,y,340,23,TEXT)+16
-        self.text('Tab / Enter: controls  •  Esc: back',980,685,20,MUTED)
+    def home(self):self.executive_home()
 
-    def chrome(self):
-        v=self.v;sw=78 if self.collapsed else 220
-        pygame.draw.rect(self.canvas,PANEL,(0,0,sw,850))
-        self.text('CC' if self.collapsed else 'CLUB CHAIRMAN',18,30,26,GREEN)
-        self.button('>' if self.collapsed else '< Collapse',(14,91,sw-28,44),self.toggle_sidebar)
-        screens=['Overview','Inbox','Squad','Staff','Recruitment','Contracts','Transfers','Commercial','Academy','Facilities','Finances','League','Matchday','Career','Settings','Help']
-        for i,name in enumerate(screens):
-            self.button(name[:2] if self.collapsed else name,(14,146+i*37,sw-28,33),lambda n=name:self.nav(n))
-            if self.screen==name or (self.screen=='Comparison' and name=='Recruitment'):
-                pygame.draw.rect(self.canvas,GREEN,(14,151+i*37,3,23),border_radius=2)
-            if name=='Inbox' and not self.collapsed:
-                unread=len(v['inbox'])-v['planning']['inbox_read']
-                if unread:self.text(str(unread),sw-47,156+i*37,20,GREEN)
-        if v['decision'] and not self.collapsed:self.text('! Approval required',20,748,18,RED)
-        self.button('M' if self.collapsed else 'Main menu',(14,792,sw-28,38),lambda:self.nav('Home'))
-        crest(self.canvas,'c0',(sw+20,12,36,52))
-        self.text('NORTHBRIDGE ATHLETIC',sw+69,26,24)
-        self.text('Season '+str(v['season']),sw+69,52,17,MUTED)
-        self.text(v['date'],650,32,23,MUTED)
-        self.button('Search',(790,18,92,46),self.open_search)
-        self.button('Save',(895,18,95,46),self.manual_save)
-        self.button('Next fixture',(1005,18,160,46),self.next_fixture,not v['season_done'] and v['match'] is None)
-        self.button('Continue  >',(1180,18,220,46),self.continue_day,not v['season_done'] and v['match'] is None)
-        pygame.draw.line(self.canvas,BORDER,(sw,79),(1440,79))
-        if self.batch:self.text('Advancing days… click Stop or press Esc',sw+25,810,23,GREEN);self.button('Stop',(1180,800,220,42),lambda:setattr(self,'batch',False))
+    def chrome(self):self.executive_chrome()
 
     def toggle_sidebar(self):
         self.collapsed=not self.collapsed;self.save_preferences()
 
-    def draw_overview(self,x):
-        v=self.v;w=(1400-x-45)//4;pos=next(i+1 for i,c in enumerate(v['table']) if c['id']=='c0')
-        headroom=v['budget']-v['payroll'];own=next(c for c in v['clubs'] if c['id']=='c0')
-        for i,(label,value,detail) in enumerate([('Club cash',money(v['cash']),'Reserve '+money(v['terms']['operating_buffer'])),('Weekly payroll',money(v['payroll']),money(headroom)+' headroom'),('League position',f'{pos} / 8',f"{own['points']} points / {own['played']} played"),('Supporter mood',f"{v['supporters']} / 100",'Squad morale '+str(v['morale']))]):
-            left=x+i*(w+15);self.panel(left,195,w,124,label);self.text(value,left+20,240,35,GREEN);self.text(detail,left+20,284,20,MUTED)
-        self.panel(x,342,650,246,'Chairman decisions')
-        if v['decision']:
-            d=v['decision'];self.text('ACTION REQUIRED',x+430,362,19,RED)
-            self.text(d['title'],x+20,398,29)
-            self.wrap(f"Cost {money(d['cost'])}. Expected benefit: {'supporter goodwill' if d['supporters']>2 else 'squad preparation'}. Time waits for your decision.",x+20,441,610,23)
-            self.button('Review decision',(x+20,524,215,44),lambda:self.confirm(d['title'],f"Pay {money(d['cost'])} now? This is a one-off commitment. Club cash after payment: {money(v['cash']-d['cost'])}.",lambda:self.command('decision',choice='approve')))
-            self.button('Decline',(x+255,524,150,44),lambda:self.command('decision',choice='decline'))
-        elif not v['manager']:
-            self.text('The dugout is waiting.',x+20,399,29);self.wrap('Appoint a manager before advancing. Your manager controls team selection and tactics.',x+20,445,610,23)
-            self.button('Review candidates',(x+20,524,220,44),lambda:self.nav('Staff'))
-        elif v['season_done']:
-            self.text('Season complete',x+20,399,32,GREEN);self.wrap(f'You finished {pos} of 8. Prize money and final wages are settled. Review contracts, then prepare the next campaign in Career.',x+20,445,610,24)
-            self.button('Continue your career',(x+20,524,245,44),lambda:self.nav('Career'))
-        elif attention(v):
-            item=attention(v)[0]
-            self.text(item['name'],x+20,399,29)
-            self.wrap(item['label']+'. Complete or withdraw by '+dated(v,item['deadline'])+'. Reserved funds are not yet spent.',x+20,445,610,23)
-            self.button('Review contract',(x+20,524,230,44),lambda:self.business_attention(item))
-        else:
-            self.text('Ready for the next step.',x+20,399,29)
-            self.wrap(f"{len(v['planning']['shortlist'])} shortlisted / {len(v['planning']['comparison'])} pinned for comparison. Compare costs before you commit to a signing.",x+20,445,610,23)
-            self.button('Review recruitment',(x+20,524,230,44),lambda:self.nav('Recruitment'))
-        right=x+670;rw=1400-right
-        self.panel(right,342,rw,246,'Next fixture')
-        f=next((f for f in v['fixtures'] if 'c0' in (f['home'],f['away']) and f['result'] is None),None)
-        if f:
-            opponent=f['away'] if f['home']=='c0' else f['home']
-            self.wrap(self.club(opponent),right+20,401,rw-40,32,TEXT)
-            self.text(('HOME' if f['home']=='c0' else 'AWAY')+' / '+self.fixture_date(f),right+20,450,23,GREEN)
-        else:self.text('All fixtures complete',right+20,401,27,GREEN)
-        self.text('RECENT FORM',right+20,489,18,MUTED)
-        for i,result in enumerate(own['form'][-5:]):
-            left=right+20+i*46;pygame.draw.rect(self.canvas,BUTTON if result=='W' else BORDER,(left,522,35,34),border_radius=5);self.text(result,left+10,531,21,GREEN if result=='W' else TEXT)
-        if not own['form']:self.text('No matches played yet',right+20,534,22,MUTED)
-        self.panel(x,610,650,209,'Cash outlook / next 28 days')
-        projection=forecast(v);self.cash_chart(projection,projection,x+20,655,380,118)
-        self.text(money(projection['cash']),x+425,665,34,GREEN)
-        self.text('Projected cash',x+425,704,20,MUTED)
-        self.button('View finances',(x+425,750,200,42),lambda:self.nav('Finances'))
-        self.text('Current commitments; ticket income estimated',x+20,793,19,MUTED)
-        self.panel(right,610,rw,209,'Latest update')
-        n=v['inbox'][-1];self.wrap(n['title'],right+20,664,rw-40,27,TEXT)
-        self.text(f"{len(v['inbox'])-v['planning']['inbox_read']} unread updates",right+20,723,22,MUTED)
-        self.button('Open inbox',(right+20,760,170,40),lambda:self.nav('Inbox'))
+    def draw_overview(self,x):self.executive_overview(x)
 
     def club(self,cid):return next(c['name'] for c in self.v['clubs'] if c['id']==cid)
     def fixture_date(self,f):return dated(self.v,f['day'])
@@ -379,17 +321,7 @@ class App(StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationS
         self.text(f'Page {self.page+1} / {max(1,(total+size-1)//size)}',x+150,y+12,21,MUTED)
         self.button('Next',(x+330,y,100,42),lambda:setattr(self,'page',self.page+1),(self.page+1)*size<total)
 
-    def draw_inbox(self,x):
-        read=self.v['planning']['inbox_read'];rows=list(reversed(list(enumerate(self.v['inbox']))))
-        unread=len(rows)-read
-        self.text(f'{unread} unread updates',x,200,24,GREEN)
-        self.button('Mark all read',(x+265,190,175,40),lambda:self.command('planning',key='inbox_read',value=len(self.v['inbox'])),unread>0)
-        if self.v['decision']:self.button('Review required decision',(x+465,190,270,40),lambda:self.nav('Overview'))
-        for i,(index,n) in enumerate(rows[self.page*4:self.page*4+4]):
-            y=250+i*123;self.panel(x,y,1400-x,110)
-            self.text(('NEW  /  ' if index>=read else '')+dated(self.v,n['day'])+'  /  '+n['title'],x+18,y+15,24,GREEN if index>=read else TEXT)
-            self.wrap(n['body'],x+18,y+49,1350-x,22)
-        self.pager(x,785,len(rows),4)
+    def draw_inbox(self,x):self.executive_inbox(x)
 
     def draw_staff(self,x):StaffScreens.draw_staff(self,x)
 
@@ -419,10 +351,13 @@ class App(StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationS
             self.button('Market: '+self.market_scope,(x+395,246,235,38),lambda:self.filter_change('market_scope',scopes[(scopes.index(self.market_scope)+1)%3]))
         self.text(f'{len(rows)} results',x+650,257,22,MUTED)
         if not recruitment:self.button('Registration',(1200,246,200,38),lambda:(setattr(self,'tab','Registration'),setattr(self,'page',0)))
+        pygame.draw.rect(self.canvas,RAISED,(x,298,1400-x,38),border_radius=4)
         self.text('NAME / ROLE',x+15,309,18,MUTED);self.text('WAGE / WEEK',x+395,309,18,MUTED)
         self.text('EVIDENCE',x+555,309,18,MUTED)
         for i,p in enumerate(rows[self.page*7:self.page*7+7]):
-            y=340+i*57;self.panel(x,y,1400-x,51)
+            y=340+i*57
+            if i%2==0:pygame.draw.rect(self.canvas,PANEL,(x,y,1400-x,56))
+            pygame.draw.line(self.canvas,BORDER,(x,y+56),(1400,y+56))
             self.text(p['name'],x+15,y+8,25)
             self.text(f"{p['role']}  /  Age {p['age']}  /  {p['goals']} goals",x+15,y+32,18,MUTED)
             self.right_text(money(p['wage']),x+515,y+18,23)
@@ -524,25 +459,31 @@ class App(StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationS
         self.tab=tab;self.page=0;self.save_preferences()
 
     def right_text(self,text,right,y,size=22,color=TEXT):
-        font=self.fonts.setdefault(size,pygame.font.Font(None,size))
+        font=self.get_font(size)
         self.text(text,right-font.size(str(text))[0],y,size,color)
 
     def cash_chart(self,f,base,x,y,w,h):
         points=f['points'];values=[p[k] for p in points for k in ('low','high')]+[p['cash'] for p in base['points']]+[f['reserve']]
-        lo=min(values);hi=max(values);pad=max(100000,(hi-lo)*.1);lo-=pad;hi+=pad
+        lo=min(values);hi=max(values);pad=max(100000,(hi-lo)*.08);lo-=pad;hi+=pad
+        plot_x=x+63;plot_w=w-63
+        def short(value):
+            pounds=value/100
+            return f'£{pounds/1000000:.1f}m' if abs(pounds)>=1000000 else f'£{pounds/1000:.0f}k'
         def xy(p,key):
             span=max(1,f['end']-self.v['day'])
-            return (round(x+(p['day']-self.v['day'])/span*w),round(y+h-(p[key]-lo)/(hi-lo)*h))
-        reserve_y=round(y+h-(f['reserve']-lo)/(hi-lo)*h)
-        pygame.draw.line(self.canvas,BORDER,(x,reserve_y),(x+w,reserve_y),1)
+            return (round(plot_x+(p['day']-self.v['day'])/span*plot_w),round(y+h-(p[key]-lo)/(hi-lo)*h))
+        for value in (lo,(lo+hi)/2,hi):
+            gy=round(y+h-(value-lo)/(hi-lo)*h)
+            pygame.draw.line(self.canvas,BORDER,(plot_x,gy),(plot_x+plot_w,gy))
+            self.right_text(short(value),plot_x-9,gy-7,14,MUTED)
         if len(points)>1:
             polygon=[xy(p,'high') for p in points]+[xy(p,'low') for p in reversed(points)]
-            pygame.draw.polygon(self.canvas,BUTTON,polygon)
+            pygame.draw.polygon(self.canvas,SELECTED,polygon)
             if self.tab=='Plan' and len(base['points'])>1:pygame.draw.lines(self.canvas,MUTED,False,[xy(p,'cash') for p in base['points']],2)
-            pygame.draw.lines(self.canvas,GREEN,False,[xy(p,'cash') for p in points],3)
-        else:pygame.draw.circle(self.canvas,GREEN,xy(points[0],'cash'),4)
-        self.text('Reserve '+money(f['reserve']),x+8,min(y+h-18,max(y,reserve_y+3)),18,MUTED)
-        self.text(money(f['cash']),x+w-115,y,21,GREEN)
+            pygame.draw.lines(self.canvas,GREEN,False,[xy(p,'cash') for p in points],2)
+        else:pygame.draw.circle(self.canvas,GREEN,xy(points[0],'cash'),3)
+        reserve_y=round(y+h-(f['reserve']-lo)/(hi-lo)*h)
+        for dx in range(0,round(plot_w),10):pygame.draw.line(self.canvas,MUTED,(plot_x+dx,reserve_y),(min(plot_x+plot_w,plot_x+dx+4),reserve_y))
 
     def draw_league(self,x):
         self.text('NORTHSHIRE LEAGUE  •  8 clubs / home and away',x,200,24,GREEN)
@@ -591,20 +532,35 @@ class App(StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationS
 
     def draw_modal(self):
         overlay=pygame.Surface((WIDTH,HEIGHT),pygame.SRCALPHA);overlay.fill((0,0,0,185));self.canvas.blit(overlay,(0,0))
-        self.buttons=[];self.help_regions=[];self.panel(290,195,860,510)
-        pending=self.modal
-        title,body,callback=pending
-        self.wrap(title,325,225,790,34,TEXT);self.wrap(body,325,295,790,25,TEXT)
+        self.buttons=[];self.help_regions=[];self.panel(290,135,860,610)
+        pending=self.modal;title,body,callback=pending
+        self.text(self.club('c0').upper()+' / REVIEW' if self.state else 'CLUB CHAIRMAN / REVIEW',325,159,17,GREEN)
+        self.heading(title,325,195,34,width=790)
+        pygame.draw.line(self.canvas,BORDER,(325,239),(1115,239))
+        lines=[];font=self.get_font(25)
+        for paragraph in body.split('\n'):
+            line=''
+            for word in paragraph.split():
+                candidate=(line+' '+word).strip()
+                if line and font.size(candidate)[0]>790:lines.append(line);line=word
+                else:line=candidate
+            if line:lines.append(line)
+        size=12;pages=max(1,(len(lines)+size-1)//size);self.modal_page=min(self.modal_page,pages-1)
+        for i,line in enumerate(lines[self.modal_page*size:(self.modal_page+1)*size]):self.text(line,325,264+i*27,25,TEXT)
+        if pages>1:
+            self.button('Previous text',(325,609,170,36),lambda:setattr(self,'modal_page',max(0,self.modal_page-1)),self.modal_page>0)
+            self.text(f'{self.modal_page+1} / {pages}',520,617,18,MUTED)
+            self.button('Next text',(600,609,150,36),lambda:setattr(self,'modal_page',self.modal_page+1),self.modal_page+1<pages)
         if callback is None:
-            self.button('Close',(325,630,180,48),self.cancel_modal);return
-        self.button('Cancel',(325,630,180,48),self.cancel_modal)
+            self.button('Close',(325,675,180,48),self.cancel_modal);return
+        self.button('Cancel',(325,675,180,48),self.cancel_modal)
         def commit():
             if self.modal is not pending:return
             self.modal=None
             if self.state and self.modal_revision!=self.state['revision']:
                 self.message='The career changed. Open this review again to confirm the current terms.';return
             callback()
-        self.button('Confirm',(925,630,180,48),commit)
+        self.button('Confirm',(925,675,180,48),commit)
 
     def cancel_modal(self):
         self.modal=None;self.focus=self.modal_focus

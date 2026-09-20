@@ -17,35 +17,49 @@ class FootballScreens:
         self.button('Next player',(x+385,190,155,42),lambda:self.profile_neighbor(1),0<=index<len(self.profile_ids)-1)
         self.button('Remove shortlist' if p['id'] in self.v['planning']['shortlist'] else 'Add to shortlist',(x+555,190,190,42),lambda:self.toggle_plan('shortlist',p['id']))
         self.button('Unpin' if p['id'] in self.v['planning']['comparison'] else 'Pin comparison',(1200,190,200,42),lambda:self.toggle_plan('comparison',p['id']))
-        self.panel(x,250,1400-x,124)
-        portrait(self.canvas,p['id'],p['age'],(x+14,261,85,102),p['club'])
-        self.text(p['name'],x+118,269,35)
-        self.text(f"{p['role']} / Age {p['age']} / {p['foot']} foot / {p['height']} cm",x+118,311,21,MUTED)
-        self.text('Free agent' if not p['club'] else self.club(p['club']),x+118,343,20,MUTED)
         report=p['report']
-        for i,(key,label) in enumerate((('overall','EST. OVERALL'),('potential','EST. POTENTIAL'))):
-            left=1020+i*180;self.text(label,left,269,18,MUTED)
-            self.text(interval(report.get(key) if report else None),left,297,31,GREEN)
-        self.text('Role: '+p['role']+' / estimates, 1–100',1020,346,19,MUTED)
+        self.panel(x,250,480,124)
+        portrait(self.canvas,p['id'],p['age'],(x+14,261,85,102),p['club'])
+        self.text(p['role']+' / Age '+str(p['age']),x+118,267,28)
+        self.text(f"{p['foot']} foot / {p['height']} cm",x+118,307,21,MUTED)
+        self.clipped_text('Free agent' if not p['club'] else self.club(p['club']),x+118,343,345,20,MUTED)
+        width=(1400-x-525)/3
+        metrics=[('EST. OVERALL',interval(report.get('overall') if report else None),'Role: '+p['role']+' / 1–100'),
+                 ('EST. POTENTIAL',interval(report.get('potential') if report else None),'Development is uncertain'),
+                 ('CONFIDENCE',report['confidence'] if report else 'Unknown',dated(self.v,report['day']) if report else 'Request scouting')]
+        for i,(label,value,caption) in enumerate(metrics):
+            left=x+495+i*(width+15);self.panel(left,250,width,124)
+            self.text(label,left+15,267,16,MUTED)
+            self.clipped_text(value,left+15,296,width-30,32,GREEN if i==0 else TEXT)
+            self.clipped_text(caption,left+15,348,width-30,15,MUTED)
         tabs=('Attributes','Goalkeeping','Development','Contract')
         active=self.profile_tab if self.profile_tab in tabs else 'Attributes'
         for i,label in enumerate(tabs):
             self.button(('• ' if active==label else '')+label,(x+i*180,389,170,38),lambda label=label:setattr(self,'profile_tab',label))
         if active in ('Attributes','Goalkeeping'):
             groups=('Technical','Mental','Physical') if active=='Attributes' else ('Goalkeeping','Mental','Physical')
-            width=(1400-x-20)/3
+            right=1110;columns=(right-x-30)/3
+            self.panel(x,441,right-x-15,313)
             for i,group in enumerate(groups):
-                left=x+i*(width+10);self.panel(left,441,width,313,group)
+                left=x+i*columns;self.text(group.upper(),left+15,458,16,MUTED)
                 for row,key in enumerate(GROUPS[group]):
-                    y=484+row*23
-                    self.text(key.replace('_',' ').capitalize(),left+15,y,20)
+                    y=491+row*23
+                    self.clipped_text(key.replace('_',' ').capitalize(),left+15,y,columns-81,18)
                     pair=report['ranges'].get(key) if report else None
-                    self.right_text(interval(pair),left+width-16,y,20,GREEN if pair else MUTED)
+                    self.right_text(interval(pair),left+columns-15,y,18,GREEN if pair else MUTED)
+                    import pygame
+                    from .theme import BORDER
+                    pygame.draw.line(self.canvas,BORDER,(left+15,y+21),(left+columns-15,y+21))
+            self.section(right,441,290,313,"Scout’s assessment")
+            self.text(report['confidence'].upper()+' EVIDENCE' if report else 'NOT ASSESSED',right+20,509,17,GREEN)
+            evidence=('Estimated overall '+interval(report.get('overall'))+' for '+p['role']+'. Potential '+interval(report.get('potential'))+' is a development outlook, not a guaranteed outcome.') if report else 'Commission a report before judging this player. Unknown attributes stay unknown.'
+            self.wrap(evidence,right+20,550,248,21,TEXT)
             if report:
-                message=f"{report['source']} / {report['confidence']} confidence / observed {dated(self.v,report['day'])}"
-                if report.get('stale'):message+=' / ageing evidence'
-            else:message='Not assessed. Request scouting for estimated attributes and potential.'
-            self.text(message[:118],x,763,20,MUTED)
+                self.clipped_text(report['source'],right+20,660,248,19,MUTED)
+                self.text('Observed '+dated(self.v,report['day']),right+20,690,18,MUTED)
+                self.text('Ageing evidence' if report.get('stale') else 'Latest recorded assessment',right+20,719,17,MUTED)
+            else:self.text('No medical assessment available',right+20,703,17,MUTED)
+            self.text(f"PUBLIC RECORD  /  {p['appearances']} appearances · {p['goals']} goals this season",x,764,19,MUTED)
         elif active=='Development':
             self.panel(x,441,560,313,'Condition and availability')
             self.text(p['availability'] or 'Available for selection',x+20,487,27,RED if p['availability'] else GREEN)

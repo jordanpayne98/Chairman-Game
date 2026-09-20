@@ -2,7 +2,13 @@
 
 Implementation tracking against the **approved living GDD revision 0.3**. This is an engineering checklist, not a replacement design document, new design approval or a reduced release scope. The full AA game is **not release-ready**. No percentage-complete claim is made.
 
-## Current playable scope: Staff and Delegation Update 0.8
+## Current presentation scope: Figma UI Update 0.9
+
+The approved Figma visual system now runs in Pygame across existing game screens. Overview, split inbox, player evidence/profile, menu, save manager and fixture list use their connected runtime implementations. Fonts, icons and the Northbridge crest are bundled for offline operation. Long report/review readers paginate and preserve confirmation checks. This changes presentation and navigation only; schema 7 and simulation behaviour are unchanged.
+
+Coverage and explicit remaining Figma gaps: `FIGMA_UI_IMPLEMENTATION.md`. Multi-club/personal investments, extended career setup/content packs, person drawers, responsive text reflow, configurable dashboard arrangement and the complete release/accessibility gates are still open. No full UI or AA completion claim.
+
+## Inherited playable scope: Staff and Delegation Update 0.8
 
 A compact eight-club league continues across seasons, with fourteen weekly rounds and a two-week preseason. This development calendar is not the approved full international football world. Original 0.1/0.2 saves migrate without replacing their source. Their existing contracts retain their actual end dates: review renewals before progressing beyond those dates.
 
