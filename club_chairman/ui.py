@@ -12,6 +12,11 @@ import pygame
 from .simulation import Command, MANAGERS, execute, new_career, view
 from .persistence import SaveStore, SaveError, load, user_directory
 from .career_ui import CareerScreens
+from .business_ui import BusinessScreens
+from .football_ui import FootballScreens
+from .navigation import NavigationScreens
+from .staff_ui import StaffScreens
+from .football import finished as match_finished
 from .contract_review import attention
 from .presentation import crest, portrait, Soundscape
 from .planning import ATTRIBUTES, SORTS, dated, player_rows, signing_terms, forecast
@@ -23,11 +28,11 @@ WIDTH,HEIGHT=1440,900
 def money(v):return f'£{v/100:,.0f}'
 
 
-class App(CareerScreens):
+class App(StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
     def __init__(self,save_root=None):
         pygame.display.init();pygame.font.init()
         self.window=pygame.display.set_mode((1280,800),pygame.RESIZABLE)
-        pygame.display.set_caption('Club Chairman — Contracts Update 0.4')
+        pygame.display.set_caption('Club Chairman — Staff & Delegation 0.8')
         self.canvas=pygame.Surface((WIDTH,HEIGHT))
         self.fonts={}
         self.state=None;self.v=None;self.screen='Home';self.buttons=[];self.focus=0;self.running=True
@@ -37,14 +42,23 @@ class App(CareerScreens):
         self.tab='Forecast';self.match_report=None;self.profile_ids=[];self.views={};self.history=[];self.forward=[]
         self.workspaces={};self.undo=None;self.editor=None;self.note_draft='';self.notification_log=[]
         self.modal_revision=None;self.modal_focus=0;self.message_seen='';self.note_active=False
+        self.market_scope='Free agents';self.market_id=None;self.market_draft=None;self.market_tab='Deals'
+        self.outgoing_player=None;self.outgoing_kind='sale';self.sponsor_right=None;self.sponsor_draft=None
+        self.profile_tab='Attributes';self.registration_draft=None
+        self.staff_tab='Manager';self.staff_person=None;self.staff_draft=None;self.staff_scope='Candidates';self.staff_role='All roles'
+        self.responsibility=None;self.authority_draft=None;self.staff_league=False
         self.key_events_only=False;self.offer_id=None;self.offer_draft=None;self.offer_tab='Terms';self.offer_archive=None;self.history_season=None;self.load_cache=None
         self.reduced_motion=False;self.tooltips_enabled=True;self.explain_focus=False;self.help_regions=[]
         self.hover_key=None;self.hover_since=0;self.goal_until=0;self.last_score=None
+        self.ui_zoom=1;self.pan=[0,0];self.focus_reveal=False
+        self.palette=None;self.palette_typing=False;self.palette_page=0
         self.sound=Soundscape()
         self.settings_path=(Path(save_root) if save_root else user_directory())/'settings.json'
         try:
             settings=json.loads(self.settings_path.read_text());self.reduced_motion=bool(settings.get('reduced_motion',False));self.tooltips_enabled=bool(settings.get('tooltips_enabled',True));self.sound.volume=0 if settings.get('muted',False) else .22;self.workspaces=settings.get('workspaces',{});self.collapsed=bool(settings.get('collapsed',False));self.speed=settings.get('speed',1)
             if self.speed not in (1,2,4):self.speed=1
+            self.ui_zoom=settings.get('ui_zoom',1)
+            if self.ui_zoom not in (1,1.25,1.5,1.75):self.ui_zoom=1
         except (OSError,ValueError,TypeError,AttributeError):pass
         if not isinstance(self.workspaces,dict):self.workspaces={}
 
@@ -79,12 +93,12 @@ class App(CareerScreens):
         self.help_regions.append((r,self.control_help(label,enabled),idx))
 
     def position(self):
-        return {key:getattr(self,key) for key in ('screen','page','profile','search','role','sort','descending','only_shortlist','tab','match_report','profile_ids','offer_id','offer_draft','offer_tab','offer_archive','history_season')}
+        return {key:getattr(self,key) for key in ('screen','page','profile','search','role','sort','descending','only_shortlist','tab','match_report','profile_ids','offer_id','offer_draft','offer_tab','offer_archive','history_season','market_scope','market_id','market_draft','market_tab','outgoing_player','outgoing_kind','sponsor_right','sponsor_draft','profile_tab','registration_draft','staff_tab','staff_person','staff_draft','staff_scope','staff_role','responsibility','authority_draft','staff_league')}
 
     def restore_position(self,position):
         for key,value in position.items():
             if key in self.position():setattr(self,key,value)
-        self.typing=False;self.focus=0;self.play=False;self.batch=False
+        self.typing=False;self.focus=0;self.play=False;self.batch=False;self.focus_reveal=True
 
     def remember(self):
         if self.screen not in ('Home','Load'):self.views[self.screen]=self.position()
@@ -94,12 +108,16 @@ class App(CareerScreens):
         if self.state:self.workspaces[self.state['career_id']]=self.views.copy()
         try:
             self.settings_path.parent.mkdir(parents=True,exist_ok=True)
-            self.settings_path.write_text(json.dumps(dict(version=2,collapsed=self.collapsed,speed=self.speed,workspaces=self.workspaces,reduced_motion=self.reduced_motion,tooltips_enabled=self.tooltips_enabled,muted=self.sound.volume==0)))
+            self.settings_path.write_text(json.dumps(dict(version=3,ui_zoom=self.ui_zoom,collapsed=self.collapsed,speed=self.speed,workspaces=self.workspaces,reduced_motion=self.reduced_motion,tooltips_enabled=self.tooltips_enabled,muted=self.sound.volume==0)))
         except OSError:self.message='Could not save interface preferences.'
 
     def reset_workspace(self,views=None):
+        self.staff_tab='Manager';self.staff_person=None;self.staff_draft=None;self.staff_scope='Candidates';self.staff_role='All roles'
+        self.responsibility=None;self.authority_draft=None;self.staff_league=False
         self.views=views if isinstance(views,dict) else {};self.history=[];self.forward=[];self.undo=None;self.editor=None
+        self.market_scope='Free agents';self.market_id=None;self.market_draft=None;self.market_tab='Deals';self.outgoing_player=None;self.outgoing_kind='sale';self.sponsor_right=None;self.sponsor_draft=None
         self.notification_log=[];self.message_seen='';self.offer_id=None;self.offer_draft=None;self.offer_tab='Terms';self.offer_archive=None;self.history_season=None;self.last_score=None;self.goal_until=0
+        self.profile_tab='Attributes';self.registration_draft=None
         self.screen='Home';self.page=0;self.profile=None;self.search='';self.role='All';self.sort='Name'
         self.descending=False;self.only_shortlist=False;self.match_report=None;self.profile_ids=[];self.tab='Forecast'
 
@@ -108,9 +126,9 @@ class App(CareerScreens):
         if self.screen!=screen:
             self.remember();self.history.append(self.position());self.forward=[]
             default=dict(screen=screen,page=0,profile=None,search='',role='All',sort='Name',descending=False,
-                         only_shortlist=False,tab='Forecast',match_report=None,profile_ids=[],offer_id=None,offer_draft=None,offer_tab='Terms',offer_archive=None,history_season=self.history_season)
+                         only_shortlist=False,tab='Forecast',match_report=None,profile_ids=[],offer_id=None,offer_draft=None,offer_tab='Terms',offer_archive=None,history_season=self.history_season,market_scope='Free agents',market_id=None,market_draft=None,market_tab='Deals',outgoing_player=None,outgoing_kind='sale',sponsor_right=None,sponsor_draft=None)
             self.restore_position(self.views.get(screen,default))
-        self.typing=False;self.focus=0;self.play=False;self.batch=False
+        self.typing=False;self.focus=0;self.play=False;self.batch=False;self.focus_reveal=True
         self.save_preferences()
 
     def go_back(self):
@@ -159,23 +177,23 @@ class App(CareerScreens):
 
     def confirm(self,title,body,callback):
         self.play=False;self.batch=False;self.typing=False
-        self.modal=(title,body,callback);self.modal_revision=self.state['revision'] if self.state else None;self.modal_focus=self.focus;self.focus=0
+        self.modal=(title,body,callback);self.modal_revision=self.state['revision'] if self.state else None;self.modal_focus=self.focus;self.focus=0;self.focus_reveal=True
 
     def command(self,action,**payload):
         try:
             before_score=tuple(self.state['match']['score']) if self.state['match'] else None
             self.state,self.message=execute(self.state,Command(uuid.uuid4().hex,self.state['revision'],action,payload))
             self.v=view(self.state)
-            if action=='match_step' and self.v['match']:
+            if action in ('match_step','match_skip') and self.v['match']:
                 score=tuple(self.v['match']['score'])
                 if before_score is not None and score!=before_score:
                     self.goal_until=pygame.time.get_ticks()+950;self.sound.play('goal')
                 self.last_score=score
             self.undo=None
-            if action not in ('match_step',) or self.v['match']['minute']==90:
+            if action not in ('match_step','match_skip') or match_finished(self.v['match']):
                 try:self.store.autosave(self.state)
                 except SaveError as exc:self.message=str(exc);self.play=False;self.batch=False
-            if self.v['match'] and self.v['match']['minute']==90:self.play=False
+            if self.v['match'] and match_finished(self.v['match']):self.play=False
             return True
         except ValueError as exc:
             self.message=str(exc);self.play=False;self.batch=False;return False
@@ -203,13 +221,17 @@ class App(CareerScreens):
 
     def continue_day(self):
         before={(r['player'],r['label']) for r in attention(self.v)}
+        prior_cases={c['id'] for c in self.v['delegation']['cases']}
         if self.command('continue'):
             if self.v['match']:self.nav('Matchday');self.match_report=None;self.page=0;self.batch=False
             elif self.v['decision']:self.nav('Overview');self.batch=False
             elif self.batch:
+                pending=[c for c in self.v['delegation']['cases'] if c['id'] not in prior_cases and c['status']=='pending']
+                if pending:
+                    self.batch=False;self.nav('Staff');self.staff_section('Approvals');self.message='A new staff proposal needs your review.';return
                 urgent=[r for r in attention(self.v) if (r['player'],r['label']) not in before]
                 if urgent:
-                    self.batch=False;self.nav('Contracts');self.offer_id=urgent[0]['player'];self.offer_draft=None
+                    self.batch=False;self.business_attention(urgent[0])
                     self.message=urgent[0]['name']+': '+urgent[0]['label']+'. Fast-forward stopped for your review.'
 
     def next_fixture(self):
@@ -241,14 +263,14 @@ class App(CareerScreens):
             self.button('Undo',(1280,850,120,34),self.undo_planning)
         if self.editor:self.draw_note_editor()
         if self.modal:self.draw_modal()
+        if self.palette is not None:self.draw_search()
         self.draw_tooltip()
-        scale=min(self.window.get_width()/WIDTH,self.window.get_height()/HEIGHT)
-        size=(round(WIDTH*scale),round(HEIGHT*scale));self.offset=((self.window.get_width()-size[0])//2,(self.window.get_height()-size[1])//2);self.scale=scale
+        scale,size,self.offset=self.fit_viewport();self.scale=scale
         self.window.fill((8,12,16));self.window.blit(pygame.transform.smoothscale(self.canvas,size),self.offset);pygame.display.flip()
 
     def home(self):
         self.text('CLUB CHAIRMAN',100,100,60)
-        self.text('CONTRACTS UPDATE 0.4  /  NORTHSHIRE LEAGUE',104,170,25,GREEN)
+        self.text('STAFF & DELEGATION 0.8  /  NORTHSHIRE LEAGUE',104,170,25,GREEN)
         self.wrap('Take the chair at Northbridge Athletic. Appoint your manager, strengthen the squad and balance ambition against the club bank account.',104,225,770,29,TEXT)
         self.wrap('An evolving ownership game: continuing seasons, contracts, academy development and facility investment in a compact fictional league. The full AA world remains in development.',104,330,800,24)
         if self.screen=='Load':
@@ -275,21 +297,21 @@ class App(CareerScreens):
         pygame.draw.rect(self.canvas,PANEL,(0,0,sw,850))
         self.text('CC' if self.collapsed else 'CLUB CHAIRMAN',18,30,26,GREEN)
         self.button('>' if self.collapsed else '< Collapse',(14,91,sw-28,44),self.toggle_sidebar)
-        screens=['Overview','Inbox','Squad','Staff','Recruitment','Contracts','Academy','Facilities','Finances','League','Matchday','Career','Settings','Help']
+        screens=['Overview','Inbox','Squad','Staff','Recruitment','Contracts','Transfers','Commercial','Academy','Facilities','Finances','League','Matchday','Career','Settings','Help']
         for i,name in enumerate(screens):
-            self.button(name[:2] if self.collapsed else name,(14,151+i*42,sw-28,36),lambda n=name:self.nav(n))
+            self.button(name[:2] if self.collapsed else name,(14,146+i*37,sw-28,33),lambda n=name:self.nav(n))
             if self.screen==name or (self.screen=='Comparison' and name=='Recruitment'):
-                pygame.draw.rect(self.canvas,GREEN,(14,156+i*42,3,26),border_radius=2)
+                pygame.draw.rect(self.canvas,GREEN,(14,151+i*37,3,23),border_radius=2)
             if name=='Inbox' and not self.collapsed:
                 unread=len(v['inbox'])-v['planning']['inbox_read']
-                if unread:self.text(str(unread),sw-47,163+i*42,20,GREEN)
+                if unread:self.text(str(unread),sw-47,156+i*37,20,GREEN)
         if v['decision'] and not self.collapsed:self.text('! Approval required',20,748,18,RED)
         self.button('M' if self.collapsed else 'Main menu',(14,792,sw-28,38),lambda:self.nav('Home'))
         crest(self.canvas,'c0',(sw+20,12,36,52))
         self.text('NORTHBRIDGE ATHLETIC',sw+69,26,24)
         self.text('Season '+str(v['season']),sw+69,52,17,MUTED)
         self.text(v['date'],650,32,23,MUTED)
-        self.button('Activity',(790,18,92,46),lambda:self.nav('Activity'))
+        self.button('Search',(790,18,92,46),self.open_search)
         self.button('Save',(895,18,95,46),self.manual_save)
         self.button('Next fixture',(1005,18,160,46),self.next_fixture,not v['season_done'] and v['match'] is None)
         self.button('Continue  >',(1180,18,220,46),self.continue_day,not v['season_done'] and v['match'] is None)
@@ -321,7 +343,7 @@ class App(CareerScreens):
             item=attention(v)[0]
             self.text(item['name'],x+20,399,29)
             self.wrap(item['label']+'. Complete or withdraw by '+dated(v,item['deadline'])+'. Reserved funds are not yet spent.',x+20,445,610,23)
-            self.button('Review contract',(x+20,524,230,44),lambda:self.contract_open(item['player']))
+            self.button('Review contract',(x+20,524,230,44),lambda:self.business_attention(item))
         else:
             self.text('Ready for the next step.',x+20,399,29)
             self.wrap(f"{len(v['planning']['shortlist'])} shortlisted / {len(v['planning']['comparison'])} pinned for comparison. Compare costs before you commit to a signing.",x+20,445,610,23)
@@ -369,13 +391,15 @@ class App(CareerScreens):
             self.wrap(n['body'],x+18,y+49,1350-x,22)
         self.pager(x,785,len(rows),4)
 
-    def draw_staff(self,x):self.staff_screen(x)
+    def draw_staff(self,x):StaffScreens.draw_staff(self,x)
 
-    def draw_squad(self,x):self.player_table(x,False)
+    def draw_squad(self,x):
+        if self.tab=='Registration' and not self.profile:self.registration_screen(x)
+        else:self.player_table(x,False)
     def draw_recruitment(self,x):self.player_table(x,True)
 
     def filtered_players(self):
-        return player_rows(self.v,self.screen=='Recruitment',self.search,self.role,self.only_shortlist,self.sort,self.descending)
+        return player_rows(self.v,self.screen=='Recruitment',self.search,self.role,self.only_shortlist,self.sort,self.descending,self.market_scope)
 
     def player_table(self,x,recruitment):
         if self.profile:
@@ -390,7 +414,11 @@ class App(CareerScreens):
         rows=self.filtered_players();self.page=min(self.page,max(0,(len(rows)-1)//7))
         self.button('Sort: '+self.sort,(x,246,210,38),lambda:self.filter_change('sort',SORTS[(SORTS.index(self.sort)+1)%len(SORTS)]))
         self.button('High to low' if self.descending else 'Low to high',(x+225,246,155,38),lambda:self.filter_change('descending',not self.descending))
-        self.text(f'{len(rows)} results  /  unknown estimates sort last',x+400,257,22,MUTED)
+        if recruitment:
+            scopes=('Free agents','Club players','All')
+            self.button('Market: '+self.market_scope,(x+395,246,235,38),lambda:self.filter_change('market_scope',scopes[(scopes.index(self.market_scope)+1)%3]))
+        self.text(f'{len(rows)} results',x+650,257,22,MUTED)
+        if not recruitment:self.button('Registration',(1200,246,200,38),lambda:(setattr(self,'tab','Registration'),setattr(self,'page',0)))
         self.text('NAME / ROLE',x+15,309,18,MUTED);self.text('WAGE / WEEK',x+395,309,18,MUTED)
         self.text('EVIDENCE',x+555,309,18,MUTED)
         for i,p in enumerate(rows[self.page*7:self.page*7+7]):
@@ -401,7 +429,8 @@ class App(CareerScreens):
             report=p['report'];info=report['confidence'] if report else 'Due '+dated(self.v,p['scout_due'])[:6] if p['scout_due'] else 'Not assessed'
             if report and self.sort.lower() in ATTRIBUTES:
                 lo,hi=report['ranges'][self.sort.lower()];info=f'{lo}–{hi} (estimate)'
-            self.text(info,x+555,y+18,21,GREEN if report else MUTED)
+            if not recruitment:info=p['availability'] or f"Available / {p['condition']:.0f}%"
+            self.text(info[:31],x+555,y+18,21,RED if not recruitment and p['availability'] else GREEN if report else MUTED)
             self.button('Saved' if p['id'] in self.v['planning']['shortlist'] else '+ List',(1100,y+5,82,40),lambda pid=p['id']:self.toggle_plan('shortlist',pid))
             self.button('Pinned' if p['id'] in self.v['planning']['comparison'] else '+ Pin',(1192,y+5,82,40),lambda pid=p['id']:self.toggle_plan('comparison',pid))
             self.button('Profile',(1285,y+5,105,40),lambda pid=p['id']:self.open_profile(pid))
@@ -410,53 +439,9 @@ class App(CareerScreens):
         if not rows:self.wrap('No players match these filters. Use Reset filters, or turn off Shortlist only.',x+20,380,900,27)
 
     def reset_filters(self):
-        self.search='';self.role='All';self.only_shortlist=False;self.sort='Name';self.descending=False;self.page=0;self.save_preferences()
+        self.search='';self.role='All';self.market_scope='Free agents';self.only_shortlist=False;self.sort='Name';self.descending=False;self.page=0;self.save_preferences()
 
-    def draw_profile(self,x,p):
-        self.button('< Back to list',(x,190,175,42),self.close_profile)
-        index=self.profile_ids.index(p['id']) if p['id'] in self.profile_ids else -1
-        self.button('Previous player',(x+190,190,180,42),lambda:self.profile_neighbor(-1),index>0)
-        self.button('Next player',(x+385,190,155,42),lambda:self.profile_neighbor(1),0<=index<len(self.profile_ids)-1)
-        self.button('Remove shortlist' if p['id'] in self.v['planning']['shortlist'] else 'Add to shortlist',(x+555,190,190,42),lambda:self.toggle_plan('shortlist',p['id']))
-        self.button('Unpin' if p['id'] in self.v['planning']['comparison'] else 'Pin comparison',(1200,190,200,42),lambda:self.toggle_plan('comparison',p['id']))
-        self.panel(x,255,1400-x,118)
-        portrait(self.canvas,p['id'],p['age'],(x+20,266,82,97),p['club'])
-        self.text(p['name'],x+124,275,38)
-        self.text(f"{p['role']}  /  Age {p['age']}  /  {'Free agent' if p['club'] is None else 'Northbridge Athletic'}",x+124,328,24,MUTED)
-        self.text(f"{p['appearances']} apps  /  {p['goals']} goals",1090,330,23,GREEN)
-        left=650;right=x+left+20;rw=1400-right
-        self.panel(x,390,left,310,'Scouted attributes  /  1–100')
-        report=p['report']
-        if report:
-            for i,key in enumerate(ATTRIBUTES):
-                y=445+i*48;lo,hi=report['ranges'][key]
-                self.text(key.capitalize(),x+20,y,24)
-                pygame.draw.rect(self.canvas,BG,(x+190,y+2,320,15),border_radius=4)
-                pygame.draw.rect(self.canvas,BUTTON,(x+190,y+2,round(320*hi/100),15),border_radius=4)
-                pygame.draw.rect(self.canvas,GREEN,(x+190+round(320*lo/100),y+2,max(3,round(320*(hi-lo)/100)),15),border_radius=3)
-                self.text(f'{lo}–{hi}',x+538,y,24,GREEN)
-            self.text(f"{report['confidence']} confidence  /  {dated(self.v,report['day'])}",x+20,655,22,MUTED)
-        else:
-            self.wrap('Not assessed. Commission a report to see estimated ability ranges.',x+25,465,left-50,28,TEXT)
-            self.wrap(f"Scouting costs {money(self.v['terms']['scout_fee'])} and takes {self.v['terms']['scout_days']} days.",x+25,563,left-50,25)
-        self.panel(right,390,rw,310,'Terms and evidence')
-        self.text(money(p['wage'])+' / week',right+20,443,30,GREEN)
-        if p['club'] is None:
-            t=signing_terms(self.v,[p])
-            self.text('Signing fee  '+money(t['fee']),right+20,490,23)
-            self.text('Future wages  '+money(t['future']),right+20,527,23)
-            self.text('Total exposure  '+money(t['total']),right+20,564,24)
-            self.wrap('Indicative terms to '+t['end_date']+'. Confirm the package in Contracts.',right+20,606,rw-40,21)
-        else:self.wrap('Registered until '+dated(self.v,p['contract_end'])+'. Selection is delegated to your manager.',right+20,490,rw-40,24)
-        if report:self.wrap('Source: '+report['source'],right+20,653,rw-40,20)
-        self.button('Private note',(x,722,160,42),lambda:self.open_note(p['id']))
-        self.text((self.v['planning']['notes'].get(p['id']) or 'Private thoughts; no game effect.')[:65],x+175,736,20,MUTED)
-        if p['club']=='c0':self.button('Negotiate renewal',(x,780,225,44),lambda:self.contract_open(p['id']),not self.v['match'] and not p['youth'])
-        if p['club'] is None:
-            due=p['scout_due'];terms=self.v['terms']
-            self.button('Request scouting',(x,780,210,44),lambda:self.confirm('Commission scouting',f"Spend {money(terms['scout_fee'])} to assess {p['name']}? The report arrives in {terms['scout_days']} days, on {dated(self.v,self.v['day']+terms['scout_days'])}. Cash after payment: {money(self.v['cash']-terms['scout_fee'])}.",lambda:self.command('scout',id=p['id'])),not report and not due and not self.v['match'] and not self.v['season_done'])
-            self.button('Negotiate contract',(x+225,780,220,44),lambda:self.contract_open(p['id']),not self.v['match'] and not p['retired'] and self.v['day']<=self.v['window_end'])
-            self.text(('Report due '+dated(self.v,due) if due else 'Personal terms, medical and final review required.')[:77],x+450,795,20,MUTED)
+    def draw_profile(self,x,p):self.player_profile(x,p)
 
     def close_profile(self):
         if self.history and self.history[-1]['screen']==self.screen and self.history[-1]['profile'] is None:self.go_back()
@@ -477,17 +462,17 @@ class App(CareerScreens):
             left=x+i*(width+15);self.panel(left,255,width,447)
             self.wrap(p['name'],left+15,275,width-30,27,TEXT)
             self.text(p['role']+' / '+str(p['age']),left+15,325,23,GREEN)
-            self.text('Free agent' if p['club'] is None else 'At your club',left+15,357,21,MUTED)
+            self.text('Free agent' if p['club'] is None else self.club(p['club']),left+15,357,21,MUTED)
             for j,key in enumerate(ATTRIBUTES):
                 value='Unknown' if not p['report'] else '–'.join(map(str,p['report']['ranges'][key]))
                 self.text(key.capitalize(),left+15,398+j*33,20,MUTED);self.text(value,left+width-93,398+j*33,23)
             r=p['report'];self.text(r['confidence']+' / '+dated(self.v,r['day']) if r else 'No report',left+15,535,19,MUTED)
             self.text(r['source'] if r else 'Source: unavailable',left+15,560,19,MUTED)
             self.text(money(p['wage'])+' / week',left+15,591,24,GREEN)
-            t=signing_terms(self.v,[p]);self.text('Total '+money(t['total']) if p['club'] is None else 'Already registered',left+15,622,22)
+            t=signing_terms(self.v,[p]);self.text('Total '+money(t['total']) if p['club']!='c0' and not p.get('loan') else 'On loan' if p.get('loan') else 'At your club',left+15,622,22)
             self.button('Remove',(left+15,655,width-30,34),lambda pid=p['id']:self.toggle_plan('comparison',pid))
         t=signing_terms(self.v,players)
-        self.text(f"{t['count']} free agents combined: {money(t['fee'])} now + {money(t['future'])} future wages",x,718,26)
+        self.text(f"{t['count']} targets combined: {money(t['fee'])} now + {money(t['future'])} future wages + {money(t['deferred'])} deferred",x,718,26)
         self.text('Wage headroom after all signings: '+money(t['headroom'])+' / week',x,749,24,GREEN if t['headroom']>=0 else RED)
         self.wrap('; '.join(t['reasons']) or 'Each signing needs its own review. Plans do not reserve funds.',x,790,850,22,RED if t['reasons'] else MUTED)
         self.button('Forecast this plan',(1175,775,225,44),lambda:(self.nav('Finances'),setattr(self,'tab','Plan')))
@@ -496,13 +481,13 @@ class App(CareerScreens):
         v=self.v
         for i,name in enumerate(('Forecast','Plan','Ledger')):
             self.button(('• ' if self.tab==name else '')+name,(x+i*165,190,150,40),lambda n=name:self.set_finance_tab(n))
-        self.button('Why this forecast?',(1160,190,240,40),lambda:self.confirm('Forecast assumptions','All money is stored in pence. Costs follow committed wages, contract expiry, scheduled project openings and weekly settlement dates. Gate receipts hold current supporter mood and ticket prices, with an attendance sensitivity of ±15%. Unaccepted future deals, prizes and unapproved projects are excluded. A pinned plan assumes completion today at the latest agent terms, or indicative demands before negotiation. It excludes a target’s own reservation to avoid double counting; other reservations still constrain affordability. This is a planning estimate, not a guaranteed bank balance.',None))
+        self.button('Why this forecast?',(1160,190,240,40),lambda:self.confirm('Forecast assumptions','All money is stored in pence. Costs follow committed wages, contract expiry, scheduled project openings and weekly settlement dates. Gate receipts hold current supporter mood and ticket prices, with an attendance sensitivity of ±15%. Signed sponsorship schedules, transfer instalments, loan returns and unpaid earned bonuses are included. Future performance bonuses, unused extension options and untriggered sell-on rights are excluded; inspect them in Contracts > Clauses. Unaccepted future deals, prizes and unapproved projects are excluded. A pinned plan assumes completion today at the latest agent terms, or indicative demands before negotiation. It excludes a target’s own reservation to avoid double counting; other reservations still constrain affordability. This is a planning estimate, not a guaranteed bank balance.',None))
         self.panel(x,250,1400-x,142,'Cash and commitments')
         self.text(f"Club cash {money(v['cash'])}   /   Owner funds {money(v['owner_cash'])}",x+20,290,28,GREEN)
         self.text(f"Payroll {money(v['payroll'])} / week   |   Limit {money(v['budget'])}   |   Headroom {money(v['budget']-v['payroll'])}",x+20,334,24)
         self.button('Budget -£2k',(x,410,160,42),lambda:self.command('budget',value=v['budget']-200000))
         self.button('Budget +£2k',(x+170,410,160,42),lambda:self.command('budget',value=v['budget']+200000))
-        self.button('Inject £50,000',(x+340,410,190,42),lambda:self.confirm('Fund the club',f"Transfer £50,000 from your owner funds into club equity? Club cash becomes {money(v['cash']+5000000)}; owner funds become {money(v['owner_cash']-5000000)}. This adds no repayment or weekly cost.",lambda:self.command('fund')),v['owner_cash']>=5000000)
+        self.button('Inject £50,000',(x+340,410,190,42),lambda:self.confirm('Fund the club',f"Transfer £50,000 from your owner funds into club equity? Club cash becomes {money(max(0,v['cash']+5000000-sum(b['amount']-b['paid'] for b in v['clauses']['payables'] if b['source']=='c0')))}; owner funds become {money(v['owner_cash']-5000000)}. Any unpaid earned bonuses settle from the available funds. This equity adds no repayment or weekly cost.",lambda:self.command('fund')),v['owner_cash']>=5000000)
         self.text('Tickets '+money(v['tickets']),x+560,424,23)
         self.button('- £2',(1200,410,88,42),lambda:self.command('tickets',value=v['tickets']-200),not v['match'] and v['tickets']>1000)
         self.button('+ £2',(1300,410,88,42),lambda:self.command('tickets',value=v['tickets']+200),not v['match'] and v['tickets']<3000)
@@ -576,46 +561,7 @@ class App(CareerScreens):
         self.pager(x,785,len(fs),1)
         self.button('Open match report',(1160,785,240,42),lambda:self.open_report(f['id']),f['result'] is not None)
 
-    def draw_matchday(self,x):
-        archive=[f for h in self.v['career']['history'] for f in h['fixtures']]
-        historical=next((f for f in self.v['fixtures']+archive if f['id']==self.match_report and f['result']),None)
-        m=dict(historical['result'],home=historical['home'],away=historical['away'],minute=90) if historical else self.v['match']
-        if not m:
-            self.wrap('No active match. Use Next fixture to advance. Open a completed fixture in League to review commentary, statistics and lineups.',x,230,1000,29);return
-        self.panel(x,195,1400-x,130)
-        if pygame.time.get_ticks()<self.goal_until and not self.reduced_motion and not historical:
-            pygame.draw.rect(self.canvas,GREEN,(x,195,1400-x,130),3,border_radius=7)
-        crest(self.canvas,m['home'],(x+17,212,51,80));crest(self.canvas,m['away'],(1324,212,51,80))
-        self.text(f"{self.club(m['home'])}   {m['score'][0]} – {m['score'][1]}   {self.club(m['away'])}",x+90,225,32)
-        self.text(f"{m['minute']}'  |  Shots {m['shots'][0]}–{m['shots'][1]}  |  On target {m['on_target'][0]}–{m['on_target'][1]}  |  xG {m['xg'][0]:.2f}–{m['xg'][1]:.2f}",x+90,280,22,GREEN)
-        self.button('Commentary' if self.tab!='Lineups' else 'Show commentary',(x,339,175,37),lambda:setattr(self,'tab','Commentary'))
-        self.button('Lineups',(x+190,339,125,37),lambda:setattr(self,'tab','Lineups'))
-        self.button('All events' if self.key_events_only else 'Key events',(x+330,339,150,37),lambda:setattr(self,'key_events_only',not self.key_events_only))
-        total=max(1,sum(m['possession']));self.text(f"Possession {m['possession'][0]*100/total:.0f}% / {m['possession'][1]*100/total:.0f}%",x+510,349,22,MUTED)
-        self.panel(x,385,1400-x,308)
-        if self.tab=='Lineups':
-            for side,ids in enumerate(m['lineups']):
-                left=x+20+side*((1400-x)//2)
-                for i,pid in enumerate(ids):
-                    p=self.v['public_players'][pid];self.text(p['role']+'   '+p['name'],left,397+i*26,22)
-        events=[e for e in m['events'] if not self.key_events_only or e['kind'] in ('goal','period','bench')]
-        self.page=min(self.page,max(0,(len(events)-1)//9))
-        for i,e in enumerate(events[max(0,len(events)-9-self.page*9):len(events)-self.page*9 if self.page else None]):
-            if self.tab!='Lineups':self.text(f"{e['minute']:>2}'  {e['text']}",x+20,403+i*30,22,GREEN if e['kind']=='goal' else TEXT)
-        if not events and self.tab!='Lineups':self.text('The teams are ready. Press Play or Skip to full time.',x+20,403,25)
-        if m['minute']<90:
-            self.button('Pause' if self.play else 'Play',(x,710,130,44),lambda:setattr(self,'play',not self.play))
-            self.button(f'{self.speed}x',(x+145,710,85,44),self.cycle_speed)
-            self.button('Skip to full time',(x+245,710,200,44),lambda:self.command('match_step',minutes=90))
-            self.button('Back the manager',(x,770,220,44),lambda:self.confirm('Back the manager','Send private encouragement? This supports the working relationship; it does not guarantee a result.',lambda:self.command('intervene',choice='encourage')),not m['intervened'])
-            self.button('Request more attacking',(x+235,770,270,44),lambda:self.confirm('Request attacking football','Ask the manager to take more risks? They may refuse. If accepted, both attacking opportunities and defensive exposure increase.',lambda:self.command('intervene',choice='attack')),not m['intervened'])
-        elif historical:self.button('Back to fixtures',(x,710,200,44),lambda:self.nav('League'))
-        else:self.button('Finish review',(x,710,190,44),lambda:(self.command('match_close'),self.nav('Overview')))
-        if historical and self.v['match']:
-            self.button('Return to live match',(x+220,710,250,44),lambda:(setattr(self,'match_report',None),setattr(self,'page',0)))
-        if historical:self.text('ARCHIVED REPORT  /  '+self.fixture_date(historical),x,778,23,MUTED)
-        self.button('Earlier events',(1120,710,200,44),lambda:setattr(self,'page',self.page+1),(self.page+1)*9<len(events))
-        self.button('Latest events',(1120,765,200,44),lambda:setattr(self,'page',0),self.page>0)
+    def draw_matchday(self,x):self.football_screen(x)
 
     def cycle_speed(self):
         self.speed={1:2,2:4,4:1}[self.speed];self.save_preferences()
@@ -633,12 +579,12 @@ class App(CareerScreens):
         paragraphs=[
             'Hire a manager, commission scouting and advance days until reports arrive. Signings must fit cash reserves and your weekly wage budget. Budgets grant spending authority; they never create money.',
             'Continue advances one day. Next fixture advances until a match or required decision. All ordinary screens pause time. During match playback, opening another screen or a confirmation pauses the match.',
-            'On matchday, your manager selects a 4-4-2. Watch the text engine at 1x, 2x or 4x, or skip. You can encourage your manager or request attacking football once per match. Save works mid-match.',
+            'On matchday, your manager selects eligible players, rotates for condition and makes substitutions. Watch the text engine at 1x, 2x or 4x, or skip. You can encourage your manager or request attacking football once per match. Save works mid-match.',
             'Save writes a manual slot. Autosaves follow management actions and full time. Load / recover lists dated checkpoints and backups. Loading makes a separate timeline, preserving existing files.',
-            'Career adds continuing compact seasons, negotiated free-agent and renewal terms, manager replacement, academy trials/development and facility projects. The broader world, acquisitions, succession, loans, full football rules and wider staff delegation remain in development.',
+            'Career adds continuing compact seasons, negotiated free-agent and renewal terms, manager replacement, academy trials/development and facility projects. Transfers adds club purchases, sales and loans. The full world and ownership systems remain in development.',
             'Shortcuts: Ctrl+S saves; Ctrl+F searches players; Alt+Left/Right navigates history; Space pauses live matches; F1 opens Help. Tab / Shift+Tab moves focus, Enter activates. Esc closes overlays or goes back.',
             'F2 explains the focused control. Settings offers optional sound and reduced motion. Contracts requires proposal, conditional acceptance, medical and final completion. Renew existing players before expiry; merely opening an offer cannot keep them registered.',
-            'Recruitment: filter by role, save a shortlist and pin up to four players. Compare uses scouted ranges. Finances > Plan projects pinned free-agent costs. Forecasts are estimates and never sign players. League > Open match report reopens completed fixtures.'
+            'Recruitment: filter by role, save a shortlist and pin up to four players. Compare uses scouted ranges. Finances > Plan projects pinned acquisition costs. Commercial offers dated sponsorships; Transfers lists loan returns and instalments. Forecasts are estimates and never sign players. League > Open match report reopens completed fixtures.'
         ]
         y=250
         for p in paragraphs:y=self.wrap(p,x+25,y,1350-x,21)+12
@@ -684,7 +630,29 @@ class App(CareerScreens):
                     self.focus=i
                     if enabled:self.sound.play('click');fn()
                     break
+        elif event.type==pygame.MOUSEWHEEL:
+            if self.ui_zoom>1:
+                axis=0 if pygame.key.get_mods()&pygame.KMOD_SHIFT else 1
+                self.pan[axis]=max(0,self.pan[axis]-event.y*65);self.focus_reveal=False
+            elif not self.modal and not self.editor and self.palette is None:self.page=max(0,self.page-event.y)
         elif event.type==pygame.KEYDOWN:
+            if event.key==pygame.K_0 and event.mod&pygame.KMOD_CTRL:
+                self.change_zoom(1);return
+            if event.key==pygame.K_k and event.mod&pygame.KMOD_CTRL and self.state and not self.modal and not self.editor:
+                self.open_search();return
+            if self.palette is not None:
+                if event.key==pygame.K_ESCAPE:self.palette=None;return
+                if event.key==pygame.K_TAB:
+                    self.palette_typing=False;self.focus=(self.focus+(-1 if event.mod&pygame.KMOD_SHIFT else 1))%max(1,len(self.buttons));self.focus_reveal=True;return
+                if self.palette_typing:
+                    if event.key==pygame.K_BACKSPACE:self.palette=self.palette[:-1]
+                    elif event.key==pygame.K_RETURN:self.palette_typing=False;self.focus=1;self.focus_reveal=True
+                    elif event.unicode.isprintable() and len(self.palette)<60:self.palette+=event.unicode
+                    self.palette_page=0;return
+                if event.key==pygame.K_RETURN and self.buttons:
+                    _,fn,enabled=self.buttons[self.focus%len(self.buttons)]
+                    if enabled:fn()
+                return
             if event.key==pygame.K_F2:
                 self.explain_focus=not self.explain_focus;return
             if event.key==pygame.K_ESCAPE and self.explain_focus:
@@ -698,7 +666,7 @@ class App(CareerScreens):
                 elif self.history:self.go_back()
                 else:self.nav('Home')
             elif event.key==pygame.K_TAB:
-                self.typing=False;self.note_active=False;self.focus=(self.focus+(-1 if event.mod&pygame.KMOD_SHIFT else 1))%max(1,len(self.buttons))
+                self.typing=False;self.note_active=False;self.focus_reveal=True;self.focus=(self.focus+(-1 if event.mod&pygame.KMOD_SHIFT else 1))%max(1,len(self.buttons))
             elif self.editor and not self.modal and self.note_active:
                 if event.key==pygame.K_BACKSPACE:self.note_draft=self.note_draft[:-1]
                 elif event.key==pygame.K_RETURN:pass
@@ -727,9 +695,9 @@ class App(CareerScreens):
             for event in pygame.event.get():
                 self.event(event)
                 self.render()
-            if not self.modal and not self.editor:
+            if not self.modal and not self.editor and self.palette is None:
                 if self.batch:self.continue_day()
-                if self.play and not self.match_report and self.screen=='Matchday' and self.v and self.v['match'] and self.v['match']['minute']<90:
+                if self.play and not self.match_report and self.screen=='Matchday' and self.v and self.v['match'] and not match_finished(self.v['match']):
                     self.elapsed+=dt*self.speed
                     if self.elapsed>=.35:self.command('match_step',minutes=1);self.elapsed=0
                 elif self.screen!='Matchday':self.play=False

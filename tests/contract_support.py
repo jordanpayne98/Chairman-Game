@@ -7,6 +7,6 @@ def prepare_signings(case, ids):
         case.act('accept_offer',id=pid)
     while any(case.s['career']['offers'][pid]['status']=='medical' for pid in ids) or case.s['match']:
         if case.s['match']:
-            case.act('match_step',minutes=90) if case.s['match']['minute']<90 else case.act('match_close')
+            case.act('match_skip') if not case.s['match'].get('finished',case.s['match']['minute']>=90) else case.act('match_close')
         elif case.s['decision']:case.act('decision',choice='decline')
         else:case.act('continue')

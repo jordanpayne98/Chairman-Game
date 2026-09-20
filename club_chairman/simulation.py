@@ -7,7 +7,8 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career
+from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai
+from .football import finished as match_finished
 
 
 @dataclass(frozen=True)
@@ -18,6 +19,7 @@ class Command:
     payload: dict
     actor: str = 'owner'
     scope: str = 'c0'
+    responsibility: str = ''
 
 
 def definition():
@@ -78,19 +80,23 @@ def new_career(seed=42):
             if rnd >= 7: a,b = b,a
             world['fixtures'].append(dict(id=f'f{rnd}-{j}', day=5+rnd*7, home=f'c{a}', away=f'c{b}', result=None))
     career.initialise(world)
+    market.initialise(world)
+    commercial.initialise(world)
+    clauses.initialise(world)
+    people.initialise(world);registration.initialise(world);football.initialise(world)
+    staff.initialise(world);delegation.initialise(world);club_ai.initialise(world)
+    world['schema']=7
     for p in world['players']:
         if p['club']:p['contract_end']=316
+        if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
     news(world, 'Welcome to Northbridge', 'Appoint a manager, review your wage budget, and request scouting before the first match. The compact eight-club league now continues into further seasons.')
     return world
 
 
 def make_report(s, p, source='Recruitment analyst', radius=9):
-    rng = rng_for(s['seed'], f"report:{p['id']}:{s['day']}")
-    ranges = {}
-    for k,v in p['attrs'].items():
-        estimate = max(1, min(100, v + rng.randint(-7,7)))
-        ranges[k] = [max(1, estimate-radius), min(100, estimate+radius)]
-    return dict(day=s['day'], source=source, confidence='Moderate' if radius < 9 else 'Low', ranges=ranges)
+    if source=='Recruitment analyst' and 'staff' in s:
+        radius=max(4,round(radius*(1-(staff.capability(s,'c0','ability_assessment')-50)/150)))
+    return people.report(s,p,source,radius)
 
 
 def news(s, title, body):
@@ -106,7 +112,7 @@ def posting(s, key, amount, reason):
 
 
 def payroll(s):
-    return sum(p['wage'] for p in s['players'] if p['club'] == 'c0') + (s['manager']['wage'] if s['manager'] else 0)
+    return market.club_payroll(s,'c0') if 'market' in s else sum(p['wage'] for p in s['players'] if p['club']=='c0')+(s['manager']['wage'] if s['manager'] else 0)
 
 
 def table(s):
@@ -133,9 +139,16 @@ def execute(state, command):
         require(prior['action'] == command.action and prior['payload'] == command.payload, 'Command ID reused for different work.')
         return state, prior['message']
     require(command.revision == state['revision'], 'The career changed. Review and try again.')
-    require(command.actor == 'owner' and command.scope == 'c0', 'This action is outside your authority.')
+    require(command.scope=='c0','This action is outside your authority.')
     s = deepcopy(state)
-    message = apply(s, command.action, command.payload)
+    prior_clubs={p['id']:p['club'] for p in s['players'] if not p['youth']}
+    if command.actor=='owner':message=apply(s,command.action,command.payload)
+    else:
+        rule=s['delegation']['responsibilities'].get(command.responsibility)
+        require(rule and rule['delegate']==command.actor,'This action is outside your authority.')
+        message=delegation.perform(s,command.responsibility,command.action,command.payload,'Authorised staff command.')
+    registration.sync(s,prior_clubs)
+    delegation.reconcile(s)
     s['revision'] += 1
     s['receipts'][command.id] = dict(action=command.action, payload=deepcopy(command.payload), message=message)
     validate(s)
@@ -144,11 +157,25 @@ def execute(state, command):
 
 def apply(s, action, payload):
     cfg = s['config']
+    result=staff.apply(s,action,payload)
+    if result is not None:return result
+    result=delegation.apply(s,action,payload)
+    if result is not None:return result
+    result=people.apply(s,action,payload)
+    if result is not None:return result
+    result=registration.apply(s,action,payload)
+    if result is not None:return result
+    result=clauses.apply(s,action,payload)
+    if result is not None:return result
+    result=market.apply(s,action,payload)
+    if result is not None:return result
+    result=commercial.apply(s,action,payload)
+    if result is not None:return result
     result=career.apply(s,action,payload)
     if result is not None:return result
     if action == 'planning':
         key = payload.get('key'); value = payload.get('value')
-        known = {p['id'] for p in s['players'] if p['club'] in (None, 'c0')}
+        known = {p['id'] for p in s['players']}
         require(key in ('shortlist', 'comparison', 'notes', 'inbox_read'), 'Unknown planning record.')
         if key in ('shortlist', 'comparison'):
             require(isinstance(value, list) and all(isinstance(x, str) for x in value), 'Invalid player selection.')
@@ -188,11 +215,11 @@ def apply(s, action, payload):
     if action == 'scout':
         require(not s['season_done'] and s['match'] is None, 'Recruitment is closed during matchday or after season end.')
         p = next((x for x in s['players'] if x['id'] == payload.get('id')), None)
-        require(p is not None and p['club'] is None, 'This player is no longer a free agent.')
+        require(p is not None and p['club'] != 'c0', 'This player is already at your club.')
         require(not p['retired'] and not p['youth'],'Use Academy for youth admissions; retired people cannot be signed.')
-        require(p['id'] not in s['scouting'] and p['id'] not in s['reports'], 'A report exists or scouting is already in progress.')
+        require(p['id'] not in s['scouting'] and (p['id'] not in s['reports'] or s['reports'][p['id']]['day']<s['day']), 'Scouting is in progress or this player was assessed today.')
         require(career.free_cash(s,cfg['scout_fee']), 'Insufficient available cash for scouting.')
-        posting(s, f"scout:{p['id']}", -cfg['scout_fee'], 'Scouting')
+        posting(s, f"scout:{p['id']}:{s['revision']}", -cfg['scout_fee'], 'Scouting')
         s['scouting'][p['id']] = s['day'] + cfg['scout_days']
         return f"Scouting commissioned. Report due in {cfg['scout_days']} days."
     if action == 'fund':
@@ -200,6 +227,7 @@ def apply(s, action, payload):
         require(s['owner_cash'] >= amount, 'Owner funds are insufficient.')
         s['owner_cash'] -= amount
         posting(s, f"equity:{s['revision']}", amount, 'Owner equity injection')
+        clauses.settle_payables(s)
         return '£50,000 moved from owner funds to club equity.'
     if action == 'decision':
         require(s['decision'] is not None, 'No decision is pending.')
@@ -222,16 +250,26 @@ def apply(s, action, payload):
         # Advance one committed day at a time. UI offers bounded batching to next fixture.
         tomorrow = s['day'] + 1
         s['day']=tomorrow
+        previous_clubs={p['id']:p['club'] for p in s['players'] if not p['youth']}
+        commercial.process_day(s)
+        if tomorrow % 7 == 0:
+            posting(s, f'sponsor:{tomorrow}', cfg['weekly_sponsor'], 'Weekly sponsorship')
+        market.process_day(s)
         career.process_day(s)
+        staff.process_day(s)
+        people.process_day(s)
+        club_ai.process_day(s)
+        registration.sync(s,previous_clubs)
+        market.accrue_accounts(s)
         if tomorrow % 7 == 0:
             due = (s['accrued_costs'] + payroll(s) + cfg['weekly_overheads']) // 7
-            require(s['cash'] + cfg['weekly_sponsor'] >= due, 'Payroll shortfall: inject owner funds before Continue. No unpaid day has advanced.')
+            require(s['cash'] >= due, 'Payroll shortfall: inject owner funds before Continue. No unpaid day has advanced.')
         s['day'] = tomorrow
         s['accrued_costs'] += payroll(s) + cfg['weekly_overheads']
         if tomorrow % 7 == 0:
-            posting(s, f'sponsor:{tomorrow}', cfg['weekly_sponsor'], 'Weekly sponsorship')
             posting(s, f'payroll:{tomorrow}', -(s['accrued_costs']//7), 'Accrued payroll and operations')
             s['accrued_costs'] %= 7
+        clauses.settle_payables(s)
         for pid, due in list(s['scouting'].items()):
             if due <= tomorrow:
                 p = next(p for p in s['players'] if p['id']==pid)
@@ -244,27 +282,27 @@ def apply(s, action, payload):
                 cost=150000 if season_day in (3,45) else 350000, morale=2 if season_day in (3,45) else 7,
                 supporters=7 if season_day in (3,45) else 1)
             news(s, 'Chairman decision required', s['decision']['title'])
+        delegation.process_day(s)
         fixtures = [f for f in s['fixtures'] if f['day']==tomorrow]
         if fixtures:
             require(s['manager'] is not None,'Appoint a manager before the fixture.')
-            eligible=[p for p in s['players'] if p['club']=='c0' and not p['youth'] and not p['retired']]
-            require(len(eligible)>=11 and any(p['role']=='GK' for p in eligible),'Register at least eleven senior players including a goalkeeper before matchday.')
             own = next(f for f in fixtures if 'c0' in (f['home'],f['away']))
             s['match'] = start_match(s, own)
+            if match_finished(s['match']):settle_matchday(s)
             return 'Matchday ready. Open Matchday to watch or skip.'
         return f"Advanced to {calendar_date(s)}."
-    if action == 'match_step':
-        require(s['match'] is not None and s['match']['minute'] < 90, 'No active match.')
-        count=payload.get('minutes',1)
-        require(type(count) is int and 1<=count<=90, 'Invalid match step.')
+    if action in ('match_step','match_skip'):
+        require(s['match'] is not None and not match_finished(s['match']), 'No active match.')
+        count=300 if action=='match_skip' else payload.get('minutes',1)
+        require(type(count) is int and 1<=count<=300, 'Invalid match step.')
         for _ in range(count):
-            if s['match']['minute'] >=90: break
+            if match_finished(s['match']): break
             step_match(s, s['match'])
-        if s['match']['minute'] ==90: settle_matchday(s)
-        return 'Full time. Review the match.' if s['match']['minute']==90 else 'Match progressed.'
+        if match_finished(s['match']): settle_matchday(s)
+        return 'Full time. Review the match.' if match_finished(s['match']) else 'Match progressed.'
     if action == 'intervene':
         m=s['match']
-        require(m is not None and m['minute']<90, 'No live match.')
+        require(m is not None and not match_finished(m), 'No live match.')
         require(not m['intervened'], 'The manager has already received your message this match.')
         require(payload.get('choice') in ('encourage','attack'), 'Unknown bench message.')
         m['intervened']=True
@@ -286,7 +324,7 @@ def apply(s, action, payload):
         m['rng']=rng.getstate()
         return response
     if action == 'match_close':
-        require(s['match'] is not None and s['match']['minute']==90, 'Finish the match first.')
+        require(s['match'] is not None and match_finished(s['match']), 'Finish the match first.')
         s['match']=None
         return 'Match review closed.'
     raise ValueError('Unknown command.')
@@ -304,6 +342,10 @@ def select_lineup(s, club):
 
 
 def start_match(s,f):
+    return football.start(s,f)
+
+
+def legacy_start_match(s,f):
     return dict(fixture=f['id'],home=f['home'],away=f['away'],minute=0,score=[0,0],shots=[0,0],on_target=[0,0],xg=[0.,0.],
                 possession=[0,0],risk=[(1.12 if s['manager']['style']=='Attacking' else .92 if s['manager']['style']=='Cautious' else 1.) if cid=='c0' and s['manager'] else 1. for cid in (f['home'],f['away'])],intervened=False,settled=False,
                 lineups=[select_lineup(s,f['home']),select_lineup(s,f['away'])],events=[],
@@ -311,6 +353,7 @@ def start_match(s,f):
 
 
 def step_match(s,m):
+    if m.get('engine')==2:return football.step(s,m)
     rng=restore_rng(m['rng']); m['minute']+=1
     people={p['id']:p for p in s['players']}
     teams=[[people[pid] for pid in lineup] for lineup in m['lineups']]
@@ -337,7 +380,7 @@ def step_match(s,m):
             m['score'][side]+=1;shooter['goals']+=1
             text=f"GOAL — {shooter['name']} finishes for {s['clubs'][int((m['home'] if side==0 else m['away'])[1:])]['name']}."
         else: text=f"{shooter['name']}: {'saved by the goalkeeper' if target else 'shot off target'}."
-        m['events'].append(dict(minute=m['minute'],text=text,kind='goal' if goal else 'shot'))
+        m['events'].append(dict(minute=m['minute'],text=text,kind='goal' if goal else 'shot',player=shooter['id']))
     if m['minute'] in (45,90):m['events'].append(dict(minute=m['minute'],text='Half time' if m['minute']==45 else 'Full time',kind='period'))
     m['rng']=rng.getstate()
 
@@ -345,14 +388,16 @@ def step_match(s,m):
 def record_result(s,m):
     f=next(f for f in s['fixtures'] if f['id']==m['fixture'])
     if f['result'] is not None:return
-    f['result']=deepcopy({k:m[k] for k in ('score','events','shots','on_target','xg','possession','lineups')})
+    clauses.record_match(s,m)
+    if m.get('engine')==2:football.settle_players(s,m)
+    f['result']=football.public_match(m) if m.get('engine')==2 else deepcopy({k:m[k] for k in ('score','events','shots','on_target','xg','possession','lineups')})
     for side,cid in enumerate([m['home'],m['away']]):
         c=next(c for c in s['clubs'] if c['id']==cid);gf,ga=m['score'][side],m['score'][1-side]
         c['played']+=1;c['gf']+=gf;c['ga']+=ga
         key='won' if gf>ga else 'drawn' if gf==ga else 'lost'
         c[key]+=1;c['points']+=3 if gf>ga else 1 if gf==ga else 0
         c['form'].append('W' if gf>ga else 'D' if gf==ga else 'L')
-        for pid in m['lineups'][side]:next(p for p in s['players'] if p['id']==pid)['appearances']+=1
+        for pid in m.get('participants',m['lineups'])[side]:next(p for p in s['players'] if p['id']==pid)['appearances']+=1
 
 
 def settle_matchday(s):
@@ -361,8 +406,8 @@ def settle_matchday(s):
     record_result(s,m)
     for f in s['fixtures']:
         if f['day']==s['day'] and f['result'] is None:
-            other=start_match(s,f)
-            for _ in range(90):step_match(s,other)
+            other=start_match(s,f) if m.get('engine')==2 else legacy_start_match(s,f)
+            while not match_finished(other):step_match(s,other)
             record_result(s,other)
     own=0 if m['home']=='c0' else 1
     difference=m['score'][own]-m['score'][1-own]
@@ -383,10 +428,16 @@ def settle_matchday(s):
         s['accrued_costs']=0
         s['season_done']=True
         news(s,'Season complete',f'Northbridge finished {position+1} of 8. Review the table and finances. Open Career to review contracts, preserve this season’s history and prepare the next campaign.')
+    clauses.settle_payables(s)
 
 
 def validate(s):
-    require(s.get('schema')==3,'Unsupported save schema. This build supports schema 3.')
+    require(s.get('schema')==7,'Unsupported save schema. This build supports schema 7.')
+    staff.validate(s);delegation.validate(s);club_ai.validate(s)
+    people.validate(s);registration.validate(s)
+    clauses.validate(s)
+    market.validate(s)
+    commercial.validate(s)
     require(type(s['cash']) is int and type(s['owner_cash']) is int,'Invalid cash data.')
     require(s['cash']==s['config']['opening_cash']+sum(x['amount'] for x in s['ledger']),'Cash does not reconcile with the ledger.')
     require(len({x['id'] for x in s['ledger']})==len(s['ledger']),'Duplicate financial posting.')
@@ -398,7 +449,7 @@ def validate(s):
     require(len({f['id'] for f in s['fixtures']})==len(s['fixtures']),'Duplicate fixture identity.')
     require(all(p['wage']>=0 and type(p['wage']) is int for p in s['players']),'Invalid wages.')
     require(all(p['status'] in ('feasibility','quoted','construction','operational','cancelled') for p in s['career']['projects']),'Invalid project status.')
-    known = {p['id'] for p in s['players'] if p['club'] in (None, 'c0')}
+    known = {p['id'] for p in s['players']}
     plan = s['planning']
     for key, limit in (('shortlist', len(known)), ('comparison', 4)):
         require(isinstance(plan[key], list) and all(isinstance(x, str) for x in plan[key]), 'Invalid saved planning selection.')
@@ -411,12 +462,20 @@ def view(s):
     """Authorised UI snapshot. Latent attributes and random states never leave here."""
     players=[]
     for p in s['players']:
-        if p['club'] not in (None,'c0'):continue
-        row={k:p[k] for k in ('id','name','club','role','age','wage','fee','goals','appearances','contract_end','youth','retired','injury_until','career_goals','career_appearances')}
-        row['report']=deepcopy(s['reports'].get(p['id']))
+        row={k:p[k] for k in ('id','name','club','role','age','wage','fee','goals','appearances','contract_end','youth','retired','career_goals','career_appearances')}
+        row['report']=people.observed_report(s,p)
+        row.update({k:deepcopy(p[k]) for k in ('height','foot','nationality','homegrown','condition','fatigue','sharpness','morale','medical','discipline')})
+        if p['club']!='c0':
+            for key in ('condition','fatigue','sharpness','morale','medical'):row[key]=None
+        upcoming=next((f for f in s['fixtures'] if 'c0' in (f['home'],f['away']) and f['result'] is None),None)
+        opponent=(upcoming['away'] if upcoming['home']=='c0' else upcoming['home']) if upcoming else None
+        row['availability']=registration.reason(s,p,'c0',opponent) if p['club']=='c0' else 'Free agent' if p['club'] is None else 'Not assessed by your staff'
+        row['development']={k:deepcopy(p['development'][k]) for k in ('focus','load','last_day')} if p['club']=='c0' else None
         row['scout_due']=s['scouting'].get(p['id'])
+        row['transfer_quote']=market.quote(s,p) if p['club'] not in (None,'c0') else 0
+        row['loan']=deepcopy(market.active_loan(s,p['id']))
         players.append(row)
-    m=None if s['match'] is None else {k:deepcopy(v) for k,v in s['match'].items() if k!='rng'}
+    m=None if s['match'] is None else football.public_match(s['match'])
     snapshot = dict(revision=s['revision'],date=calendar_date(s),day=s['day'],start_date=s['config']['start_date'],cash=s['cash'],owner_cash=s['owner_cash'],budget=s['budget'],
                 payroll=payroll(s),tickets=s['tickets'],manager=deepcopy(s['manager']),trust=s['trust'],morale=s['morale'],supporters=s['supporters'],
                 players=players,table=deepcopy(table(s)),clubs=deepcopy(s['clubs']),fixtures=deepcopy(s['fixtures']),
@@ -428,6 +487,16 @@ def view(s):
                 season=s['career']['season'],season_start=s['career']['start'],window_end=career.window_end(s),
                 career=deepcopy(s['career']),reserved_cash=career.reservations(s)[0],reserved_wages=career.reservations(s)[1],
                 severance=career.manager_severance(s),career_settings=deepcopy(s['config']['career']),project_specs=deepcopy(s['config']['projects']))
+    snapshot['market']={k:deepcopy(s['market'][k]) for k in ('deals','loans','obligations')}
+    snapshot['registration']=registration.snapshot(s)
+    snapshot['staff']=staff.snapshot(s)
+    snapshot['delegation']=delegation.snapshot(s)
+    snapshot['club_ai']=club_ai.snapshot(s)
+    snapshot['commercial']=deepcopy(s['commercial'])
+    snapshot['clauses']=clauses.snapshot(s)
+    snapshot['clause_settings']=deepcopy(s['config']['clauses'])
+    snapshot['market_settings']=deepcopy(s['config']['market'])
+    snapshot['commercial_settings']=deepcopy(s['config']['commercial'])
     snapshot['terms']['capacity']=career.available_capacity(s)
     snapshot['terms']['physical_capacity']=s['config']['capacity']
     return snapshot
