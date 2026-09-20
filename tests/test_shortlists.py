@@ -1,5 +1,6 @@
 """Named lists remain private, durable and independent of football state."""
 from copy import deepcopy
+from contextlib import closing
 import hashlib
 import json
 from pathlib import Path
@@ -69,10 +70,10 @@ class ShortlistTests(unittest.TestCase):
         raw=json.dumps(old)
         with tempfile.TemporaryDirectory() as root:
             path=Path(root)/'old.sqlite3'
-            with sqlite3.connect(path) as db:
+            with closing(sqlite3.connect(path)) as db:
                 db.executescript('CREATE TABLE metadata(key TEXT,value TEXT); CREATE TABLE entities(id TEXT,payload TEXT);')
                 db.executemany('INSERT INTO metadata VALUES (?,?)',[('schema','10'),('checksum',hashlib.sha256(raw.encode()).hexdigest())])
-                db.execute('INSERT INTO entities VALUES (?,?)',('world',raw))
+                db.execute('INSERT INTO entities VALUES (?,?)',('world',raw));db.commit()
             original=path.read_bytes();new=load(path)
             self.assertEqual(original,path.read_bytes())
             self.assertEqual(active(new['planning'])['players'],['p144','p145'])
