@@ -115,3 +115,32 @@ class QolInterfaceTests(unittest.TestCase):
             a.state['config']['shot_rate']=10
             a.command('match_step',minutes=90)
             self.assertGreater(sum(a.v['match']['score']),0);sound.assert_called_once_with('goal')
+
+    def test_fast_forward_stops_for_medical_and_preserves_explicit_control(self):
+        a=self.app;a.command('budget',value=4000000);a.command('hire',id='m0')
+        a.open_profile('p144');self.click('Negotiate contract');self.click('Send proposal')
+        self.click('Review conditional acceptance');self.click('Confirm')
+        self.click('Next fixture')
+        while a.batch:a.continue_day()
+        self.assertEqual(a.v['day'],2);self.assertEqual(a.screen,'Contracts')
+        self.assertEqual(a.offer_id,'p144');self.assertEqual(a.v['career']['offers']['p144']['status'],'ready')
+        self.assertIsNone(next(p for p in a.v['players'] if p['id']=='p144')['club'])
+        self.click('Next fixture');self.assertIsNotNone(a.modal);self.assertFalse(a.batch)
+        self.click('Cancel');self.click('Cash review');self.click('Conversation');self.click('Terms')
+        self.click('Review completion');self.click('Confirm')
+        self.assertEqual(next(p for p in a.v['players'] if p['id']=='p144')['club'],'c0')
+
+    def test_contract_history_is_read_only_and_draft_costs_do_not_submit(self):
+        a=self.app;a.command('budget',value=4000000);a.command('hire',id='m0')
+        a.open_profile('p144');self.click('Negotiate contract');self.click('+',0)
+        before=json.dumps(a.state,sort_keys=True)
+        self.click('Cash review');self.click('Conversation');self.click('Terms')
+        self.assertEqual(json.dumps(a.state,sort_keys=True),before)
+        self.click('Withdraw');self.click('Confirm');a.contract_open('p144')
+        self.click('< Discussions');self.click('History');self.click('Open discussion')
+        self.assertIsNotNone(a.offer_archive)
+        before=json.dumps(a.state,sort_keys=True)
+        self.click('Conversation');self.click('Cash review');self.click('Terms')
+        self.assertEqual(json.dumps(a.state,sort_keys=True),before)
+        self.assertEqual(len(a.state['career']['offer_history']),1)
+        self.assertEqual(a.state['career']['offers']['p144']['status'],'draft')

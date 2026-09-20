@@ -1,6 +1,7 @@
 """Career, negotiations, academy and facilities screens for the Executive shell."""
 import pygame
 from .planning import dated
+from .contract_review import review, CLOSED
 from .presentation import crest,portrait,pitch
 from .simulation import MANAGERS
 
@@ -13,10 +14,13 @@ class CareerScreens:
         offer=self.v['career']['offers'].get(pid)
         if not offer or offer['status'] in ('completed','withdrawn','expired','rejected'):
             if not self.command('enquire',id=pid):return
-        self.nav('Contracts');self.offer_id=pid;self.offer_draft=None;self.page=0
+        self.nav('Contracts');self.offer_id=pid;self.offer_draft=None;self.offer_archive=None;self.offer_tab='Terms';self.page=0
 
     def draw_contracts(self,x):
         offers=self.v['career']['offers']
+        archive=self.v['career'].get('offer_history',[])
+        if self.offer_archive is not None and 0<=self.offer_archive<len(archive):
+            self.draw_offer(x,archive[self.offer_archive],archived=True);return
         if self.offer_id in offers:self.draw_offer(x,offers[self.offer_id]);return
         self.text('CONTRACT DESK  /  every agreement requires your review',x,200,23,GREEN)
         self.button('Discussions' if self.tab=='Expiring' else 'Expiring agreements',(1150,190,250,42),lambda:(setattr(self,'tab','Discussions' if self.tab=='Expiring' else 'Expiring'),setattr(self,'page',0)))
@@ -29,15 +33,20 @@ class CareerScreens:
                 self.text(dated(self.v,p['contract_end'])+f" / {max(0,p['contract_end']-self.v['day'])} days remaining / {money(p['wage'])} per week",x+20,y+48,21,RED if p['contract_end']-self.v['day']<=28 else MUTED)
                 self.button('Discuss renewal',(1180,y+19,200,42),lambda pid=p['id']:self.contract_open(pid),not self.v['match'])
             self.pager(x,780,len(rows),5);return
+        self.button('Current' if self.tab=='History' else 'History',(940,190,190,42),lambda:(setattr(self,'tab','Discussions' if self.tab=='History' else 'History'),setattr(self,'page',0)))
         self.text(f"Reserved cash {money(self.v['reserved_cash'])}  /  Reserved wages {money(self.v['reserved_wages'])} per week",x,241,24)
-        rows=list(reversed(list(offers.values())))
+        rows=list(reversed(archive)) if self.tab=='History' else list(reversed(list(offers.values())))
         for i,o in enumerate(rows[self.page*5:self.page*5+5]):
             p=next(p for p in self.v['players'] if p['id']==o['player']);y=290+i*91
             self.panel(x,y,1400-x,78)
             self.text(p['name']+'  /  '+o['kind'].capitalize(),x+20,y+14,26)
             self.text(o['status'].upper()+'  /  '+money(o['wage'])+' per week  /  expires '+dated(self.v,o['expires']),x+20,y+48,21,MUTED)
-            self.button('Open discussion',(1190,y+18,190,42),lambda pid=o['player']:(setattr(self,'offer_id',pid),setattr(self,'offer_draft',None)))
-        if not rows:self.wrap('Open a free agent in Recruitment or a player in your Squad, then choose Negotiate contract. Drafts do not reserve money. Conditional acceptance reserves capacity until the final review.',x+20,335,1000,28,TEXT)
+            def open_row(offer=o):
+                self.offer_archive=archive.index(offer) if self.tab=='History' else None
+                self.offer_id=offer['player'];self.offer_draft=None;self.offer_tab='Terms';self.page=0
+            self.button('Open discussion',(1190,y+18,190,42),open_row)
+        if not rows and self.tab=='History':self.wrap('Earlier discussions appear here when you reopen a closed negotiation. Completed and withdrawn terms remain read-only.',x+20,335,1000,28,TEXT)
+        elif not rows:self.wrap('Open a free agent in Recruitment or a player in your Squad, then choose Negotiate contract. Drafts do not reserve money. Conditional acceptance reserves capacity until the final review.',x+20,335,1000,28,TEXT)
         self.pager(x,780,len(rows),5)
 
     def offer_edit(self,key,delta):
@@ -49,35 +58,73 @@ class CareerScreens:
         if self.command(action,id=o['player'],**(self.offer_draft if action=='propose_offer' else {})):
             self.offer_draft=None;self.save_preferences()
 
-    def draw_offer(self,x,o):
+    def offer_section(self,section):
+        self.offer_tab=section;self.page=0;self.save_preferences()
+
+    def draw_offer(self,x,o,archived=False):
         p=next(p for p in self.v['players'] if p['id']==o['player'])
         if self.offer_draft is None:self.offer_draft={k:o[k] for k in ('wage','fee','duration')}
-        d=self.offer_draft;editable=o['status'] in ('draft','counter','agreed')
-        self.button('< Discussions',(x,190,185,42),lambda:(setattr(self,'offer_id',None),setattr(self,'offer_draft',None)))
-        self.text(p['name']+'  /  '+o['status'].upper(),x+210,202,28,GREEN)
-        self.panel(x,255,560,324,'Proposed terms' if editable else 'Reviewed terms')
-        terms=d if editable else o
-        for i,(key,label,value,step) in enumerate([('wage','Weekly salary',money(terms['wage']),5000),('fee','Signing fee',money(terms['fee']),50000),('duration','Seasons',str(terms['duration']),1)]):
-            y=318+i*70;self.text(label,x+20,y,24,MUTED);self.text(value,x+215,y,26)
-            self.button('−',(x+410,y-7,50,38),lambda k=key,n=step:self.offer_edit(k,-n),editable)
-            self.button('+',(x+475,y-7,50,38),lambda k=key,n=step:self.offer_edit(k,n),editable)
-        self.text('Counter expires '+dated(self.v,o['expires']),x+20,544,22,MUTED)
-        right=x+580;self.panel(right,255,1400-right,324,'Adviser briefing')
-        remaining=max(0,o['end']-self.v['day']);total=o['wage']*remaining//7+o['fee']
-        y=self.wrap('Latest response: '+o['transcript'][-1],right+20,313,1380-right-20,24,TEXT)
-        y=self.wrap(f"Latest terms: {money(o['fee'])} now; {money(o['wage'])} / week to {dated(self.v,o['end'])}. Guaranteed exposure approximately {money(total)}.",right+20,y+18,1360-right,23,MUTED)
-        if o['status'] in ('medical','ready'):self.wrap(o.get('medical','Medical scheduled for '+dated(self.v,o['due'])+'. No employment change yet.'),right+20,y+12,1360-right,23,GREEN)
-        self.panel(x,596,1400-x,139,'Recent conversation')
-        for i,line in enumerate(o['transcript'][-3:]):self.wrap(line,x+20,638+i*28,1360-x,20,TEXT)
-        if editable:
-            self.button('Send proposal',(x,765,190,44),lambda:self.offer_action('propose_offer',o))
-            self.button('Review conditional acceptance',(x+210,765,335,44),lambda:self.confirm('Reserve capacity for '+p['name'],f"Latest agent terms: {money(o['fee'])} signing fee and {money(o['wage'])} per week until {dated(self.v,o['end'])}. Reserve the fee and additional payroll capacity. Unsent draft edits are excluded. No payment or employment change happens yet; a medical and final review follow. The reservation lasts seven days, subject to the registration window.",lambda:self.offer_action('accept_offer',o)),o['status'] in ('counter','agreed'))
+        editable=not archived and o['status'] in ('draft','counter','agreed')
+        terms=self.offer_draft if editable else o
+        details=review(self.v,o,terms if editable else None)
+        accepted=review(self.v,o)
+        self.button('< Discussions',(x,190,185,42),lambda:(setattr(self,'offer_id',None),setattr(self,'offer_archive',None),setattr(self,'offer_draft',None),setattr(self,'page',0)))
+        self.text(p['name']+' / '+o['status'].upper()+(' / ARCHIVED' if archived else ''),x+205,202,27,GREEN)
+        for i,label in enumerate(('Terms','Cash review','Conversation')):
+            self.button(('• ' if self.offer_tab==label else '')+label,(x+i*190,244,180,40),lambda label=label:self.offer_section(label))
+        stages=('Personal terms','Conditional acceptance','Medical review','Registration')
+        stage={'draft':0,'counter':0,'agreed':1,'medical':2,'ready':3,'completed':4}.get(o['status'],-1)
+        width=(1400-x)/4
+        for i,label in enumerate(stages):
+            left=x+i*width
+            pygame.draw.rect(self.canvas,GREEN if i<stage else (47,62,70),(left,303,width-10,3))
+            self.text(str(i+1)+'. '+label,left,316,20,GREEN if i==stage else MUTED)
+        if self.offer_tab=='Conversation':
+            self.panel(x,360,1400-x,335,'Offer history / oldest first')
+            lines=o['transcript'];page=min(self.page,max(0,(len(lines)-1)//3));self.page=page
+            y=410
+            for line in lines[page*3:page*3+3]:y=self.wrap(line,x+24,y,1350-x,24,TEXT)+22
+            self.pager(x,706,len(lines),3)
+        elif self.offer_tab=='Cash review':
+            self.panel(x,360,1400-x,353,'Historical terms against current finances' if archived else 'Draft scenario' if editable else 'Reviewed package')
+            rows=[('Signing fee now',money(terms['fee'])),('Cash after completion',money(details['cash_after'])),
+                  ('Other reserved fees',money(details['reserved_cash'])),('Available above operating reserve',money(details['available'])),
+                  ('Weekly payroll change',money(details['wage_delta'])),('Weekly headroom after other offers',money(details['headroom'])),
+                  ('Future salary / total package',money(details['future'])+' / '+money(details['total'])),
+                  ('Additional exposure over current contract',money(details['additional']))]
+            for i,(label,value) in enumerate(rows):
+                y=408+i*35;self.text(label,x+24,y,23,MUTED);self.text(value,x+625,y,24,TEXT)
+            self.text('Assumes completion today; excludes accrued wages. Drafts spend nothing.',x+20,727,21,MUTED)
+        else:
+            self.panel(x,360,560,351,'Editable draft / not yet sent' if editable else 'Recorded terms')
+            for i,(key,label,value,step) in enumerate([('wage','Weekly salary',money(terms['wage']),5000),('fee','Signing fee',money(terms['fee']),50000),('duration','Seasons',str(terms['duration']),1)]):
+                y=414+i*65;self.text(label,x+20,y,24,MUTED);self.text(value,x+215,y,26)
+                self.button('−',(x+410,y-7,50,38),lambda k=key,n=step:self.offer_edit(k,-n),editable)
+                self.button('+',(x+475,y-7,50,38),lambda k=key,n=step:self.offer_edit(k,n),editable)
+            self.text('Employment to '+dated(self.v,details['end']),x+20,610,23)
+            self.text('Review cutoff '+dated(self.v,accepted['cutoff']),x+20,647,22,MUTED)
+            right=x+580;self.panel(right,360,1400-right,351,'Adviser briefing')
+            y=self.wrap(o['transcript'][-1],right+20,410,1360-right,24,TEXT)
+            if editable and o.get('last_proposal'):
+                sent=o['last_proposal'];changes=[]
+                if o['wage']!=sent[0]:changes.append('Salary '+money(sent[0])+' to '+money(o['wage']))
+                if o['fee']!=sent[1]:changes.append('Fee '+money(sent[1])+' to '+money(o['fee']))
+                if changes:y=self.wrap('Agent changed: '+'. '.join(changes)+'.',right+20,y+12,1360-right,22,GREEN)
+            if o['status'] in ('medical','ready'):
+                y=self.wrap(o.get('medical','Medical due '+dated(self.v,o['due'])+'. Employment has not changed.'),right+20,y+12,1360-right,23,GREEN)
+            if not archived and o['status'] not in CLOSED:
+                issue=' '.join(accepted['reasons']) or 'Cash and wage capacity are available at the latest agent terms.'
+                self.wrap(issue,right+20,y+16,1360-right,22,RED if accepted['reasons'] else MUTED)
+        if archived or o['status'] in CLOSED:
+            self.text('Closed discussion. Its recorded terms cannot be edited or submitted again.',x,789,23,MUTED)
+        elif editable:
+            self.button('Send proposal',(x,779,190,44),lambda:self.offer_action('propose_offer',o),not self.v['match'])
+            self.button('Review conditional acceptance',(x+210,779,335,44),lambda:self.confirm('Reserve capacity for '+p['name'],f"Latest agent terms: {money(o['fee'])} fee; {money(o['wage'])} per week to {dated(self.v,o['end'])}. Cash after completion {money(accepted['cash_after'])}; remaining weekly headroom {money(accepted['headroom'])}. Unsent draft edits are excluded. A medical and final review follow; nothing is paid now. Medical due {dated(self.v,accepted['due'])}. Registration must complete within the offer deadline and registration window.",lambda:self.offer_action('accept_offer',o)),o['status'] in ('counter','agreed') and not accepted['reasons'])
         elif o['status']=='ready':
-            self.button('Review completion',(x,765,230,44),lambda:self.confirm('Complete '+p['name']+' contract',f"Pay {money(o['fee'])} now and {money(o['wage'])} per week until {dated(self.v,o['end'])}. Guaranteed total exposure approximately {money(total)}. {o['medical']} Completion changes registration and employment together and cannot be undone.",lambda:self.offer_action('complete_offer',o)))
-        elif o['status']=='medical':self.text('Continue to the medical date, then return for final review.',x,777,23,GREEN)
-        else:self.text('This discussion is closed. Its transcript is retained.',x,777,23,MUTED)
-        if o['status'] not in ('completed','withdrawn','expired','rejected'):
-            self.button('Withdraw',(1225,765,175,44),lambda:self.confirm('Withdraw this discussion?','No contract will be signed. Any reserved cash and wage capacity will be released.',lambda:self.offer_action('withdraw_offer',o)))
+            self.button('Review completion',(x,779,230,44),lambda:self.confirm('Complete '+p['name']+' contract',f"Pay {money(o['fee'])} now and {money(o['wage'])} per week until {dated(self.v,o['end'])}. Total exposure approximately {money(accepted['total'])}; cash after completion {money(accepted['cash_after'])}; weekly headroom {money(accepted['headroom'])}. {o['medical']} Completion changes employment and registration together and cannot be undone.",lambda:self.offer_action('complete_offer',o)),not accepted['reasons'])
+        elif o['status']=='medical':self.text('Continue to the medical date, then review completion.',x,789,23,GREEN)
+        if not archived and o['status'] not in CLOSED:
+            self.button('Withdraw',(1225,779,175,44),lambda:self.confirm('Withdraw this discussion?','No contract will be signed. Reserved cash and wage capacity will be released. The transcript will be retained.',lambda:self.offer_action('withdraw_offer',o)),not self.v['match'])
 
     def staff_screen(self,x):
         v=self.v;m=v['manager'];cost=v['severance']
@@ -227,7 +274,10 @@ class CareerScreens:
             'Request scouting':'Commission an uncertain assessment at the fee and delivery time shown in the review. Existing reports and pending assignments cannot be duplicated.',
             'Negotiate contract':'Open a free-agent discussion. Edit a draft, submit terms, review the agent’s response and conditionally accept before the medical and final completion.',
             'Negotiate renewal':'Extend an existing player’s contract by agreement. A pending discussion does not prevent expiry. Renewal medical review is immediate for existing employment.',
-            'Review signing':'Review the public standard offer for immediate free-agent registration. Negotiation is available through the separate contract discussion workflow.',
+            'Cash review':'Compare the current draft with existing obligations. Other offers retain their reservations; this offer is never counted twice. Estimates assume completion today.',
+            'Conversation':'Read the complete discussion with pagination. Reopening a closed negotiation preserves the earlier transcript in History.',
+            'History':'Read previous closed discussions. Their original terms and outcomes remain unchanged.',
+            'Review contract':'Review an urgent contract or completed medical before advancing time.',
             'Send proposal':'Send the displayed draft to the agent. Repeated identical proposals are blocked. Three unsuccessful rounds end the discussion with a cooling-off period.',
             'Review conditional acceptance':'Review the latest agent terms, not unsent edits. Acceptance reserves the signing fee and additional payroll capacity; no employment changes yet.',
             'Review completion':'Final irreversible review of agreed terms, medical advice and registration. Cash, employment and registration commit together.',
@@ -242,10 +292,9 @@ class CareerScreens:
             '−':'Decrease the proposed term. This only edits the draft; Send proposal starts negotiation.',
         }
         plain=label.removeprefix('• ')
-        if not enabled and plain=='Review signing' and self.v and self.profile:
-            from .planning import signing_terms
-            p=next((p for p in self.v['players'] if p['id']==self.profile),None)
-            if p:return '; '.join(signing_terms(self.v,[p])['reasons']) or 'Unavailable for this player.'
+        if not enabled and plain in ('Review completion','Review conditional acceptance') and self.v and self.offer_id:
+            offer=self.v['career']['offers'].get(self.offer_id)
+            if offer:return ' '.join(review(self.v,offer)['reasons']) or 'Submit terms and receive an agent response before accepting.'
         if plain.startswith('Sort:'):return 'Sort by the selected public field. Attribute sorting uses the midpoint of the observed range; unknown assessments always appear last. True hidden ratings are never used.'
         if plain.startswith('Role:'):return 'Cycle All, GK, DEF, MID and FWD. The resulting list remains intact when opening and closing player profiles.'
         if plain.startswith('Budget'):return 'Change the authorised weekly payroll ceiling. It cannot fall below existing wages and reserved contract commitments. This does not create or spend cash.'

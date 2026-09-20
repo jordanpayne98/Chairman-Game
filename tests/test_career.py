@@ -1,4 +1,5 @@
 import json
+from contract_support import prepare_signings
 import tempfile
 import unittest
 from pathlib import Path
@@ -39,7 +40,9 @@ class CareerTests(unittest.TestCase):
         for _ in range(3):self.act('continue')
         self.assertIn('p144',self.s['reports'])
         old=payroll(self.s);p=next(p for p in self.s['players'] if p['id']=='p144')
-        self.act('sign',id='p144');self.assertEqual(payroll(self.s),old+p['wage'])
+        prepare_signings(self,['p144'])
+        agreed=self.s['career']['offers']['p144']['wage']
+        self.act('complete_offer',id='p144');self.assertEqual(payroll(self.s),old+agreed)
         with self.assertRaises(ValueError):self.act('sign',id='p144')
         validate(self.s)
 

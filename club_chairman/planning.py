@@ -28,26 +28,35 @@ def player_rows(v, recruitment, search='', role='All', only_shortlist=False, sor
 
 
 def signing_terms(v, players):
-    """Guaranteed future wages exclude already accrued costs and existing contracts."""
+    """An illustrative completion-today scenario, using current agent terms when known."""
     targets = [p for p in players if p['club'] is None]
     span=v['season_end']-v.get('season_start',0)+v.get('career_settings',{}).get('season_gap',14)
-    contract_end=v['season_end']+span
-    days = max(0, contract_end - v['day'])
-    fee = sum(p['fee'] for p in targets)
-    wage = sum(p['wage'] for p in targets)
-    future = wage * days // 7
-    reasons = []
+    default_end=v['season_end']+span*(2 if v['season_done'] else 1)
+    offers=v.get('career',{}).get('offers',{})
+    contracts=[]
+    for p in targets:
+        o=offers.get(p['id'],{})
+        negotiated=o.get('status') in ('counter','agreed','medical','ready')
+        contracts.append(dict(id=p['id'],fee=o['fee'] if negotiated else p['fee'],
+                              wage=o['wage'] if negotiated else p['wage'],
+                              end=o['end'] if negotiated else default_end))
+    selected={p['id'] for p in targets}
+    other=[o for pid,o in offers.items() if pid not in selected and o['status'] in ('medical','ready')]
+    reserved_cash=sum(o['fee'] for o in other);reserved_wages=sum(o['wage_delta'] for o in other)
+    fee=sum(c['fee'] for c in contracts);wage=sum(c['wage'] for c in contracts)
+    future=sum(c['wage']*max(0,c['end']-v['day'])//7 for c in contracts)
+    reasons=[]
     if targets:
-        if v['season_done'] or v['day'] > v.get('window_end',28): reasons.append('Signing window closed')
+        if v['day'] > v.get('window_end',28): reasons.append('Signing window closed')
         if v['match']: reasons.append('Recruitment locked during matchday')
         if not v['manager']: reasons.append('Appoint a manager first')
-        if v['cash'] - fee - v.get('reserved_cash',0) < v['terms']['operating_buffer']: reasons.append('Would use the operating reserve')
-        if v['payroll'] + wage + v.get('reserved_wages',0) > v['budget']: reasons.append('Exceeds the weekly wage limit')
-        if any(v.get('career',{}).get('offers',{}).get(p['id'],{}).get('status') in ('draft','counter','agreed','medical','ready') for p in targets):
-            reasons.append('Open discussion: use Contracts to complete or withdraw')
-    return dict(count=len(targets), fee=fee, wage=wage, future=future, total=fee+future,
-                cash_after=v['cash']-fee, headroom=v['budget']-v['payroll']-wage-v.get('reserved_wages',0),
-                end_date=dated(v, contract_end), reasons=reasons)
+        if v['cash']-fee-reserved_cash<v['terms']['operating_buffer']:reasons.append('Would use the operating reserve')
+        if v['payroll']+wage+reserved_wages>v['budget']:reasons.append('Exceeds the weekly wage limit')
+    end_dates=sorted({c['end'] for c in contracts})
+    return dict(count=len(targets),fee=fee,wage=wage,future=future,total=fee+future,
+                cash_after=v['cash']-fee,headroom=v['budget']-v['payroll']-wage-reserved_wages,
+                end_date=dated(v,end_dates[0] if len(end_dates)==1 else default_end) if len(end_dates)<2 else 'varies by agreement',
+                reasons=reasons,contracts=contracts)
 
 
 def forecast(v, players=(), horizon=28):
@@ -79,7 +88,7 @@ def forecast(v, players=(), horizon=28):
         committed=sum(p['wage'] for p in v['players'] if p['club']=='c0' and (p['contract_end'] is None or p['contract_end']>=day))
         manager=v['manager'];committed+=manager['wage'] if manager and manager.get('contract_end',end)>=day else 0
         extra=sum(p['upkeep'] for p in v.get('career',{}).get('projects',[]) if p['status']=='construction' and p['due']<=day)
-        accrued += committed+terms['wage']+v['terms']['weekly_overheads']+extra
+        accrued += committed+sum(c['wage'] for c in terms['contracts'] if c['end']>=day)+v['terms']['weekly_overheads']+extra
         if day % 7 == 0:
             income=v['terms']['weekly_sponsor'];amount=accrued//7;accrued%=7
             sponsorship+=income;costs+=amount

@@ -1,4 +1,4 @@
-# Club Chairman — Career Update (0.3)
+# Club Chairman — Contracts Update (0.4)
 
 A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic through continuing 14-match seasons in an eight-club fictional development league. This is a playable development version; the approved full AA game is still being built.
 
@@ -19,7 +19,18 @@ The update reads **existing 0.1 and 0.2 / schema 1 and 2 saves** and upgrades th
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
-## New in 0.3
+## New in 0.4
+
+- One senior-player signing workflow: enquiry, agent terms, conditional acceptance, medical and final registration. The instant-signing bypass is removed; existing signed contracts are unchanged.
+- Contract progress strip, editable Terms, Cash review and paginated Conversation tabs. Counteroffer changes, deadlines, competing reservations and renewal exposure are visible before approval.
+- Combined recruitment plans use the latest agent terms and count a selected offer's reservation only once. Plans explicitly assume completion today; they do not automatically reserve or sign anything.
+- Next fixture stops for new medical results and imminent offer deadlines. An existing urgent review requires an explicit confirmation before fast-forward. The overview links to the earliest urgent contract.
+- Reopening a closed discussion retains its transcript and outcome in Contracts > History. Older saves have no invented past history; records accumulate from this update onward.
+- Late medicals that cannot finish before registration closes are rejected without reserving capacity. Completion rechecks manager availability, cash and wages.
+
+Saves remain schema 3, with optional retained offer history. Existing schema 1–3 careers load without altering the source file or existing employment. This completes a focused recruitment workflow, not the entire GDD contract catalogue or AA release.
+
+## Included from 0.3
 
 - Continuing compact seasons with unique fixture identities, separate prize settlements, preseason and retained tables/match reports.
 - Contracts desk: editable saved proposals, agent counteroffers, expiry/cooldown, cash/payroll reservations, medical review and final atomic registration. Renewals of existing employment have an immediate medical review. Proposed deals alone do not stop employment expiring.
@@ -30,7 +41,7 @@ Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves,
 - Contextual hover explanations and keyboard F2 help; financial assumptions available through Why this forecast?; cached presentation snapshots for the expanded screens.
 - Correct forecast settlement during a paused final away match and a verified migration from an actual 0.2 mid-match save.
 
-The standard immediate-signing shortcut remains available alongside negotiated contracts in this development version. Full clause coverage and unification remain on the release checklist.
+Full transfers, loans, clauses and delegation remain on the release checklist. Senior-player free-agent signings and renewals now share the reviewed contract workflow.
 
 ## Included from 0.2
 
