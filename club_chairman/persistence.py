@@ -10,6 +10,7 @@ import sqlite3
 import tempfile
 from .simulation import validate
 from .career import initialise
+from . import market, commercial, clauses
 
 
 def user_directory():
@@ -28,6 +29,12 @@ def migrate(state):
         s['schema'] = 2
         s['planning'] = dict(shortlist=[], comparison=[], notes={}, inbox_read=0)
     if s.get('schema')==2:initialise(s)
+    if s.get('schema')==3:
+        market.initialise(s);commercial.initialise(s)
+    if s.get('schema')==4:
+        # Existing active loans retain their signed dates. Pending 0.5 quotes
+        # keep the quoted end date; newly agreed durations start at registration.
+        clauses.initialise(s)
     validate(s)
     return s
 
@@ -39,7 +46,7 @@ def load(path):
         with closing(sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True)) as db:
             if db.execute('PRAGMA integrity_check').fetchone() != ('ok',):raise SaveError('Save integrity check failed.')
             metadata=dict(db.execute('SELECT key, value FROM metadata'))
-            if metadata.get('schema') not in ('1','2','3'):raise SaveError('Unsupported save version. This build reads schemas 1, 2 and 3.')
+            if metadata.get('schema') not in ('1','2','3','4','5'):raise SaveError('Unsupported save version. This build reads schemas 1–5.')
             raw=db.execute("SELECT payload FROM entities WHERE id='world'").fetchone()[0]
             if hashlib.sha256(raw.encode()).hexdigest()!=metadata['checksum']:raise SaveError('Save checksum does not match.')
             s=json.loads(raw)

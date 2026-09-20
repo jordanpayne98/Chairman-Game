@@ -12,6 +12,7 @@ import pygame
 from .simulation import Command, MANAGERS, execute, new_career, view
 from .persistence import SaveStore, SaveError, load, user_directory
 from .career_ui import CareerScreens
+from .business_ui import BusinessScreens
 from .contract_review import attention
 from .presentation import crest, portrait, Soundscape
 from .planning import ATTRIBUTES, SORTS, dated, player_rows, signing_terms, forecast
@@ -23,11 +24,11 @@ WIDTH,HEIGHT=1440,900
 def money(v):return f'£{v/100:,.0f}'
 
 
-class App(CareerScreens):
+class App(CareerScreens,BusinessScreens):
     def __init__(self,save_root=None):
         pygame.display.init();pygame.font.init()
         self.window=pygame.display.set_mode((1280,800),pygame.RESIZABLE)
-        pygame.display.set_caption('Club Chairman — Contracts Update 0.4')
+        pygame.display.set_caption('Club Chairman — Contract Clauses Update 0.6')
         self.canvas=pygame.Surface((WIDTH,HEIGHT))
         self.fonts={}
         self.state=None;self.v=None;self.screen='Home';self.buttons=[];self.focus=0;self.running=True
@@ -37,6 +38,8 @@ class App(CareerScreens):
         self.tab='Forecast';self.match_report=None;self.profile_ids=[];self.views={};self.history=[];self.forward=[]
         self.workspaces={};self.undo=None;self.editor=None;self.note_draft='';self.notification_log=[]
         self.modal_revision=None;self.modal_focus=0;self.message_seen='';self.note_active=False
+        self.market_scope='Free agents';self.market_id=None;self.market_draft=None;self.market_tab='Deals'
+        self.outgoing_player=None;self.outgoing_kind='sale';self.sponsor_right=None;self.sponsor_draft=None
         self.key_events_only=False;self.offer_id=None;self.offer_draft=None;self.offer_tab='Terms';self.offer_archive=None;self.history_season=None;self.load_cache=None
         self.reduced_motion=False;self.tooltips_enabled=True;self.explain_focus=False;self.help_regions=[]
         self.hover_key=None;self.hover_since=0;self.goal_until=0;self.last_score=None
@@ -79,7 +82,7 @@ class App(CareerScreens):
         self.help_regions.append((r,self.control_help(label,enabled),idx))
 
     def position(self):
-        return {key:getattr(self,key) for key in ('screen','page','profile','search','role','sort','descending','only_shortlist','tab','match_report','profile_ids','offer_id','offer_draft','offer_tab','offer_archive','history_season')}
+        return {key:getattr(self,key) for key in ('screen','page','profile','search','role','sort','descending','only_shortlist','tab','match_report','profile_ids','offer_id','offer_draft','offer_tab','offer_archive','history_season','market_scope','market_id','market_draft','market_tab','outgoing_player','outgoing_kind','sponsor_right','sponsor_draft')}
 
     def restore_position(self,position):
         for key,value in position.items():
@@ -99,6 +102,7 @@ class App(CareerScreens):
 
     def reset_workspace(self,views=None):
         self.views=views if isinstance(views,dict) else {};self.history=[];self.forward=[];self.undo=None;self.editor=None
+        self.market_scope='Free agents';self.market_id=None;self.market_draft=None;self.market_tab='Deals';self.outgoing_player=None;self.outgoing_kind='sale';self.sponsor_right=None;self.sponsor_draft=None
         self.notification_log=[];self.message_seen='';self.offer_id=None;self.offer_draft=None;self.offer_tab='Terms';self.offer_archive=None;self.history_season=None;self.last_score=None;self.goal_until=0
         self.screen='Home';self.page=0;self.profile=None;self.search='';self.role='All';self.sort='Name'
         self.descending=False;self.only_shortlist=False;self.match_report=None;self.profile_ids=[];self.tab='Forecast'
@@ -108,7 +112,7 @@ class App(CareerScreens):
         if self.screen!=screen:
             self.remember();self.history.append(self.position());self.forward=[]
             default=dict(screen=screen,page=0,profile=None,search='',role='All',sort='Name',descending=False,
-                         only_shortlist=False,tab='Forecast',match_report=None,profile_ids=[],offer_id=None,offer_draft=None,offer_tab='Terms',offer_archive=None,history_season=self.history_season)
+                         only_shortlist=False,tab='Forecast',match_report=None,profile_ids=[],offer_id=None,offer_draft=None,offer_tab='Terms',offer_archive=None,history_season=self.history_season,market_scope='Free agents',market_id=None,market_draft=None,market_tab='Deals',outgoing_player=None,outgoing_kind='sale',sponsor_right=None,sponsor_draft=None)
             self.restore_position(self.views.get(screen,default))
         self.typing=False;self.focus=0;self.play=False;self.batch=False
         self.save_preferences()
@@ -209,7 +213,7 @@ class App(CareerScreens):
             elif self.batch:
                 urgent=[r for r in attention(self.v) if (r['player'],r['label']) not in before]
                 if urgent:
-                    self.batch=False;self.nav('Contracts');self.offer_id=urgent[0]['player'];self.offer_draft=None
+                    self.batch=False;self.business_attention(urgent[0])
                     self.message=urgent[0]['name']+': '+urgent[0]['label']+'. Fast-forward stopped for your review.'
 
     def next_fixture(self):
@@ -248,7 +252,7 @@ class App(CareerScreens):
 
     def home(self):
         self.text('CLUB CHAIRMAN',100,100,60)
-        self.text('CONTRACTS UPDATE 0.4  /  NORTHSHIRE LEAGUE',104,170,25,GREEN)
+        self.text('CONTRACT CLAUSES UPDATE 0.6  /  NORTHSHIRE LEAGUE',104,170,25,GREEN)
         self.wrap('Take the chair at Northbridge Athletic. Appoint your manager, strengthen the squad and balance ambition against the club bank account.',104,225,770,29,TEXT)
         self.wrap('An evolving ownership game: continuing seasons, contracts, academy development and facility investment in a compact fictional league. The full AA world remains in development.',104,330,800,24)
         if self.screen=='Load':
@@ -275,14 +279,14 @@ class App(CareerScreens):
         pygame.draw.rect(self.canvas,PANEL,(0,0,sw,850))
         self.text('CC' if self.collapsed else 'CLUB CHAIRMAN',18,30,26,GREEN)
         self.button('>' if self.collapsed else '< Collapse',(14,91,sw-28,44),self.toggle_sidebar)
-        screens=['Overview','Inbox','Squad','Staff','Recruitment','Contracts','Academy','Facilities','Finances','League','Matchday','Career','Settings','Help']
+        screens=['Overview','Inbox','Squad','Staff','Recruitment','Contracts','Transfers','Commercial','Academy','Facilities','Finances','League','Matchday','Career','Settings','Help']
         for i,name in enumerate(screens):
-            self.button(name[:2] if self.collapsed else name,(14,151+i*42,sw-28,36),lambda n=name:self.nav(n))
+            self.button(name[:2] if self.collapsed else name,(14,146+i*37,sw-28,33),lambda n=name:self.nav(n))
             if self.screen==name or (self.screen=='Comparison' and name=='Recruitment'):
-                pygame.draw.rect(self.canvas,GREEN,(14,156+i*42,3,26),border_radius=2)
+                pygame.draw.rect(self.canvas,GREEN,(14,151+i*37,3,23),border_radius=2)
             if name=='Inbox' and not self.collapsed:
                 unread=len(v['inbox'])-v['planning']['inbox_read']
-                if unread:self.text(str(unread),sw-47,163+i*42,20,GREEN)
+                if unread:self.text(str(unread),sw-47,156+i*37,20,GREEN)
         if v['decision'] and not self.collapsed:self.text('! Approval required',20,748,18,RED)
         self.button('M' if self.collapsed else 'Main menu',(14,792,sw-28,38),lambda:self.nav('Home'))
         crest(self.canvas,'c0',(sw+20,12,36,52))
@@ -321,7 +325,7 @@ class App(CareerScreens):
             item=attention(v)[0]
             self.text(item['name'],x+20,399,29)
             self.wrap(item['label']+'. Complete or withdraw by '+dated(v,item['deadline'])+'. Reserved funds are not yet spent.',x+20,445,610,23)
-            self.button('Review contract',(x+20,524,230,44),lambda:self.contract_open(item['player']))
+            self.button('Review contract',(x+20,524,230,44),lambda:self.business_attention(item))
         else:
             self.text('Ready for the next step.',x+20,399,29)
             self.wrap(f"{len(v['planning']['shortlist'])} shortlisted / {len(v['planning']['comparison'])} pinned for comparison. Compare costs before you commit to a signing.",x+20,445,610,23)
@@ -375,7 +379,7 @@ class App(CareerScreens):
     def draw_recruitment(self,x):self.player_table(x,True)
 
     def filtered_players(self):
-        return player_rows(self.v,self.screen=='Recruitment',self.search,self.role,self.only_shortlist,self.sort,self.descending)
+        return player_rows(self.v,self.screen=='Recruitment',self.search,self.role,self.only_shortlist,self.sort,self.descending,self.market_scope)
 
     def player_table(self,x,recruitment):
         if self.profile:
@@ -390,7 +394,10 @@ class App(CareerScreens):
         rows=self.filtered_players();self.page=min(self.page,max(0,(len(rows)-1)//7))
         self.button('Sort: '+self.sort,(x,246,210,38),lambda:self.filter_change('sort',SORTS[(SORTS.index(self.sort)+1)%len(SORTS)]))
         self.button('High to low' if self.descending else 'Low to high',(x+225,246,155,38),lambda:self.filter_change('descending',not self.descending))
-        self.text(f'{len(rows)} results  /  unknown estimates sort last',x+400,257,22,MUTED)
+        if recruitment:
+            scopes=('Free agents','Club players','All')
+            self.button('Market: '+self.market_scope,(x+395,246,235,38),lambda:self.filter_change('market_scope',scopes[(scopes.index(self.market_scope)+1)%3]))
+        self.text(f'{len(rows)} results',x+650,257,22,MUTED)
         self.text('NAME / ROLE',x+15,309,18,MUTED);self.text('WAGE / WEEK',x+395,309,18,MUTED)
         self.text('EVIDENCE',x+555,309,18,MUTED)
         for i,p in enumerate(rows[self.page*7:self.page*7+7]):
@@ -410,7 +417,7 @@ class App(CareerScreens):
         if not rows:self.wrap('No players match these filters. Use Reset filters, or turn off Shortlist only.',x+20,380,900,27)
 
     def reset_filters(self):
-        self.search='';self.role='All';self.only_shortlist=False;self.sort='Name';self.descending=False;self.page=0;self.save_preferences()
+        self.search='';self.role='All';self.market_scope='Free agents';self.only_shortlist=False;self.sort='Name';self.descending=False;self.page=0;self.save_preferences()
 
     def draw_profile(self,x,p):
         self.button('< Back to list',(x,190,175,42),self.close_profile)
@@ -422,7 +429,7 @@ class App(CareerScreens):
         self.panel(x,255,1400-x,118)
         portrait(self.canvas,p['id'],p['age'],(x+20,266,82,97),p['club'])
         self.text(p['name'],x+124,275,38)
-        self.text(f"{p['role']}  /  Age {p['age']}  /  {'Free agent' if p['club'] is None else 'Northbridge Athletic'}",x+124,328,24,MUTED)
+        self.text(f"{p['role']}  /  Age {p['age']}  /  {'Free agent' if p['club'] is None else self.club(p['club'])}",x+124,328,24,MUTED)
         self.text(f"{p['appearances']} apps  /  {p['goals']} goals",1090,330,23,GREEN)
         left=650;right=x+left+20;rw=1400-right
         self.panel(x,390,left,310,'Scouted attributes  /  1–100')
@@ -447,16 +454,26 @@ class App(CareerScreens):
             self.text('Future wages  '+money(t['future']),right+20,527,23)
             self.text('Total exposure  '+money(t['total']),right+20,564,24)
             self.wrap('Indicative terms to '+t['end_date']+'. Confirm the package in Contracts.',right+20,606,rw-40,21)
+        elif p.get('loan'):
+            loan=p['loan'];self.wrap('On loan from '+self.club(loan['source'])+' until '+dated(self.v,loan['end'])+'. Borrower wage share '+str(loan['share'])+'%.',right+20,490,rw-40,24)
+        elif p['club']!='c0':
+            self.wrap('Club asking fee '+money(p['transfer_quote'])+'. Personal terms and signing fee are separate. Employment to '+dated(self.v,p['contract_end'])+'.',right+20,490,rw-40,24)
         else:self.wrap('Registered until '+dated(self.v,p['contract_end'])+'. Selection is delegated to your manager.',right+20,490,rw-40,24)
         if report:self.wrap('Source: '+report['source'],right+20,653,rw-40,20)
         self.button('Private note',(x,722,160,42),lambda:self.open_note(p['id']))
         self.text((self.v['planning']['notes'].get(p['id']) or 'Private thoughts; no game effect.')[:65],x+175,736,20,MUTED)
-        if p['club']=='c0':self.button('Negotiate renewal',(x,780,225,44),lambda:self.contract_open(p['id']),not self.v['match'] and not p['youth'])
-        if p['club'] is None:
+        if p['club']=='c0':
+            self.button('Negotiate renewal',(x,780,225,44),lambda:self.contract_open(p['id']),not self.v['match'] and not p['youth'] and not p.get('loan'))
+            self.button('Review sale',(x+245,780,195,44),lambda:self.outgoing_open(p['id'],'sale'),not self.v['match'] and not p.get('loan') and not p['youth'])
+            self.button('Review loan',(x+460,780,195,44),lambda:self.outgoing_open(p['id'],'loan'),not self.v['match'] and not p.get('loan') and not p['youth'])
+        if p['club']!='c0':
             due=p['scout_due'];terms=self.v['terms']
             self.button('Request scouting',(x,780,210,44),lambda:self.confirm('Commission scouting',f"Spend {money(terms['scout_fee'])} to assess {p['name']}? The report arrives in {terms['scout_days']} days, on {dated(self.v,self.v['day']+terms['scout_days'])}. Cash after payment: {money(self.v['cash']-terms['scout_fee'])}.",lambda:self.command('scout',id=p['id'])),not report and not due and not self.v['match'] and not self.v['season_done'])
-            self.button('Negotiate contract',(x+225,780,220,44),lambda:self.contract_open(p['id']),not self.v['match'] and not p['retired'] and self.v['day']<=self.v['window_end'])
-            self.text(('Report due '+dated(self.v,due) if due else 'Personal terms, medical and final review required.')[:77],x+450,795,20,MUTED)
+            if p['club'] is None:self.button('Negotiate contract',(x+225,780,220,44),lambda:self.contract_open(p['id']),not self.v['match'] and not p['retired'] and self.v['day']<=self.v['window_end'])
+            else:
+                self.button('Club enquiry',(x+225,780,195,44),lambda:self.market_open('club_enquire',p['id']),not self.v['match'] and not p.get('loan'))
+                self.button('Discuss loan',(x+435,780,195,44),lambda:self.market_open('loan_enquire',p['id']),not self.v['match'] and not p.get('loan'))
+            if p['club'] is None:self.text(('Report due '+dated(self.v,due) if due else 'Personal terms, medical and final review required.')[:77],x+450,795,20,MUTED)
 
     def close_profile(self):
         if self.history and self.history[-1]['screen']==self.screen and self.history[-1]['profile'] is None:self.go_back()
@@ -477,17 +494,17 @@ class App(CareerScreens):
             left=x+i*(width+15);self.panel(left,255,width,447)
             self.wrap(p['name'],left+15,275,width-30,27,TEXT)
             self.text(p['role']+' / '+str(p['age']),left+15,325,23,GREEN)
-            self.text('Free agent' if p['club'] is None else 'At your club',left+15,357,21,MUTED)
+            self.text('Free agent' if p['club'] is None else self.club(p['club']),left+15,357,21,MUTED)
             for j,key in enumerate(ATTRIBUTES):
                 value='Unknown' if not p['report'] else '–'.join(map(str,p['report']['ranges'][key]))
                 self.text(key.capitalize(),left+15,398+j*33,20,MUTED);self.text(value,left+width-93,398+j*33,23)
             r=p['report'];self.text(r['confidence']+' / '+dated(self.v,r['day']) if r else 'No report',left+15,535,19,MUTED)
             self.text(r['source'] if r else 'Source: unavailable',left+15,560,19,MUTED)
             self.text(money(p['wage'])+' / week',left+15,591,24,GREEN)
-            t=signing_terms(self.v,[p]);self.text('Total '+money(t['total']) if p['club'] is None else 'Already registered',left+15,622,22)
+            t=signing_terms(self.v,[p]);self.text('Total '+money(t['total']) if p['club']!='c0' and not p.get('loan') else 'On loan' if p.get('loan') else 'At your club',left+15,622,22)
             self.button('Remove',(left+15,655,width-30,34),lambda pid=p['id']:self.toggle_plan('comparison',pid))
         t=signing_terms(self.v,players)
-        self.text(f"{t['count']} free agents combined: {money(t['fee'])} now + {money(t['future'])} future wages",x,718,26)
+        self.text(f"{t['count']} targets combined: {money(t['fee'])} now + {money(t['future'])} future wages + {money(t['deferred'])} deferred",x,718,26)
         self.text('Wage headroom after all signings: '+money(t['headroom'])+' / week',x,749,24,GREEN if t['headroom']>=0 else RED)
         self.wrap('; '.join(t['reasons']) or 'Each signing needs its own review. Plans do not reserve funds.',x,790,850,22,RED if t['reasons'] else MUTED)
         self.button('Forecast this plan',(1175,775,225,44),lambda:(self.nav('Finances'),setattr(self,'tab','Plan')))
@@ -496,13 +513,13 @@ class App(CareerScreens):
         v=self.v
         for i,name in enumerate(('Forecast','Plan','Ledger')):
             self.button(('• ' if self.tab==name else '')+name,(x+i*165,190,150,40),lambda n=name:self.set_finance_tab(n))
-        self.button('Why this forecast?',(1160,190,240,40),lambda:self.confirm('Forecast assumptions','All money is stored in pence. Costs follow committed wages, contract expiry, scheduled project openings and weekly settlement dates. Gate receipts hold current supporter mood and ticket prices, with an attendance sensitivity of ±15%. Unaccepted future deals, prizes and unapproved projects are excluded. A pinned plan assumes completion today at the latest agent terms, or indicative demands before negotiation. It excludes a target’s own reservation to avoid double counting; other reservations still constrain affordability. This is a planning estimate, not a guaranteed bank balance.',None))
+        self.button('Why this forecast?',(1160,190,240,40),lambda:self.confirm('Forecast assumptions','All money is stored in pence. Costs follow committed wages, contract expiry, scheduled project openings and weekly settlement dates. Gate receipts hold current supporter mood and ticket prices, with an attendance sensitivity of ±15%. Signed sponsorship schedules, transfer instalments, loan returns and unpaid earned bonuses are included. Future performance bonuses, unused extension options and untriggered sell-on rights are excluded; inspect them in Contracts > Clauses. Unaccepted future deals, prizes and unapproved projects are excluded. A pinned plan assumes completion today at the latest agent terms, or indicative demands before negotiation. It excludes a target’s own reservation to avoid double counting; other reservations still constrain affordability. This is a planning estimate, not a guaranteed bank balance.',None))
         self.panel(x,250,1400-x,142,'Cash and commitments')
         self.text(f"Club cash {money(v['cash'])}   /   Owner funds {money(v['owner_cash'])}",x+20,290,28,GREEN)
         self.text(f"Payroll {money(v['payroll'])} / week   |   Limit {money(v['budget'])}   |   Headroom {money(v['budget']-v['payroll'])}",x+20,334,24)
         self.button('Budget -£2k',(x,410,160,42),lambda:self.command('budget',value=v['budget']-200000))
         self.button('Budget +£2k',(x+170,410,160,42),lambda:self.command('budget',value=v['budget']+200000))
-        self.button('Inject £50,000',(x+340,410,190,42),lambda:self.confirm('Fund the club',f"Transfer £50,000 from your owner funds into club equity? Club cash becomes {money(v['cash']+5000000)}; owner funds become {money(v['owner_cash']-5000000)}. This adds no repayment or weekly cost.",lambda:self.command('fund')),v['owner_cash']>=5000000)
+        self.button('Inject £50,000',(x+340,410,190,42),lambda:self.confirm('Fund the club',f"Transfer £50,000 from your owner funds into club equity? Club cash becomes {money(max(0,v['cash']+5000000-sum(b['amount']-b['paid'] for b in v['clauses']['payables'] if b['source']=='c0')))}; owner funds become {money(v['owner_cash']-5000000)}. Any unpaid earned bonuses settle from the available funds. This equity adds no repayment or weekly cost.",lambda:self.command('fund')),v['owner_cash']>=5000000)
         self.text('Tickets '+money(v['tickets']),x+560,424,23)
         self.button('- £2',(1200,410,88,42),lambda:self.command('tickets',value=v['tickets']-200),not v['match'] and v['tickets']>1000)
         self.button('+ £2',(1300,410,88,42),lambda:self.command('tickets',value=v['tickets']+200),not v['match'] and v['tickets']<3000)
@@ -635,10 +652,10 @@ class App(CareerScreens):
             'Continue advances one day. Next fixture advances until a match or required decision. All ordinary screens pause time. During match playback, opening another screen or a confirmation pauses the match.',
             'On matchday, your manager selects a 4-4-2. Watch the text engine at 1x, 2x or 4x, or skip. You can encourage your manager or request attacking football once per match. Save works mid-match.',
             'Save writes a manual slot. Autosaves follow management actions and full time. Load / recover lists dated checkpoints and backups. Loading makes a separate timeline, preserving existing files.',
-            'Career adds continuing compact seasons, negotiated free-agent and renewal terms, manager replacement, academy trials/development and facility projects. The broader world, acquisitions, succession, loans, full football rules and wider staff delegation remain in development.',
+            'Career adds continuing compact seasons, negotiated free-agent and renewal terms, manager replacement, academy trials/development and facility projects. Transfers adds club purchases, sales and loans. The full world, ownership and football rules remain in development.',
             'Shortcuts: Ctrl+S saves; Ctrl+F searches players; Alt+Left/Right navigates history; Space pauses live matches; F1 opens Help. Tab / Shift+Tab moves focus, Enter activates. Esc closes overlays or goes back.',
             'F2 explains the focused control. Settings offers optional sound and reduced motion. Contracts requires proposal, conditional acceptance, medical and final completion. Renew existing players before expiry; merely opening an offer cannot keep them registered.',
-            'Recruitment: filter by role, save a shortlist and pin up to four players. Compare uses scouted ranges. Finances > Plan projects pinned free-agent costs. Forecasts are estimates and never sign players. League > Open match report reopens completed fixtures.'
+            'Recruitment: filter by role, save a shortlist and pin up to four players. Compare uses scouted ranges. Finances > Plan projects pinned acquisition costs. Commercial offers dated sponsorships; Transfers lists loan returns and instalments. Forecasts are estimates and never sign players. League > Open match report reopens completed fixtures.'
         ]
         y=250
         for p in paragraphs:y=self.wrap(p,x+25,y,1350-x,21)+12

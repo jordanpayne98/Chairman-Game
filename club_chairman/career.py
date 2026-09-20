@@ -4,6 +4,7 @@ Domain functions operate only on the caller's uncommitted state copy. Simulation
 imports are local to keep the existing match engine separate from career policy.
 """
 from copy import deepcopy
+from . import market, clauses
 
 CAREER_DEFAULTS = dict(season_gap=14, offer_lifetime=7,
                       medical_days=2, manager_notice_weeks=4, academy_trial_fee=200000,
@@ -43,7 +44,8 @@ def available_capacity(s):
 
 def reservations(s,exclude=None):
     deals=[o for key,o in s['career']['offers'].items() if key!=exclude and o['status'] in ('medical','ready')]
-    return sum(o['fee'] for o in deals),sum(o['wage_delta'] for o in deals)
+    fees,wages=market.extra_reservations(s) if 'market' in s else (0,0)
+    return fees+sum(o['fee']+market.upfront_for_offer(s,o) for o in deals),wages+sum(o['wage_delta'] for o in deals)
 
 
 def manager_severance(s):
@@ -94,8 +96,8 @@ def process_day(s):
     for o in career['offers'].values():
         if o['status'] in ('completed','withdrawn','expired','rejected'):continue
         p=person(s,o['player'])
-        if day>o['expires'] or (o['kind']=='sign' and day>window_end(s)):
-            o['status']='expired';o['transcript'].append('Offer or registration deadline passed: no contract was signed and reserved capacity was released.')
+        if day>o['expires'] or (o['kind']!='renew' and day>window_end(s)):
+            o['status']='expired';market.close_purchase(s,o,'Personal terms expired.');o['transcript'].append('Offer or registration deadline passed: no contract was signed and reserved capacity was released.')
             news(s,'Offer expired',p['name']+': no contract was signed. Reserved capacity was released.');continue
         if o['status']=='medical' and day>=o['due']:
             rng=rng_for(s['seed'],'medical:'+o['id'])
@@ -107,6 +109,7 @@ def process_day(s):
         p['age']=max(0,(day-p['birth_day'])//365)
         if p['club'] and p['contract_end'] is not None and day>p['contract_end']:
             if p['club']=='c0':
+                clauses.release(s,p['id'],'c0')
                 p['club']=None;p['youth']=False;news(s,'Player contract expired',p['name']+' is now a free agent. No renewal was signed.')
             else:p['contract_end']=season_end(s)  # Existing AI preview-club retention policy.
     if s['manager'] and day>s['manager']['contract_end']:
@@ -166,16 +169,19 @@ def apply(s,action,data):
     if action=='enquire':
         require(s['match'] is None,'Contract discussions pause during matchday.')
         p=person(s,data.get('id'));require(not p['retired'] and not p['youth'],'Only active senior players can negotiate here.')
-        require(p['club'] in (None,'c0'),'This version supports free agents and your own renewals.')
+        require(market.active_loan(s,p['id']) is None,'Resolve the loan before negotiating a permanent contract.')
+        deal=market.transfer_deal(s,p['id'])
+        require(p['club'] in (None,'c0') or deal is not None,'Agree selling-club terms in Transfers first.')
         old=c['offers'].get(p['id'])
         require(not old or old['status'] in ('completed','withdrawn','expired','rejected'),'A discussion is already open for this player.')
         require(not old or s['day']>=old.get('cooldown',0),'The player needs time after the previous breakdown.')
         require(p['club']=='c0' or s['day']<=window_end(s),'The registration window has closed.')
         if old:c.setdefault('offer_history',[]).append(deepcopy(old))
-        kind='renew' if p['club']=='c0' else 'sign'
+        kind='renew' if p['club']=='c0' else 'transfer' if p['club'] else 'sign'
         c['offers'][p['id']]=dict(id=f"offer:{p['id']}:{s['revision']}",player=p['id'],kind=kind,status='draft',
             wage=p['wage'],fee=0 if kind=='renew' else p['fee'],duration=2,end=contractual_end(s,2),
-            rounds=0,expires=s['day']+settings['offer_lifetime'],transcript=['Agent: We will consider pay, security and the signing fee.'],wage_delta=0)
+            deal_id=deal['id'] if deal else None,source=p['club'],
+            rounds=0,expires=min(s['day']+settings['offer_lifetime'],deal['expires']) if deal else s['day']+settings['offer_lifetime'],transcript=['Agent: We will consider pay, security and the signing fee.'],wage_delta=0)
         return 'Discussion opened. No funds are committed.'
     if action in ('propose_offer','accept_offer','complete_offer','withdraw_offer'):
         require(s['match'] is None,'Contracts cannot change during matchday.')
@@ -183,9 +189,10 @@ def apply(s,action,data):
         p=person(s,o['player']);require(o['status'] not in ('completed','withdrawn','expired','rejected'),'This discussion has closed.')
         require(s['day']<=o['expires'],'This offer has expired.')
         if action=='withdraw_offer':
+            market.close_purchase(s,o,'Personal terms withdrawn.')
             o['status']='withdrawn';o['transcript'].append('Chairman: We are withdrawing. No contract was signed.')
             return 'Offer withdrawn. Reserved cash and payroll capacity released.'
-        require(not p['retired'] and ((o['kind']=='sign' and p['club'] is None) or (o['kind']=='renew' and p['club']=='c0')),'The player’s registration has changed.')
+        require(not p['retired'] and ((o['kind']=='sign' and p['club'] is None) or (o['kind']=='renew' and p['club']=='c0') or (o['kind']=='transfer' and p['club']==o.get('source'))),'The player’s registration has changed.')
         require(o['kind']=='renew' or s['day']<=window_end(s),'Registration window closed. Withdraw this offer.')
         if action=='propose_offer':
             require(o['status'] in ('draft','counter','agreed'),'Withdraw conditional acceptance before changing terms.')
@@ -194,45 +201,57 @@ def apply(s,action,data):
             require(type(fee) is int and 0<=fee<=10000000,'Signing fee must be £0–£100,000.')
             require(type(duration) is int and 1<=duration<=3,'Choose one to three seasons.')
             end=contractual_end(s,duration);require(end>s['day'] and (o['kind']!='renew' or end>p['contract_end']),'Renewal must extend beyond the existing agreement.')
-            proposal=(wage,fee,duration)
+            extra=clauses.validate_terms(s,data)
+            proposal=(wage,fee,duration,*extra.values())
             require(proposal!=tuple(o.get('last_proposal',[])),'These exact terms were already considered; change the offer or accept the counter.')
             o['last_proposal']=list(proposal);o['rounds']+=1
             rng=rng_for(s['seed'],'contract-priority:'+p['id']);discount=rng.randint(90,103)
             security=1-(duration-1)*.025
             required_wage=round(p['wage']*discount/100*security)
+            if extra['club_option']:required_wage=required_wage*(100+cfg['clauses']['option_wage_premium'])//100
             required_fee=0 if o['kind']=='renew' else p['fee']*.9
             acceptable=wage>=required_wage and fee>=required_fee
             o.update(wage=wage,fee=fee,duration=duration,end=end,expires=s['day']+settings['offer_lifetime'])
+            o.update(extra)
+            if o.get('deal_id'):o['expires']=min(o['expires'],s['market']['deals'][o['deal_id']]['expires'])
             o['transcript'].append(f"Chairman: £{wage/100:,.0f}/week, £{fee/100:,.0f} fee, {duration} seasons.")
+            if any(extra.values()):o['transcript'].append('Clauses: '+clauses.description(extra))
             if acceptable:
                 o['status']='agreed';o['transcript'].append('Agent: Those terms work. We can proceed to the medical and registration review.')
             elif o['rounds']>=3:
-                o['status']='rejected';o['cooldown']=s['day']+14;o['transcript'].append('Agent: We are ending these discussions. Try again after the cooling-off period.')
+                o['status']='rejected';o['cooldown']=s['day']+14;market.close_purchase(s,o,'Player rejected personal terms.');o['transcript'].append('Agent: We are ending these discussions. Try again after the cooling-off period.')
             else:
                 o['status']='counter';o['wage']=max(wage,p['wage'],required_wage);o['fee']=max(fee,0 if o['kind']=='renew' else p['fee'])
                 o['transcript'].append('Agent: The package is too low. Our revised terms are shown above.')
             return 'Response received. Review the revised terms and expiry.'
         if action=='accept_offer':
             require(o['status'] in ('agreed','counter'),'Send an offer before conditional acceptance.')
-            due=s['day']+(settings['medical_days'] if o['kind']=='sign' else 0)
-            if o['kind']=='sign':
+            due=s['day']+(settings['medical_days'] if o['kind']!='renew' else 0)
+            if o['kind']!='renew':
                 require(due<=min(window_end(s),season_end(s)), 'The medical cannot finish before registration closes. No capacity was reserved.')
             fee,wages=reservations(s,exclude=p['id']);delta=o['wage']-(p['wage'] if o['kind']=='renew' else 0)
             require(s['manager'] is not None,'Appoint a manager before agreeing contracts.')
-            require(s['cash']-fee-o['fee']>=cfg['operating_buffer'],'Insufficient unreserved cash.')
+            require(s['cash']-fee-o['fee']-market.upfront_for_offer(s,o)>=cfg['operating_buffer'],'Insufficient unreserved cash.')
             require(payroll(s)+wages+delta<=s['budget'],'Conditional acceptance exceeds unreserved wage capacity.')
             o.update(status='medical',due=due,wage_delta=max(0,delta),expires=s['day']+settings['offer_lifetime'])
+            if o.get('deal_id'):
+                deal=s['market']['deals'][o['deal_id']]
+                require(deal['status']=='seller_agreed' and due<=deal['expires'],'Selling-club consent expires before the medical completes.')
+                o['expires']=min(o['expires'],deal['expires'])
             if o['kind']=='renew':o.update(status='ready',medical_days=0,medical='Existing employment renewal: no new medical restriction.')
             o['transcript'].append('Conditional acceptance recorded. Cash and payroll capacity are reserved; employment has not changed.')
             return 'Medical arranged. Capacity reserved until completion, expiry or withdrawal.'
         require(o['status']=='ready','The medical and registration review are not ready.')
+        require(o['kind']!='renew' or o['end']>p['contract_end'],'Renewal no longer extends the current agreement.')
         require(s['manager'] is not None,'Appoint a manager before completing this contract.')
         fees,wages=reservations(s,exclude=p['id']);delta=o['wage']-(p['wage'] if o['kind']=='renew' else 0)
-        require(s['cash']-fees-o['fee']>=cfg['operating_buffer'],'Insufficient unreserved cash at completion.')
+        require(s['cash']-fees-o['fee']-market.upfront_for_offer(s,o)>=cfg['operating_buffer'],'Insufficient unreserved cash at completion.')
         require(payroll(s)+wages+delta<=s['budget'],'Wage capacity changed; revise the budget or withdraw.')
-        posting(s,o['id'],-o['fee'],'Contract signing fee' if o['kind']=='sign' else 'Contract renewal fee')
-        if o['kind']=='sign':s['transfer_spend']+=o['fee']
+        if o['kind']=='transfer':market.complete_purchase(s,o)
+        posting(s,o['id'],-o['fee'],'Contract signing fee' if o['kind']!='renew' else 'Contract renewal fee')
+        if o['kind']!='renew':s['transfer_spend']+=o['fee']
         p.update(club='c0',wage=o['wage'],contract_end=o['end'],injury_until=max(p['injury_until'],s['day']+o['medical_days']))
+        clauses.sign(s,p,o)
         s['scouting'].pop(p['id'],None)
         if p['id'] not in s['reports']:s['reports'][p['id']]=make_report(s,p,'Coaching staff',5)
         o['status']='completed';o['transcript'].append('Registration complete. The signed terms are now binding.')
@@ -292,15 +311,16 @@ def apply(s,action,data):
             c['history'].append(dict(season=c['season'],table=deepcopy(table(s)),fixtures=deepcopy(s['fixtures']),cash=s['cash'],day=s['day']))
         for o in c['offers'].values():
             if o['status'] not in ('completed','withdrawn','expired','rejected'):
-                o['status']='expired';o['transcript'].append('Season closed: unfinished discussion expired and reserved capacity released.')
+                o['status']='expired';market.close_purchase(s,o,'Season closed before registration.');o['transcript'].append('Season closed: unfinished discussion expired and reserved capacity released.')
         old_end=season_end(s);c['season']+=1;c['start']=old_end+settings['season_gap'];s['season_done']=False
         for club in s['clubs']:
             for key in ('played','won','drawn','lost','gf','ga','points'):club[key]=0
             club['form']=[]
         for p in s['players']:
             p['career_goals']+=p['goals'];p['career_appearances']+=p['appearances'];p['goals']=0;p['appearances']=0
-            if p['club'] not in (None,'c0'):p['contract_end']=c['start']+96
-            if p['age']>=36 and p['club']!='c0':p['retired']=True;p['club']=None
+            loan=market.active_loan(s,p['id'])
+            if p['club'] not in (None,'c0') and not loan:p['contract_end']=c['start']+96
+            if p['age']>=36 and p['club']!='c0' and not loan:p['retired']=True;p['club']=None
             if p['youth'] and p['club'] is None:p['retired']=True
         # Keep opponents playable. Scheduled background entrants have new identities.
         for club in s['clubs'][1:]:

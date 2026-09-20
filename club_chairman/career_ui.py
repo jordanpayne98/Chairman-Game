@@ -4,12 +4,15 @@ from .planning import dated
 from .contract_review import review, CLOSED
 from .presentation import crest,portrait,pitch
 from .simulation import MANAGERS
+from .commercial import venue_name
+from .clause_ui import ClauseScreens
+from .clauses import terms as clause_terms, description as clause_description
 
 TEXT=(231,238,238);MUTED=(159,179,187);GREEN=(98,214,161);RED=(246,150,142)
 def money(value):return f'£{value/100:,.0f}'
 
 
-class CareerScreens:
+class CareerScreens(ClauseScreens):
     def contract_open(self,pid):
         offer=self.v['career']['offers'].get(pid)
         if not offer or offer['status'] in ('completed','withdrawn','expired','rejected'):
@@ -24,6 +27,8 @@ class CareerScreens:
         if self.offer_id in offers:self.draw_offer(x,offers[self.offer_id]);return
         self.text('CONTRACT DESK  /  every agreement requires your review',x,200,23,GREEN)
         self.button('Discussions' if self.tab=='Expiring' else 'Expiring agreements',(1150,190,250,42),lambda:(setattr(self,'tab','Discussions' if self.tab=='Expiring' else 'Expiring'),setattr(self,'page',0)))
+        self.button('Clauses' if self.tab!='Clauses' else 'Discussions',(960,190,175,42),lambda:(setattr(self,'tab','Discussions' if self.tab=='Clauses' else 'Clauses'),setattr(self,'page',0)))
+        if self.tab=='Clauses':self.draw_clause_register(x);return
         if self.tab=='Expiring':
             self.text('SENIOR PLAYER AGREEMENTS / earliest expiry first',x,246,23,MUTED)
             rows=sorted((p for p in self.v['players'] if p['club']=='c0' and not p['youth']),key=lambda p:(p['contract_end'],p['id']))
@@ -31,9 +36,9 @@ class CareerScreens:
                 y=292+i*90;self.panel(x,y,1400-x,78)
                 self.text(p['name']+' / '+p['role'],x+20,y+15,26)
                 self.text(dated(self.v,p['contract_end'])+f" / {max(0,p['contract_end']-self.v['day'])} days remaining / {money(p['wage'])} per week",x+20,y+48,21,RED if p['contract_end']-self.v['day']<=28 else MUTED)
-                self.button('Discuss renewal',(1180,y+19,200,42),lambda pid=p['id']:self.contract_open(pid),not self.v['match'])
+                self.button('Discuss renewal',(1180,y+19,200,42),lambda pid=p['id']:self.contract_open(pid),not self.v['match'] and not p.get('loan'))
             self.pager(x,780,len(rows),5);return
-        self.button('Current' if self.tab=='History' else 'History',(940,190,190,42),lambda:(setattr(self,'tab','Discussions' if self.tab=='History' else 'History'),setattr(self,'page',0)))
+        self.button('Current' if self.tab=='History' else 'History',(790,190,150,42),lambda:(setattr(self,'tab','Discussions' if self.tab=='History' else 'History'),setattr(self,'page',0)))
         self.text(f"Reserved cash {money(self.v['reserved_cash'])}  /  Reserved wages {money(self.v['reserved_wages'])} per week",x,241,24)
         rows=list(reversed(archive)) if self.tab=='History' else list(reversed(list(offers.values())))
         for i,o in enumerate(rows[self.page*5:self.page*5+5]):
@@ -51,7 +56,7 @@ class CareerScreens:
 
     def offer_edit(self,key,delta):
         draft=dict(self.offer_draft);draft[key]+=delta
-        limits={'wage':(10000,500000),'fee':(0,10000000),'duration':(1,3)}
+        limits={'wage':(10000,500000),'fee':(0,10000000),'duration':(1,3),'appearance_bonus':(0,100000),'goal_bonus':(0,100000)}
         draft[key]=max(limits[key][0],min(limits[key][1],draft[key]));self.offer_draft=draft;self.save_preferences()
 
     def offer_action(self,action,o):
@@ -64,13 +69,14 @@ class CareerScreens:
     def draw_offer(self,x,o,archived=False):
         p=next(p for p in self.v['players'] if p['id']==o['player'])
         if self.offer_draft is None:self.offer_draft={k:o[k] for k in ('wage','fee','duration')}
+        for key,value in clause_terms(o).items():self.offer_draft.setdefault(key,value)
         editable=not archived and o['status'] in ('draft','counter','agreed')
         terms=self.offer_draft if editable else o
         details=review(self.v,o,terms if editable else None)
         accepted=review(self.v,o)
         self.button('< Discussions',(x,190,185,42),lambda:(setattr(self,'offer_id',None),setattr(self,'offer_archive',None),setattr(self,'offer_draft',None),setattr(self,'page',0)))
         self.text(p['name']+' / '+o['status'].upper()+(' / ARCHIVED' if archived else ''),x+205,202,27,GREEN)
-        for i,label in enumerate(('Terms','Cash review','Conversation')):
+        for i,label in enumerate(('Terms','Cash review','Conversation','Clauses')):
             self.button(('• ' if self.offer_tab==label else '')+label,(x+i*190,244,180,40),lambda label=label:self.offer_section(label))
         stages=('Personal terms','Conditional acceptance','Medical review','Registration')
         stage={'draft':0,'counter':0,'agreed':1,'medical':2,'ready':3,'completed':4}.get(o['status'],-1)
@@ -79,22 +85,24 @@ class CareerScreens:
             left=x+i*width
             pygame.draw.rect(self.canvas,GREEN if i<stage else (47,62,70),(left,303,width-10,3))
             self.text(str(i+1)+'. '+label,left,316,20,GREEN if i==stage else MUTED)
-        if self.offer_tab=='Conversation':
+        if self.offer_tab=='Clauses':self.draw_offer_clauses(x,o,terms,editable)
+        elif self.offer_tab=='Conversation':
             self.panel(x,360,1400-x,335,'Offer history / oldest first')
             lines=o['transcript'];page=min(self.page,max(0,(len(lines)-1)//3));self.page=page
             y=410
             for line in lines[page*3:page*3+3]:y=self.wrap(line,x+24,y,1350-x,24,TEXT)+22
             self.pager(x,706,len(lines),3)
         elif self.offer_tab=='Cash review':
-            self.panel(x,360,1400-x,353,'Historical terms against current finances' if archived else 'Draft scenario' if editable else 'Reviewed package')
-            rows=[('Signing fee now',money(terms['fee'])),('Cash after completion',money(details['cash_after'])),
+            self.panel(x,360,1400-x,353,'Recorded terms against current finances' if archived or o['status'] in CLOSED else 'Draft scenario' if editable else 'Reviewed package')
+            rows=[('Personal fee / club payment now',money(terms['fee'])+' / '+money(details['upfront'])),('Cash after completion',money(details['cash_after'])),
                   ('Other reserved fees',money(details['reserved_cash'])),('Available above operating reserve',money(details['available'])),
                   ('Weekly payroll change',money(details['wage_delta'])),('Weekly headroom after other offers',money(details['headroom'])),
-                  ('Future salary / total package',money(details['future'])+' / '+money(details['total'])),
+                  ('Deferred fee / guaranteed package',money(details['deferred'])+' / '+money(details['total'])),
+                  ('Sell-on receipt on this acquisition',money(details['sell_on_receipt'])),
                   ('Additional exposure over current contract',money(details['additional']))]
             for i,(label,value) in enumerate(rows):
-                y=408+i*35;self.text(label,x+24,y,23,MUTED);self.text(value,x+625,y,24,TEXT)
-            self.text('Assumes completion today; excludes accrued wages. Drafts spend nothing.',x+20,727,21,MUTED)
+                y=408+i*32;self.text(label,x+24,y,23,MUTED);self.text(value,x+625,y,24,TEXT)
+            self.text('Historical what-if only; cash is not charged again.' if archived or o['status'] in CLOSED else 'Completion today; excludes accrued wages, future bonuses and unused options.',x+20,727,21,MUTED)
         else:
             self.panel(x,360,560,351,'Editable draft / not yet sent' if editable else 'Recorded terms')
             for i,(key,label,value,step) in enumerate([('wage','Weekly salary',money(terms['wage']),5000),('fee','Signing fee',money(terms['fee']),50000),('duration','Seasons',str(terms['duration']),1)]):
@@ -119,9 +127,9 @@ class CareerScreens:
             self.text('Closed discussion. Its recorded terms cannot be edited or submitted again.',x,789,23,MUTED)
         elif editable:
             self.button('Send proposal',(x,779,190,44),lambda:self.offer_action('propose_offer',o),not self.v['match'])
-            self.button('Review conditional acceptance',(x+210,779,335,44),lambda:self.confirm('Reserve capacity for '+p['name'],f"Latest agent terms: {money(o['fee'])} fee; {money(o['wage'])} per week to {dated(self.v,o['end'])}. Cash after completion {money(accepted['cash_after'])}; remaining weekly headroom {money(accepted['headroom'])}. Unsent draft edits are excluded. A medical and final review follow; nothing is paid now. Medical due {dated(self.v,accepted['due'])}. Registration must complete within the offer deadline and registration window.",lambda:self.offer_action('accept_offer',o)),o['status'] in ('counter','agreed') and not accepted['reasons'])
+            self.button('Review conditional acceptance',(x+210,779,335,44),lambda:self.confirm('Reserve capacity for '+p['name'],f"Latest agent terms: {money(o['fee'])} personal fee + {money(accepted['upfront'])} club fee now, {money(accepted['deferred'])} deferred; {money(o['wage'])} per week to {dated(self.v,o['end'])}. Cash after completion {money(accepted['cash_after'])}; remaining weekly headroom {money(accepted['headroom'])}. Unsent draft edits are excluded. A medical and final review follow; nothing is paid now. Medical due {dated(self.v,accepted['due'])}. Registration must complete within the offer deadline and registration window. {clause_description(o)} Future bonuses and the unused option are additional to the displayed package.",lambda:self.offer_action('accept_offer',o)),o['status'] in ('counter','agreed') and not accepted['reasons'])
         elif o['status']=='ready':
-            self.button('Review completion',(x,779,230,44),lambda:self.confirm('Complete '+p['name']+' contract',f"Pay {money(o['fee'])} now and {money(o['wage'])} per week until {dated(self.v,o['end'])}. Total exposure approximately {money(accepted['total'])}; cash after completion {money(accepted['cash_after'])}; weekly headroom {money(accepted['headroom'])}. {o['medical']} Completion changes employment and registration together and cannot be undone.",lambda:self.offer_action('complete_offer',o)),not accepted['reasons'])
+            self.button('Review completion',(x,779,230,44),lambda:self.confirm('Complete '+p['name']+' contract',f"Pay {money(o['fee']+accepted['upfront'])} now plus {money(accepted['deferred'])} in dated transfer obligations, and {money(o['wage'])} per week until {dated(self.v,o['end'])}. Total exposure approximately {money(accepted['total'])}; cash after completion {money(accepted['cash_after'])}; weekly headroom {money(accepted['headroom'])}. {clause_description(o)} Future bonuses and the unused option are additional. {o['medical']} Completion changes employment and registration together and cannot be undone.",lambda:self.offer_action('complete_offer',o)),not accepted['reasons'])
         elif o['status']=='medical':self.text('Continue to the medical date, then review completion.',x,789,23,GREEN)
         if not archived and o['status'] not in CLOSED:
             self.button('Withdraw',(1225,779,175,44),lambda:self.confirm('Withdraw this discussion?','No contract will be signed. Reserved cash and wage capacity will be released. The transcript will be retained.',lambda:self.offer_action('withdraw_offer',o)),not self.v['match'])
@@ -206,7 +214,7 @@ class CareerScreens:
 
     def draw_facilities(self,x):
         v=self.v;projects=v['career']['projects'];tick=pygame.time.get_ticks()
-        self.panel(x,190,575,275,'Northbridge ground')
+        self.panel(x,190,575,275,venue_name(v))
         closed=any(p['status']=='construction' and p['closure'] for p in projects)
         pitch(self.canvas,(x+20,239,535,200),closed,tick,self.reduced_motion)
         inspect=lambda:self.confirm('East stand and venue capacity',f"Usable seats: {v['terms']['capacity']:,}. Physical capacity: {v['terms']['physical_capacity']:,}. Construction closes 800 seats until the agreed opening milestone; completed expansion adds 800 seats. Attendance is demand-limited, so extra capacity is not guaranteed revenue.",None)
@@ -252,6 +260,26 @@ class CareerScreens:
 
     def control_help(self,label,enabled):
         hints={
+            'Clauses':'Inspect signed performance bonuses, extension options, sell-on rights and any unpaid earned bonuses. New terms are sent with the contract proposal.',
+            'Review extension':'Use a signed club option once, before employment expires. Review the additional guaranteed wages; existing bonuses continue.',
+            'Term -14 days':'Change the requested loan length. New loan terms run from final registration, after the medical, and must fit inside employment.',
+            'Term +14 days':'Change the requested loan length up to 84 days. Employment dates are checked again before final registration.',
+            'Transfers':'Review club consent, sales, loans, return dates and dated transfer payments. Nothing changes registration without final completion.',
+            'Commercial':'Negotiate exclusive sponsorship rights. Signed income is paid weekly on its own schedule and included in cash forecasts.',
+            'Club enquiry':'Ask the current club for a transfer quote. A club agreement is separate from personal terms and medical consent.',
+            'Discuss loan':'Open a temporary-registration quote. Existing employment survives; wages return to the employer when the loan ends.',
+            'Review sale':'Choose a receiving club and review its offer. Fees, consent and squad cover are checked before final registration.',
+            'Review loan':'Arrange a temporary move to another club. A loan cannot outlast the parent employment agreement.',
+            'Personal terms':'Continue an agreed club transfer through Contracts. Both agreements must remain valid until completion.',
+            'Send club offer':'Submit the draft club fee and payment schedule. A counteroffer remains separate from your unsent edits.',
+            'Review club consent':'Agree the latest selling-club terms. No fee is paid or reserved until conditional personal acceptance.',
+            'Review conditional deal':'Reserve receiving-club capacity while medical and player-consent checks finish. Registration remains unchanged.',
+            'Review registration':'Complete the reviewed sale or loan. Club payments and registration update in one transaction.',
+            'Payments':'Inspect guaranteed dated transfer fees. They remain due after a season change or subsequent player sale.',
+            'Loans':'Inspect borrower, parent club, wage contribution and return dates. Recall requires an open registration window.',
+            'Send sponsor proposal':'Submit proposed income and duration. Signing uses the latest sponsor response, not unsent draft edits.',
+            'Review sponsor agreement':'Review exclusive rights, total payments and supporter consequences before a binding agreement.',
+
             'Continue  >':'Advance one committed day. Pending chairman decisions, staffing gaps and match reviews must be resolved first. Browsing never advances time.',
             'Next fixture':'Advance toward the next match, stopping at mandatory decisions. Use Stop or Escape to cancel between committed days.',
             'Save':'Write a manual career save. Ctrl+S also saves. Autosaves follow committed management actions; saves include match RNG and accepted obligations.',
@@ -292,6 +320,8 @@ class CareerScreens:
             '−':'Decrease the proposed term. This only edits the draft; Send proposal starts negotiation.',
         }
         plain=label.removeprefix('• ')
+        if plain.startswith('Club option:'):return 'Add or remove a one-season club option from this draft. Send the proposal for consent. An exercised option extends wages and bonuses once.'
+        if plain.startswith('Type:') or plain in ('−5%','+5%'):return 'Choose one sell-on basis: gross fee or profit above the total acquisition fee. A retained right reduces an outgoing buyer’s cash bid. Purchases use these terms only after Send club offer.'
         if not enabled and plain in ('Review completion','Review conditional acceptance') and self.v and self.offer_id:
             offer=self.v['career']['offers'].get(self.offer_id)
             if offer:return ' '.join(review(self.v,offer)['reasons']) or 'Submit terms and receive an agent response before accepting.'
