@@ -69,7 +69,7 @@ class QolInterfaceTests(unittest.TestCase):
         self.assertIsNotNone(a.state['decision']);self.assertFalse(a.command('continue'))
         a.command('decision',choice='decline')
         while not a.state['match']:a.command('continue')
-        a.command('match_step',minutes=90);a.command('match_close')
+        a.command('match_skip');a.command('match_close')
         self.click('League');before=json.dumps(a.state,sort_keys=True)
         self.click('Open match report');self.click('Lineups');self.click('Show commentary');self.click('Key events')
         self.assertEqual(before,json.dumps(a.state,sort_keys=True))
@@ -109,11 +109,11 @@ class QolInterfaceTests(unittest.TestCase):
             if a.state['decision']:a.command('decision',choice='decline')
             a.command('continue')
         a.last_score=(9,9)  # A previous match or restored UI must not trigger a cue.
-        a.state['config']['shot_rate']=0
+        a.state['config']['football']['actions_per_minute']=0
         with patch.object(a.sound,'play') as sound:
             a.command('match_step',minutes=1);sound.assert_not_called()
-            a.state['config']['shot_rate']=10
-            a.command('match_step',minutes=90)
+            a.state['config']['football']['actions_per_minute']=2
+            a.command('match_skip')
             self.assertGreater(sum(a.v['match']['score']),0);sound.assert_called_once_with('goal')
 
     def test_fast_forward_stops_for_medical_and_preserves_explicit_control(self):
@@ -144,3 +144,61 @@ class QolInterfaceTests(unittest.TestCase):
         self.assertEqual(json.dumps(a.state,sort_keys=True),before)
         self.assertEqual(len(a.state['career']['offer_history']),1)
         self.assertEqual(a.state['career']['offers']['p144']['status'],'draft')
+
+    def test_club_purchase_and_sponsorship_from_rendered_controls(self):
+        a=self.app;a.command('budget',value=4000000);a.command('hire',id='m0')
+        self.click('Market: Free agents');self.assertEqual(a.market_scope,'Club players')
+        self.assertTrue(all(p['club'] not in (None,'c0') for p in a.filtered_players()))
+        a.open_profile('p20');self.click('Club enquiry');self.click('Send club offer')
+        self.click('Review club consent');self.click('Confirm');self.click('Personal terms')
+        self.click('Send proposal');self.click('Review conditional acceptance');self.click('Confirm')
+        self.click('Next fixture')
+        while a.batch:a.continue_day()
+        self.assertEqual(a.screen,'Contracts');self.click('Review completion');self.click('Confirm')
+        self.assertEqual(next(p for p in a.v['players'] if p['id']=='p20')['club'],'c0')
+        self.click('Commercial');self.click('Discuss sponsorship',0);self.click('Send sponsor proposal')
+        cash=a.v['cash'];self.click('Review sponsor agreement');self.click('Confirm')
+        self.assertEqual(cash,a.v['cash']);self.assertEqual(len(a.v['commercial']['contracts']),1)
+        self.click('Back to inventory');self.click('Contract details');self.click('Close')
+        self.click('Transfers');self.click('Back to desk');self.click('Payments');self.click('Loans');self.click('Deals')
+
+    def test_outgoing_loan_selection_and_market_review_interrupt(self):
+        a=self.app;a.command('budget',value=4000000);a.command('hire',id='m0')
+        self.click('Squad');a.open_profile('p2');self.click('Review loan');self.click('Request club quote',0)
+        self.click('Wage share -25%');self.click('Review conditional deal');self.click('Confirm')
+        self.click('Next fixture')
+        while a.batch:a.continue_day()
+        self.assertEqual(a.screen,'Transfers');self.click('Review registration');self.click('Confirm')
+        self.assertEqual(next(p for p in a.v['players'] if p['id']=='p2')['club'],'c1')
+        self.click('Back to desk');self.click('Loans');self.click('Review recall');self.click('Confirm')
+        self.assertEqual(next(p for p in a.v['players'] if p['id']=='p2')['club'],'c0')
+
+    def test_bonus_option_draft_review_signing_and_extension_controls(self):
+        a=self.app;a.command('budget',value=4000000);a.command('hire',id='m0')
+        a.open_profile('p146');self.click('Negotiate contract');self.click('Clauses')
+        self.click('+',0);self.click('+',1);self.click('Club option: None')
+        draft=dict(a.offer_draft);self.click('Finances');self.click('Contracts')
+        self.assertEqual(a.offer_draft,draft)
+        self.click('Send proposal');self.click('Review conditional acceptance')
+        self.assertIn('£25 per appearance',a.modal[1]);self.assertIn('Club option',a.modal[1]);self.click('Confirm')
+        a.command('continue');a.command('continue');self.click('Review completion');self.click('Confirm')
+        self.click('< Discussions');self.click('Clauses');self.click('Review extension')
+        self.assertIn('Additional guaranteed wages',a.modal[1]);self.click('Confirm')
+        self.assertEqual(a.state['clauses']['employment']['p146']['option_status'],'exercised')
+
+    def test_sell_on_and_loan_duration_controls_change_reviewed_terms(self):
+        a=self.app;a.command('budget',value=4000000);a.command('hire',id='m0')
+        a.open_profile('p20');self.click('Club enquiry');self.click('Type: none');self.click('+5%')
+        self.click('Send club offer');self.click('Review club consent')
+        self.assertIn('15% of the next gross transfer fee',a.modal[1]);self.click('Cancel')
+        self.click('Withdraw deal');self.click('Confirm')
+        a.nav('Squad');a.open_profile('p2');self.click('Review sale');self.click('Request club quote',0)
+        self.click('Type: none');d=a.v['market']['deals'][a.market_id]
+        self.assertEqual(d['sell_on_percent'],10)
+        self.click('Withdraw deal');self.click('Confirm')
+        a.nav('Squad');a.open_profile('p2');self.click('Review loan');self.click('Request club quote',0)
+        self.click('Term -14 days');self.click('Term -14 days');self.click('Term -14 days')
+        self.assertEqual(a.v['market']['deals'][a.market_id]['days'],14)
+        self.click('Review conditional deal');self.click('Confirm')
+        a.command('continue');a.command('continue');self.click('Review registration');self.click('Confirm')
+        loan=a.state['market']['loans'][0];self.assertEqual(loan['end']-loan['start'],14)

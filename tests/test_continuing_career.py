@@ -17,7 +17,7 @@ class ContinuingCareerTests(unittest.TestCase):
     def progress(self,until=None):
         while not self.s['season_done'] and (until is None or self.s['day']<until):
             if self.s['match']:
-                self.act('match_step',minutes=90) if self.s['match']['minute']<90 else self.act('match_close')
+                self.act('match_skip') if not self.s['match'].get('finished',self.s['match']['minute']>=90) else self.act('match_close')
             elif self.s['decision']:self.act('decision',choice='decline')
             else:self.act('continue')
 
@@ -117,6 +117,6 @@ class ContinuingCareerTests(unittest.TestCase):
         v=view(self.s);f=forecast(v);accrued=self.s['accrued_costs']//7
         self.assertGreater(accrued,0);self.assertEqual(f['cash'],self.s['cash']-accrued)
         self.assertEqual(f['accrued'],0)
-        self.act('match_step',minutes=90)
+        self.act('match_skip')
         prize=next(e['amount'] for e in self.s['ledger'] if e['reason']=='League prize')
         self.assertEqual(f['cash'],self.s['cash']-prize)

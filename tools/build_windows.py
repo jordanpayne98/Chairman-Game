@@ -8,6 +8,8 @@ import sys
 subprocess.run([sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onedir','--console','--hide-console','hide-early','--name','ClubChairman','--add-data','data:data','launch.py'],check=True)
 out=Path('dist/ClubChairman')
 shutil.copyfile('README.md',out/'READ-ME.md')
+shutil.copyfile('AGENTS.md',out/'AGENTS.md')
+shutil.copytree('docs',out/'docs',dirs_exist_ok=True)
 shutil.copyfile('docs/THIRD_PARTY.md',out/'THIRD-PARTY.md')
 lic=out/'licences';lic.mkdir(exist_ok=True)
 pygame_dist=importlib.metadata.distribution('pygame')

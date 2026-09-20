@@ -68,8 +68,8 @@ class CareerTests(unittest.TestCase):
         self.match();self.act('match_step',minutes=22);self.act('intervene',choice='attack')
         with tempfile.TemporaryDirectory() as temp:
             path=Path(temp)/'save.sqlite3';save(self.s,path);saved=load(path)
-        skipped,_=execute(self.s,Command('skip',self.s['revision'],'match_step',{'minutes':90}))
-        while saved['match']['minute']<90:
+        skipped,_=execute(self.s,Command('skip',self.s['revision'],'match_skip',{}))
+        while not saved['match'].get('finished',saved['match']['minute']>=90):
             saved,_=execute(saved,Command(f"step:{saved['revision']}",saved['revision'],'match_step',{'minutes':1}))
         for key in ('fixtures','cash','ledger','clubs','players'):
             self.assertEqual(skipped[key],saved[key],key)
@@ -79,7 +79,7 @@ class CareerTests(unittest.TestCase):
         while not self.s['season_done']:
             if self.s['decision']:self.act('decision',choice='approve')
             elif self.s['match']:
-                if self.s['match']['minute']<90:self.act('match_step',minutes=90)
+                if not self.s['match'].get('finished',self.s['match']['minute']>=90):self.act('match_skip')
                 else:self.act('match_close')
             else:self.act('continue')
         self.assertTrue(all(c['played']==14 for c in self.s['clubs']))
@@ -88,7 +88,7 @@ class CareerTests(unittest.TestCase):
         self.assertEqual(len([e for e in self.s['ledger'] if e['id']=='season:prize']),1)
         for f in self.s['fixtures']:
             self.assertEqual(sum(f['result']['score']),sum(e['kind']=='goal' for e in f['result']['events']))
-        with self.assertRaises(ValueError):self.act('match_step',minutes=90)
+        with self.assertRaises(ValueError):self.act('match_skip')
         validate(self.s)
 
     def test_backup_and_failed_replace_preserve_manual(self):
