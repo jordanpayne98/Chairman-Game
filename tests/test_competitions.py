@@ -106,6 +106,30 @@ class CompetitionTests(unittest.TestCase):
         for key in ('fixtures','match','players','cash','ledger','career','reports'):self.assertEqual(new[key],old[key],key)
         validate(new)
 
+    def test_reserved_final_keeps_contract_and_forecast_boundary_stable(self):
+        from club_chairman.career import season_end, contractual_end
+        from club_chairman.simulation import view
+        from club_chairman.planning import forecast
+        self.s['fixtures']=[f for f in self.s['fixtures'] if not f.get('knockout')]
+        self.s['config']['cup']['round_days']=[22,50,110]
+        competitions.start_season(self.s)
+        self.assertEqual(season_end(self.s),110)
+        contract=contractual_end(self.s,2)
+        self.assertEqual(contract,234)
+        self.assertEqual(view(self.s)['season_end'],110)
+        self.assertEqual(forecast(view(self.s),horizon=200)['end'],110)
+        for round_day in (22,50):
+            self.s['day']=round_day
+            for f in self.s['fixtures']:
+                if f.get('knockout') and f['day']==round_day:f['result']={'winner':f['home']}
+            competitions.progress(self.s)
+            self.assertEqual(season_end(self.s),110)
+            self.assertEqual(contractual_end(self.s,2),contract)
+            self.assertEqual(forecast(view(self.s),horizon=200)['end'],110)
+        with tempfile.TemporaryDirectory() as root:
+            path=Path(root)/'reserved-final.sqlite3';save(self.s,path);loaded=load(path)
+        self.assertEqual(season_end(loaded),110);self.assertEqual(contractual_end(loaded,2),contract)
+
     def test_invalid_overlap_and_repeat_participants_rejected(self):
         broken=deepcopy(self.s);f=next(f for f in broken['fixtures'] if f.get('knockout'))
         broken['fixtures'].append(dict(f,id='duplicate'))

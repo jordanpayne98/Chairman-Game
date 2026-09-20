@@ -33,7 +33,11 @@ def initialise(s):
         s['manager'].setdefault('notice_weeks',s['config']['career']['manager_notice_weeks'])
 
 
-def season_end(s):return max(f['day'] for f in s['fixtures'])
+def season_end(s):
+    # Undrawn knockout rounds already reserve real dates in this campaign.
+    cup=s.get('competitions',{}).get('cup')
+    dates=cup['dates'] if cup else []
+    return max([f['day'] for f in s['fixtures']]+dates)
 def window_end(s):return s['career']['start']+28
 
 

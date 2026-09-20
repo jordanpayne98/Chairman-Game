@@ -500,7 +500,7 @@ def view(s):
                 ledger=deepcopy(s['ledger']),inbox=deepcopy(s['inbox']),decision=deepcopy(s['decision']),match=m,
                 season_done=s['season_done'],seed=s['seed'],transfer_spend=s['transfer_spend'],planning=deepcopy(s['planning']),
                 terms={k:s['config'][k] for k in ('scout_fee','scout_days','operating_buffer','weekly_overheads','weekly_sponsor','capacity')},
-                accrued_costs=s['accrued_costs'],season_end=max(f['day'] for f in s['fixtures']),
+                accrued_costs=s['accrued_costs'],season_end=career.season_end(s),
                 public_players={p['id']:{k:p[k] for k in ('name','role')} for p in s['players']},
                 season=s['career']['season'],season_start=s['career']['start'],window_end=career.window_end(s),
                 career=deepcopy(s['career']),reserved_cash=career.reservations(s)[0],reserved_wages=career.reservations(s)[1],

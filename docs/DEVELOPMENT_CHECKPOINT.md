@@ -12,6 +12,8 @@ Verification: full 115-test regression suite passed in 104.258 seconds. After th
 
 Limitations: this is the generated domestic cup part of the competition milestone. The world remains eight clubs with a compact 14-match league. Shared domestic registration/bans, no cup-tied policy, aggregate player season totals and provisional AI aggregate income remain. Cup economics are not final tuning. Multiple divisions, promotion/relegation, international and continental calendars and all approved full-world content remain required.
 
+Publication follow-up: PR #12 and initial Windows/Linux CI passed all 116 tests; the packaged executable also passed. Automated review identified a late configured cup-final edge case. Corrected the common season boundary and UI/forecast snapshot to include every reserved round date before participants are known. A focused regression checks stable multi-season contract expiry, forecast horizon and save/load with a day-110 final beyond the day-96 league finish. Final replacement build evidence is recorded in PR #12; use its latest artifact link.
+
 Next: multi-division membership and validated promotion/relegation, including season-end membership conservation, historical tables and future fixtures. Publish this branch via a PR targeting `game/figma-ui` and run the existing Windows workflow under Jordan's recorded authorization. Preserve the open predecessor PRs. Full release readiness remains tracked separately.
 
 ## UI-009 — Figma UI Update 0.9
