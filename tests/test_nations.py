@@ -47,6 +47,7 @@ class NationalTests(unittest.TestCase):
         for id,count,size,exchange in (('england',100,20,3),('wales',24,12,2),('brazil',54,18,2)):
             s=new_career(42,id);validate(s)
             self.assertEqual(len(s['clubs']),count);self.assertEqual(len(s['players']),count*18+12)
+            if id=='brazil':self.assertEqual(s['clubs'][1]['city'],'São Paulo')
             self.assertEqual(s['leagues']['exchange'],exchange)
             self.assertEqual(sum(not f.get('knockout') for f in s['fixtures']),count*(size-1))
             self.assertEqual(s['players'][144]['id'],'p144');self.assertIsNone(s['players'][144]['club'])

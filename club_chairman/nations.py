@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 def catalogue():
-    data=json.loads((Path(__file__).resolve().parent.parent/'data/nations.json').read_text())
+    data=json.loads((Path(__file__).resolve().parent.parent/'data/nations.json').read_text(encoding='utf-8'))
     validate_catalogue(data)
     return data
 
