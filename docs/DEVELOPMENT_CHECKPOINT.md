@@ -1,5 +1,21 @@
 # Development checkpoint
 
+## PLAY-004 — Contracts Update 0.4
+
+Date: 2026-09-19. Continue the full AA goal; current living GDD revision 0.3 checked (chapters 12, 21–24), including both approved embedded references. Started from merged main after PR #5. No GDD changes or reduced scope.
+
+Implemented: one senior-player free-agent/renewal workflow; removed instant-signing command and UI bypass. Contract progress strip, Terms/Cash review/Conversation tabs, complete paginated transcript, visible agent counter changes, deadline and medical-date reviews. Financial read models compare editable drafts and current agent terms with existing obligations, exclude the reviewed deal from competing reservations, and distinguish total from additional renewal exposure. Combined plans use current agreed/counter terms and individual contract expiry dates, under an explicit completion-today assumption. Medical acceptance rejects impossible window completion; final registration revalidates manager availability.
+
+QoL: newly ready medicals and near-expiry discussions stop Next fixture; already-urgent discussions require an explicit advance confirmation. The overview links the earliest urgent deal. Previous closed discussions are preserved on reopening and available read-only in History. This optional schema-3 field does not fabricate lost past transcripts or alter existing employment. Tooltips explain previews and action blockers. Full-world calendars, transfer/loan clauses, staff/delegation, advanced football, ownership, commercial, final art/accessibility and AA release gates remain open in RELEASE_READINESS.md.
+
+Verification: domain tests cover exact completion-versus-preview reconciliation, multiple reservations at zero wage headroom, renewal exposure, atomic late-medical refusal, inclusive window completion, manager revalidation, history/save roundtrip, hidden-data invariance and blocked instant signing. Input tests cover fast-forward stops, explicit continue confirmation, cash-review tabs and read-only archived discussions. Existing full-career and save/regression tests retained; signing tests now drive the real medical workflow. Rendered Terms, Cash review, Conversation, ready-to-sign and Overview screens visually inspected. Final test counts, Windows CI and packaged results are recorded in the implementation PR once verified.
+
+Verified locally: 38 tests passed; two-season / 112-fixture career check and headless display launch passed. Generated a genuine 0.3 save with a legacy-signed player at minute 27, then resumed under 0.4: cash, players, ledger, table and fixture results matched exactly; the original save remained byte-identical. Terms, Cash review, Conversation, medical-ready and Overview layouts inspected.
+
+Delivery: Jordan explicitly approved publication to the public jordanpayne98/Chairman-Game repository, opening the PR and Windows packaging on 20 September 2026. The earlier approval block is resolved. Changes are on game/contract-workflow; cross-platform CI and packaged results will be recorded in the PR. Direct Git push lacks shell credentials, so publication uses the connected GitHub integration.
+
+Next dependency: club-to-club transfers and unified registration rules, fuller staff/player definitions and AI financial parity, then valid expanded competitions. Keep the complete release checklist; do not equate this milestone with a finished AA game.
+
 ## PLAY-003 — Career and Presentation Update 0.3
 
 Date: 2026-09-19. User asked to proceed toward the finished AA game with complete systems, UI, tooltips, graphics and animation. Read the attached revision 0.2 and current living revision 0.3; revision 0.3 remains authoritative. Reviewed relevant career/contract/staff/academy/facility/presentation and release gates. No GDD scope reduction or design-document replacement. RELEASE_READINESS.md tracks the full approved goal and explicitly leaves unimplemented gates open.

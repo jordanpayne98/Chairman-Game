@@ -183,31 +183,18 @@ def apply(s, action, payload):
         require(s['match'] is None, 'Ticket prices are locked during matchday.')
         s['tickets'] = value
         return 'Ticket price updated for future home fixtures.'
-    if action in ('scout', 'sign'):
+    if action == 'sign':
+        raise ValueError('Open Contracts: agree terms, review the medical and confirm completion. Instant signing is no longer available.')
+    if action == 'scout':
         require(not s['season_done'] and s['match'] is None, 'Recruitment is closed during matchday or after season end.')
         p = next((x for x in s['players'] if x['id'] == payload.get('id')), None)
         require(p is not None and p['club'] is None, 'This player is no longer a free agent.')
         require(not p['retired'] and not p['youth'],'Use Academy for youth admissions; retired people cannot be signed.')
-        if action == 'scout':
-            require(p['id'] not in s['scouting'] and p['id'] not in s['reports'], 'A report exists or scouting is already in progress.')
-            require(career.free_cash(s,cfg['scout_fee']), 'Insufficient available cash for scouting.')
-            posting(s, f"scout:{p['id']}", -cfg['scout_fee'], 'Scouting')
-            s['scouting'][p['id']] = s['day'] + cfg['scout_days']
-            return f"Scouting commissioned. Report due in {cfg['scout_days']} days."
-        require(s['manager'] is not None, 'Appoint a manager before signing players.')
-        discussion=s['career']['offers'].get(p['id'])
-        require(not discussion or discussion['status'] in ('completed','withdrawn','expired','rejected'),'A contract discussion is open. Complete or withdraw it in Contracts first.')
-        require(s['day'] <= career.window_end(s), 'The current registration window has closed.')
-        require(payroll(s) + p['wage'] + career.reservations(s)[1] <= s['budget'], 'Signing exceeds the weekly wage budget.')
-        require(career.free_cash(s,p['fee']), 'Signing would use the operating reserve.')
-        p['club'] = 'c0'
-        p['contract_end'] = career.contractual_end(s,2)
-        posting(s, f"sign:{p['id']}:{s['revision']}", -p['fee'], 'Player signing fee')
-        s['transfer_spend'] += p['fee']
-        if p['id'] not in s['reports']: s['reports'][p['id']] = make_report(s, p, 'Coaching staff', 5)
-        s['scouting'].pop(p['id'], None)
-        news(s, 'Signing completed', f"{p['name']} joins on the displayed contract terms. The manager decides whether to select him.")
-        return 'Signing completed and payroll updated.'
+        require(p['id'] not in s['scouting'] and p['id'] not in s['reports'], 'A report exists or scouting is already in progress.')
+        require(career.free_cash(s,cfg['scout_fee']), 'Insufficient available cash for scouting.')
+        posting(s, f"scout:{p['id']}", -cfg['scout_fee'], 'Scouting')
+        s['scouting'][p['id']] = s['day'] + cfg['scout_days']
+        return f"Scouting commissioned. Report due in {cfg['scout_days']} days."
     if action == 'fund':
         amount = 5000000
         require(s['owner_cash'] >= amount, 'Owner funds are insufficient.')

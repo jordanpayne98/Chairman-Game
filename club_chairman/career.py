@@ -95,7 +95,8 @@ def process_day(s):
         if o['status'] in ('completed','withdrawn','expired','rejected'):continue
         p=person(s,o['player'])
         if day>o['expires'] or (o['kind']=='sign' and day>window_end(s)):
-            o['status']='expired';news(s,'Offer expired',p['name']+': no contract was signed. Reserved capacity was released.');continue
+            o['status']='expired';o['transcript'].append('Offer or registration deadline passed: no contract was signed and reserved capacity was released.')
+            news(s,'Offer expired',p['name']+': no contract was signed. Reserved capacity was released.');continue
         if o['status']=='medical' and day>=o['due']:
             rng=rng_for(s['seed'],'medical:'+o['id'])
             o['medical_days']=14 if rng.random()<.08 else 0
@@ -114,7 +115,8 @@ def process_day(s):
     for o in career['offers'].values():
         p=person(s,o['player'])
         if o['status'] in ('draft','counter','agreed','medical','ready') and o['kind']=='renew' and p['club']!='c0':
-            o['status']='expired';news(s,'Renewal lapsed',p['name']+': the old employment agreement expired before completion. Any reservations were released.')
+            o['status']='expired';o['transcript'].append('Employment expired before renewal completion. Reserved capacity was released.')
+            news(s,'Renewal lapsed',p['name']+': the old employment agreement expired before completion. Any reservations were released.')
     for p in career['projects']:
         if p['status']=='feasibility' and day>=p['due']:
             p['status']='quoted';news(s,'Project proposal ready',p['name']+': review the fixed price, closure and weekly upkeep before approval.')
@@ -169,6 +171,7 @@ def apply(s,action,data):
         require(not old or old['status'] in ('completed','withdrawn','expired','rejected'),'A discussion is already open for this player.')
         require(not old or s['day']>=old.get('cooldown',0),'The player needs time after the previous breakdown.')
         require(p['club']=='c0' or s['day']<=window_end(s),'The registration window has closed.')
+        if old:c.setdefault('offer_history',[]).append(deepcopy(old))
         kind='renew' if p['club']=='c0' else 'sign'
         c['offers'][p['id']]=dict(id=f"offer:{p['id']}:{s['revision']}",player=p['id'],kind=kind,status='draft',
             wage=p['wage'],fee=0 if kind=='renew' else p['fee'],duration=2,end=contractual_end(s,2),
@@ -211,15 +214,19 @@ def apply(s,action,data):
             return 'Response received. Review the revised terms and expiry.'
         if action=='accept_offer':
             require(o['status'] in ('agreed','counter'),'Send an offer before conditional acceptance.')
+            due=s['day']+(settings['medical_days'] if o['kind']=='sign' else 0)
+            if o['kind']=='sign':
+                require(due<=min(window_end(s),season_end(s)), 'The medical cannot finish before registration closes. No capacity was reserved.')
             fee,wages=reservations(s,exclude=p['id']);delta=o['wage']-(p['wage'] if o['kind']=='renew' else 0)
             require(s['manager'] is not None,'Appoint a manager before agreeing contracts.')
             require(s['cash']-fee-o['fee']>=cfg['operating_buffer'],'Insufficient unreserved cash.')
             require(payroll(s)+wages+delta<=s['budget'],'Conditional acceptance exceeds unreserved wage capacity.')
-            o.update(status='medical',due=s['day']+settings['medical_days'],wage_delta=max(0,delta),expires=s['day']+settings['offer_lifetime'])
+            o.update(status='medical',due=due,wage_delta=max(0,delta),expires=s['day']+settings['offer_lifetime'])
             if o['kind']=='renew':o.update(status='ready',medical_days=0,medical='Existing employment renewal: no new medical restriction.')
             o['transcript'].append('Conditional acceptance recorded. Cash and payroll capacity are reserved; employment has not changed.')
             return 'Medical arranged. Capacity reserved until completion, expiry or withdrawal.'
         require(o['status']=='ready','The medical and registration review are not ready.')
+        require(s['manager'] is not None,'Appoint a manager before completing this contract.')
         fees,wages=reservations(s,exclude=p['id']);delta=o['wage']-(p['wage'] if o['kind']=='renew' else 0)
         require(s['cash']-fees-o['fee']>=cfg['operating_buffer'],'Insufficient unreserved cash at completion.')
         require(payroll(s)+wages+delta<=s['budget'],'Wage capacity changed; revise the budget or withdraw.')
@@ -284,7 +291,8 @@ def apply(s,action,data):
         if not any(h['season']==c['season'] for h in c['history']):
             c['history'].append(dict(season=c['season'],table=deepcopy(table(s)),fixtures=deepcopy(s['fixtures']),cash=s['cash'],day=s['day']))
         for o in c['offers'].values():
-            if o['status'] not in ('completed','withdrawn','expired','rejected'):o['status']='expired'
+            if o['status'] not in ('completed','withdrawn','expired','rejected'):
+                o['status']='expired';o['transcript'].append('Season closed: unfinished discussion expired and reserved capacity released.')
         old_end=season_end(s);c['season']+=1;c['start']=old_end+settings['season_gap'];s['season_done']=False
         for club in s['clubs']:
             for key in ('played','won','drawn','lost','gf','ga','points'):club[key]=0

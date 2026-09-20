@@ -1,5 +1,6 @@
 """Regression checks for planning without advancing or leaking the simulation."""
 from copy import deepcopy
+from contract_support import prepare_signings
 import hashlib
 import json
 from pathlib import Path
@@ -74,11 +75,12 @@ class PlanningTests(unittest.TestCase):
     def test_forecast_reconciles_actual_settlements_including_partial_week(self):
         # Remove only uncertain gate receipts; the cash settlement schedule stays real.
         self.s['config']['capacity']=0
-        self.act('budget',value=4000000);self.act('hire',id='m0');self.advance(6)
+        self.act('budget',value=4000000);self.act('hire',id='m0');self.advance(4)
+        prepare_signings(self,['p144','p145'])
         snap=view(self.s);players=[p for p in snap['players'] if p['id'] in ('p144','p145')]
         before=deepcopy(snap);planned=forecast(snap,players,horizon=25)
         self.assertEqual(snap,before)
-        for p in players:self.act('sign',id=p['id'])
+        for p in players:self.act('complete_offer',id=p['id'])
         self.advance(31)
         self.assertEqual(planned['cash'],self.s['cash'])
         self.assertEqual(planned['accrued'],self.s['accrued_costs']//7)
@@ -97,7 +99,7 @@ class PlanningTests(unittest.TestCase):
         self.assertIn('Exceeds the weekly wage limit',t['reasons'])
         self.assertEqual(t['fee'],sum(p['fee'] for p in players))
         self.act('planning',key='comparison',value=[p['id'] for p in players])
-        self.act('budget',value=4000000);self.act('sign',id=players[0]['id'])
+        self.act('budget',value=4000000);prepare_signings(self,[players[0]['id']]);self.act('complete_offer',id=players[0]['id'])
         v=view(self.s);selected=[p for p in v['players'] if p['id'] in v['planning']['comparison']]
         self.assertEqual(len(selected),4);self.assertEqual(signing_terms(v,selected)['count'],3)
 

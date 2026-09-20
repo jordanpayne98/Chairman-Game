@@ -2,7 +2,7 @@
 
 Implementation tracking against the **approved living GDD revision 0.3**. This is an engineering checklist, not a replacement design document, new design approval or a reduced release scope. The full AA game is **not release-ready**. No percentage-complete claim is made.
 
-## Current playable scope: Career Update 0.3
+## Current playable scope: Contracts Update 0.4
 
 A compact eight-club league continues across seasons, with fourteen weekly rounds and a two-week preseason. This development calendar is not the approved full international football world. Original 0.1/0.2 saves migrate without replacing their source. Their existing contracts retain their actual end dates: review renewals before progressing beyond those dates.
 
@@ -12,7 +12,7 @@ A compact eight-club league continues across seasons, with fourteen weekly round
 | 4–5: owner and group | Finite owner cash separate from club funds | Owner creation, personality, aging/retirement/succession, shares, due diligence, acquisitions and group authority |
 | 6–8: world and competitions | Eight fictional clubs, league table, persistent fixture history | Approved 14-nation / 38-division / 636-club content, history, promotion/relegation, domestic/continental cups, supporting nations and internationals |
 | 9–11: people and knowledge | Four prototype attributes, uncertain delayed reports, hidden-data-safe filtering/comparison | Full attribute catalogue and role models, dynamic potential, richer scouting, staff knowledge and discovery |
-| 12: contracts | Free-agent and own-player negotiations, counteroffers, expiry/cooldown, reserved capacity, medical review, atomic completion, renewal and expiry | Club-to-club transfers, loans, complete clause catalogue, agents/registration rules and full transaction coverage. Legacy fixed-price signing shortcut still exists in this development build |
+| 12: contracts | Free-agent and own-player negotiations, counteroffers, expiry/cooldown, reserved capacity, medical review, atomic completion, renewal and expiry | Club-to-club transfers, loans, complete clause catalogue, agents/registration rules and full transaction coverage. The legacy fixed-price bypass has been removed; all senior free-agent signings now use medical and completion review |
 | 13: academy | Persistent annual trial cohort, individual admissions, wages, promotion from 16, periodic training estimates | Full youth/reserve squads and competitions, regional pools, plans, loans, mature development model and population balance |
 | 14–16: staff and authority | Three manager candidates, renewal/replacement/notice exposure, trust and bench response | Role catalogue, interviews, complex agreements/promises, capacity, delegation presets, autonomy and sparse relationship systems |
 | 17: football | Deterministic possession/chance simulation, live/skip equivalence, commentary, lineups, stored reports | Full football rules, substitutions, cards, injuries/recovery, extra time/penalties, richer tactical reasoning and calibrated outcomes |
@@ -28,7 +28,14 @@ A compact eight-club league continues across seasons, with fourteen weekly round
 | 34–35: release | Targeted tests, real previous-build save migration, Windows packaging workflow | Ten 50-season full-world runs, performance profile at years 1/10/50, exploit suites, clean offline install and all release gates |
 | 37–39: system/UI QoL | Shortlist/notes/pins, estimates/cost comparisons, forecast, history memory, offer drafts, unread distinction and tooltips | Named lists/scenarios, advanced tables, safe bulk operations, notification policies, saved layouts, calendars, complete recovery browser and all QAT workflows |
 
-## Evidence for this milestone
+## Evidence for the latest contract milestone
+
+- Removed the instant-signing bypass while preserving old employment and load compatibility.
+- Cost previews reconcile with real completion for concurrent offers; negotiated terms and reservations are not counted twice.
+- Fast-forward interruption, explicit override, transcript archive and current-versus-draft financial review are connected to real mouse/keyboard controls.
+- New screens were rendered and inspected. Exact cross-platform and packaged checks are recorded in the implementation PR.
+
+## Evidence retained from the career milestone
 
 - Automated domain and Pygame input tests cover multiple seasons, duplicate settlement/commands, financial reservations, expiry, notice payments, academy admission/promotion, construction opening, navigation, notes and keyboard explanations.
 - A save was generated with the actual 0.2 source, loaded by 0.3 mid-match and resumed: cash, ledger, table and complete fixture results matched the original source exactly; the original save file remained byte-identical.
@@ -38,7 +45,7 @@ A compact eight-club league continues across seasons, with fourteen weekly round
 
 ## Next dependency sequence
 
-1. Replace remaining prototype shortcuts with one consistent contract/registration model; implement full player/staff definitions and AI finances/authority.
+1. Extend the unified free-agent/renewal workflow to club transfers and full registration; implement full player/staff definitions and AI finances/authority.
 2. Expand the valid world and competition calendar, then promotion/cups, academy competitions and population policy.
 3. Connect career creation, ownership/group management, succession, delegation, promises and commercial/asset obligations.
 4. Complete UI/accessibility/content families and perform full-world simulation, performance, exploit, usability and release gates.

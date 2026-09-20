@@ -12,6 +12,7 @@ import pygame
 from .simulation import Command, MANAGERS, execute, new_career, view
 from .persistence import SaveStore, SaveError, load, user_directory
 from .career_ui import CareerScreens
+from .contract_review import attention
 from .presentation import crest, portrait, Soundscape
 from .planning import ATTRIBUTES, SORTS, dated, player_rows, signing_terms, forecast
 
@@ -26,7 +27,7 @@ class App(CareerScreens):
     def __init__(self,save_root=None):
         pygame.display.init();pygame.font.init()
         self.window=pygame.display.set_mode((1280,800),pygame.RESIZABLE)
-        pygame.display.set_caption('Club Chairman — Career Update 0.3')
+        pygame.display.set_caption('Club Chairman — Contracts Update 0.4')
         self.canvas=pygame.Surface((WIDTH,HEIGHT))
         self.fonts={}
         self.state=None;self.v=None;self.screen='Home';self.buttons=[];self.focus=0;self.running=True
@@ -36,7 +37,7 @@ class App(CareerScreens):
         self.tab='Forecast';self.match_report=None;self.profile_ids=[];self.views={};self.history=[];self.forward=[]
         self.workspaces={};self.undo=None;self.editor=None;self.note_draft='';self.notification_log=[]
         self.modal_revision=None;self.modal_focus=0;self.message_seen='';self.note_active=False
-        self.key_events_only=False;self.offer_id=None;self.offer_draft=None;self.history_season=None;self.load_cache=None
+        self.key_events_only=False;self.offer_id=None;self.offer_draft=None;self.offer_tab='Terms';self.offer_archive=None;self.history_season=None;self.load_cache=None
         self.reduced_motion=False;self.tooltips_enabled=True;self.explain_focus=False;self.help_regions=[]
         self.hover_key=None;self.hover_since=0;self.goal_until=0;self.last_score=None
         self.sound=Soundscape()
@@ -69,7 +70,7 @@ class App(CareerScreens):
     def button(self,label,rect,callback,enabled=True):
         r=pygame.Rect(rect);idx=len(self.buttons)
         active=(r.x==14 and label in (self.screen,self.screen[:2])) or label.startswith('• ')
-        primary=label in ('Continue  >','Confirm','New career','Review signing','Play','Save note')
+        primary=label in ('Continue  >','Confirm','New career','Negotiate contract','Review completion','Play','Save note')
         fill=BUTTON if enabled and (active or primary) else (28,41,48) if enabled else PANEL
         pygame.draw.rect(self.canvas,fill,r,border_radius=5)
         pygame.draw.rect(self.canvas,GREEN if idx==self.focus else BORDER,r,2 if idx==self.focus else 1,border_radius=5)
@@ -78,7 +79,7 @@ class App(CareerScreens):
         self.help_regions.append((r,self.control_help(label,enabled),idx))
 
     def position(self):
-        return {key:getattr(self,key) for key in ('screen','page','profile','search','role','sort','descending','only_shortlist','tab','match_report','profile_ids','offer_id','offer_draft','history_season')}
+        return {key:getattr(self,key) for key in ('screen','page','profile','search','role','sort','descending','only_shortlist','tab','match_report','profile_ids','offer_id','offer_draft','offer_tab','offer_archive','history_season')}
 
     def restore_position(self,position):
         for key,value in position.items():
@@ -98,7 +99,7 @@ class App(CareerScreens):
 
     def reset_workspace(self,views=None):
         self.views=views if isinstance(views,dict) else {};self.history=[];self.forward=[];self.undo=None;self.editor=None
-        self.notification_log=[];self.message_seen='';self.offer_id=None;self.offer_draft=None;self.history_season=None;self.last_score=None;self.goal_until=0
+        self.notification_log=[];self.message_seen='';self.offer_id=None;self.offer_draft=None;self.offer_tab='Terms';self.offer_archive=None;self.history_season=None;self.last_score=None;self.goal_until=0
         self.screen='Home';self.page=0;self.profile=None;self.search='';self.role='All';self.sort='Name'
         self.descending=False;self.only_shortlist=False;self.match_report=None;self.profile_ids=[];self.tab='Forecast'
 
@@ -107,7 +108,7 @@ class App(CareerScreens):
         if self.screen!=screen:
             self.remember();self.history.append(self.position());self.forward=[]
             default=dict(screen=screen,page=0,profile=None,search='',role='All',sort='Name',descending=False,
-                         only_shortlist=False,tab='Forecast',match_report=None,profile_ids=[],offer_id=None,offer_draft=None,history_season=self.history_season)
+                         only_shortlist=False,tab='Forecast',match_report=None,profile_ids=[],offer_id=None,offer_draft=None,offer_tab='Terms',offer_archive=None,history_season=self.history_season)
             self.restore_position(self.views.get(screen,default))
         self.typing=False;self.focus=0;self.play=False;self.batch=False
         self.save_preferences()
@@ -201,12 +202,21 @@ class App(CareerScreens):
         except SaveError as exc:self.message=str(exc)
 
     def continue_day(self):
+        before={(r['player'],r['label']) for r in attention(self.v)}
         if self.command('continue'):
             if self.v['match']:self.nav('Matchday');self.match_report=None;self.page=0;self.batch=False
             elif self.v['decision']:self.nav('Overview');self.batch=False
+            elif self.batch:
+                urgent=[r for r in attention(self.v) if (r['player'],r['label']) not in before]
+                if urgent:
+                    self.batch=False;self.nav('Contracts');self.offer_id=urgent[0]['player'];self.offer_draft=None
+                    self.message=urgent[0]['name']+': '+urgent[0]['label']+'. Fast-forward stopped for your review.'
 
     def next_fixture(self):
-        self.batch=True
+        urgent=attention(self.v)
+        if urgent:
+            self.confirm('Advance past contract reviews?',f"{len(urgent)} contract discussion(s) need attention. The earliest deadline is {dated(self.v,urgent[0]['deadline'])}. Continuing can let unsigned offers expire; nothing is signed automatically. Review Contracts first or confirm to advance.",lambda:setattr(self,'batch',True))
+        else:self.batch=True
 
     def quit_request(self):
         if self.state:self.confirm('Leave the game?', 'Save your career with Save before leaving. Autosaves are made after committed management actions and full time; use Save to retain an unfinished match.',lambda:setattr(self,'running',False))
@@ -238,7 +248,7 @@ class App(CareerScreens):
 
     def home(self):
         self.text('CLUB CHAIRMAN',100,100,60)
-        self.text('CAREER UPDATE 0.3  /  NORTHSHIRE LEAGUE',104,170,25,GREEN)
+        self.text('CONTRACTS UPDATE 0.4  /  NORTHSHIRE LEAGUE',104,170,25,GREEN)
         self.wrap('Take the chair at Northbridge Athletic. Appoint your manager, strengthen the squad and balance ambition against the club bank account.',104,225,770,29,TEXT)
         self.wrap('An evolving ownership game: continuing seasons, contracts, academy development and facility investment in a compact fictional league. The full AA world remains in development.',104,330,800,24)
         if self.screen=='Load':
@@ -307,6 +317,11 @@ class App(CareerScreens):
         elif v['season_done']:
             self.text('Season complete',x+20,399,32,GREEN);self.wrap(f'You finished {pos} of 8. Prize money and final wages are settled. Review contracts, then prepare the next campaign in Career.',x+20,445,610,24)
             self.button('Continue your career',(x+20,524,245,44),lambda:self.nav('Career'))
+        elif attention(v):
+            item=attention(v)[0]
+            self.text(item['name'],x+20,399,29)
+            self.wrap(item['label']+'. Complete or withdraw by '+dated(v,item['deadline'])+'. Reserved funds are not yet spent.',x+20,445,610,23)
+            self.button('Review contract',(x+20,524,230,44),lambda:self.contract_open(item['player']))
         else:
             self.text('Ready for the next step.',x+20,399,29)
             self.wrap(f"{len(v['planning']['shortlist'])} shortlisted / {len(v['planning']['comparison'])} pinned for comparison. Compare costs before you commit to a signing.",x+20,445,610,23)
@@ -431,7 +446,7 @@ class App(CareerScreens):
             self.text('Signing fee  '+money(t['fee']),right+20,490,23)
             self.text('Future wages  '+money(t['future']),right+20,527,23)
             self.text('Total exposure  '+money(t['total']),right+20,564,24)
-            self.wrap('Fixed terms until '+t['end_date']+'.',right+20,606,rw-40,21)
+            self.wrap('Indicative terms to '+t['end_date']+'. Confirm the package in Contracts.',right+20,606,rw-40,21)
         else:self.wrap('Registered until '+dated(self.v,p['contract_end'])+'. Selection is delegated to your manager.',right+20,490,rw-40,24)
         if report:self.wrap('Source: '+report['source'],right+20,653,rw-40,20)
         self.button('Private note',(x,722,160,42),lambda:self.open_note(p['id']))
@@ -441,17 +456,11 @@ class App(CareerScreens):
             due=p['scout_due'];terms=self.v['terms']
             self.button('Request scouting',(x,780,210,44),lambda:self.confirm('Commission scouting',f"Spend {money(terms['scout_fee'])} to assess {p['name']}? The report arrives in {terms['scout_days']} days, on {dated(self.v,self.v['day']+terms['scout_days'])}. Cash after payment: {money(self.v['cash']-terms['scout_fee'])}.",lambda:self.command('scout',id=p['id'])),not report and not due and not self.v['match'] and not self.v['season_done'])
             self.button('Negotiate contract',(x+225,780,220,44),lambda:self.contract_open(p['id']),not self.v['match'] and not p['retired'] and self.v['day']<=self.v['window_end'])
-            self.button('Review signing',(1160,722,230,42),lambda:self.review_signing(p),not signing_terms(self.v,[p])['reasons'])
-            reason='; '.join(signing_terms(self.v,[p])['reasons'])
-            self.text((reason or ('Report due '+dated(self.v,due) if due else 'Review costs before committing.'))[:77],x+450,795,20,MUTED)
+            self.text(('Report due '+dated(self.v,due) if due else 'Personal terms, medical and final review required.')[:77],x+450,795,20,MUTED)
 
     def close_profile(self):
         if self.history and self.history[-1]['screen']==self.screen and self.history[-1]['profile'] is None:self.go_back()
         else:self.profile=None;self.typing=False;self.save_preferences()
-
-    def review_signing(self,p):
-        t=signing_terms(self.v,[p])
-        self.confirm('Sign '+p['name'],f"Pay {money(t['fee'])} now. Cash afterwards: {money(t['cash_after'])}. Add {money(t['wage'])} / week until {t['end_date']}. Guaranteed future salary: approximately {money(t['future'])}; total acquisition exposure {money(t['total'])}. Weekly wage headroom afterwards: {money(t['headroom'])}. No contingent fees in these fixed preview terms. Selection belongs to the manager. A signed contract cannot be undone.",lambda:self.command('sign',id=p['id']))
 
     def comparison_players(self):
         by_id={p['id']:p for p in self.v['players']}
@@ -487,7 +496,7 @@ class App(CareerScreens):
         v=self.v
         for i,name in enumerate(('Forecast','Plan','Ledger')):
             self.button(('• ' if self.tab==name else '')+name,(x+i*165,190,150,40),lambda n=name:self.set_finance_tab(n))
-        self.button('Why this forecast?',(1160,190,240,40),lambda:self.confirm('Forecast assumptions','All money is stored in pence. Costs follow committed wages, contract expiry, scheduled project openings and weekly settlement dates. Gate receipts hold current supporter mood and ticket prices, with an attendance sensitivity of ±15%. Unaccepted future deals, prizes and unapproved projects are excluded. A pinned plan adds only prospective free-agent costs. This is a planning estimate, not a guaranteed bank balance.',None))
+        self.button('Why this forecast?',(1160,190,240,40),lambda:self.confirm('Forecast assumptions','All money is stored in pence. Costs follow committed wages, contract expiry, scheduled project openings and weekly settlement dates. Gate receipts hold current supporter mood and ticket prices, with an attendance sensitivity of ±15%. Unaccepted future deals, prizes and unapproved projects are excluded. A pinned plan assumes completion today at the latest agent terms, or indicative demands before negotiation. It excludes a target’s own reservation to avoid double counting; other reservations still constrain affordability. This is a planning estimate, not a guaranteed bank balance.',None))
         self.panel(x,250,1400-x,142,'Cash and commitments')
         self.text(f"Club cash {money(v['cash'])}   /   Owner funds {money(v['owner_cash'])}",x+20,290,28,GREEN)
         self.text(f"Payroll {money(v['payroll'])} / week   |   Limit {money(v['budget'])}   |   Headroom {money(v['budget']-v['payroll'])}",x+20,334,24)
@@ -521,7 +530,7 @@ class App(CareerScreens):
         self.text('Unpaid accrual at end  '+money(f['accrued']),right,683,21,MUTED)
         warning='; '.join(t['reasons'])
         if f['minimum']<f['reserve']:warning=(warning+'; ' if warning else '')+'Projected cash falls below the operating reserve'
-        caption=(f"Plan: {t['count']} targets, {money(t['fee'])} now, +{money(t['wage'])}/week. Baseline {money(base['cash'])}. " if self.tab=='Plan' else '')
+        caption=(f"Completion-today plan: {t['count']} targets, {money(t['fee'])} now, +{money(t['wage'])}/week. Baseline {money(base['cash'])}. " if self.tab=='Plan' else '')
         caption+='Gate income holds today’s support and ticket price; shaded band varies attendance ±15%. Excludes prizes and unapproved spending. Planning never commits a deal.'
         self.wrap(caption,x,750,1400-x,21,MUTED)
         if warning:self.text(warning[:115],x,820,21,RED)
