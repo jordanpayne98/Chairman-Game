@@ -143,7 +143,7 @@ class ExecutiveScreens:
         self.panel(914,560,422,214)
         self.text('THE OWNERSHIP GAME',938,587,16,GREEN)
         self.wrap('Appoint the people.\nMake the big decisions.\nLeave a lasting club.',938,627,370,29,TEXT)
-        self.text('NATIONAL CALENDARS 0.12',104,820,16,FAINT)
+        self.text('RECRUITMENT LISTS 0.13',104,820,16,FAINT)
         self.text('Single-country scenarios / Development build',914,820,16,FAINT)
 
     def executive_overview(self,x):
