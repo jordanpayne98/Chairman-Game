@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions
+from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues
 from .football import finished as match_finished
 
 
@@ -85,12 +85,14 @@ def new_career(seed=42):
     clauses.initialise(world)
     people.initialise(world);registration.initialise(world);football.initialise(world)
     staff.initialise(world);delegation.initialise(world);club_ai.initialise(world)
-    competitions.initialise(world)
-    world['schema']=8
+    competitions.initialise(world,legacy=True)
+    leagues.initialise(world)
+    competitions.start_season(world)
+    world['schema']=9
     for p in world['players']:
         if p['club']:p['contract_end']=316
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
-    news(world, 'Welcome to Northbridge', 'Appoint a manager, review your wage budget, and request scouting before the first match. The eight-club development world includes the Northshire League and Cup, with continuing seasons.')
+    news(world, 'Welcome to Northbridge', 'Appoint a manager, review your wage budget, and request scouting before the first match. The two-division development world includes promotion, relegation and the Northshire Cup, with continuing seasons.')
     return world
 
 
@@ -117,7 +119,7 @@ def payroll(s):
 
 
 def table(s):
-    return sorted(s['clubs'], key=lambda c: (-c['points'], -(c['gf']-c['ga']), -c['gf'], c['id']))
+    return leagues.standings(s)
 
 
 def calendar_date(s, day=None):
@@ -437,19 +439,21 @@ def settle_background(s,legacy=False):
 
 def close_season(s):
     if not s['season_done'] and competitions.complete(s) and all(f['result'] is not None for f in s['fixtures']):
+        leagues.close(s)
         position=next(i for i,c in enumerate(table(s)) if c['id']=='c0')
         prefix='season' if s['career']['season']==1 else f"season:{s['career']['season']}"
-        posting(s,prefix+':prize',s['config']['prizes'][position],'League prize')
+        posting(s,prefix+':prize',leagues.division_for(s)['prizes'][position],'League prize')
         # Settle the final part-week of wages and overheads through the last match.
         posting(s,prefix+':final-payroll',-(s['accrued_costs']//7),'Final pro-rata payroll and operations')
         s['accrued_costs']=0
         s['season_done']=True
-        news(s,'Season complete',f'Northbridge finished {position+1} of 8. Review the table and finances. Open Career to review contracts, preserve this season’s history and prepare the next campaign.')
+        news(s,'Season complete',f'Northbridge finished {position+1} of {len(table(s))} in {leagues.division_for(s)['name']}. Review the table and finances. Open Career to review contracts, preserve this season’s history and prepare the next campaign.')
     clauses.settle_payables(s)
 
 
 def validate(s):
-    require(s.get('schema')==8,'Unsupported save schema. This build supports schema 8.')
+    require(s.get('schema')==9,'Unsupported save schema. This build supports schema 9.')
+    leagues.validate(s)
     competitions.validate(s)
     staff.validate(s);delegation.validate(s);club_ai.validate(s)
     people.validate(s);registration.validate(s)
@@ -505,6 +509,7 @@ def view(s):
                 season=s['career']['season'],season_start=s['career']['start'],window_end=career.window_end(s),
                 career=deepcopy(s['career']),reserved_cash=career.reservations(s)[0],reserved_wages=career.reservations(s)[1],
                 severance=career.manager_severance(s),career_settings=deepcopy(s['config']['career']),project_specs=deepcopy(s['config']['projects']))
+    snapshot['leagues']=leagues.snapshot(s)
     snapshot['competitions']=deepcopy(s['competitions'])
     snapshot['market']={k:deepcopy(s['market'][k]) for k in ('deals','loans','obligations')}
     snapshot['registration']=registration.snapshot(s)

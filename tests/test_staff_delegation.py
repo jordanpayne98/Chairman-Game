@@ -177,7 +177,7 @@ class StaffDelegationTests(unittest.TestCase):
         self.assertEqual(before,view(self.s))
 
     def test_ai_policy_uses_existing_observations_and_public_contracts(self):
-        for cid in ('c1','c2','c3','c4','c5','c6','c7'):
+        for cid in [c['id'] for c in self.s['clubs'][1:]]:
             for p in self.s['players']:club_ai.observation(self.s,cid,p)
         original=deepcopy(self.s)
         for p in self.s['players']:

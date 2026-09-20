@@ -104,7 +104,7 @@ class ContinuingCareerTests(unittest.TestCase):
         self.assertTrue(all(h['competitions']['cup']['settled'] for h in self.s['career']['history']))
         self.assertTrue(all(h['competitions']['cup']['winner'] for h in self.s['career']['history']))
         self.assertEqual(len([e for e in self.s['ledger'] if e['reason']=='League prize']),3)
-        self.assertEqual(len(seen),189)
+        self.assertEqual(len(seen),381)
         self.assertEqual(sum(h['table'][0]['played'] for h in self.s['career']['history']),28)
 
     def test_end_of_season_renewal_is_not_blocked_by_medical_clock(self):

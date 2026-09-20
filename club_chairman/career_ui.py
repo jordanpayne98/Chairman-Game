@@ -162,8 +162,10 @@ class CareerScreens(ClauseScreens):
         v=self.v;self.panel(x,195,1400-x,190,'Career journal')
         self.text('Northbridge Athletic / Season '+str(v['season']),x+20,245,36,GREEN)
         self.text('Current campaign ends '+dated(v,v['season_end']),x+20,293,24)
-        self.wrap('An eight-club development world with fourteen league matches and a knockout cup each season. Preseason lasts two weeks; wages, medicals and construction continue day by day.',x+20,333,1080,21)
-        self.button('Prepare next season',(x,408,240,44),lambda:self.confirm('Prepare the next campaign', 'Archive this season’s table, cup winner and match reports, reset seasonal statistics and generate the next fixtures. Days will not skip: preseason wages and contract expiries process through Continue. Unfinished offers expire. Review renewals first; expired players become free agents.',lambda:self.command('next_season')),v['season_done'] and not v['match'])
+        self.wrap('Each eight-club division has fourteen league matches, plus a shared knockout cup. Preseason lasts two weeks; wages, medicals and construction continue day by day.',x+20,333,1080,21)
+        self.button('Prepare next season',(x,408,240,44),lambda:self.confirm('Prepare the next campaign', 'Archive this season’s table, cup winner and match reports, apply confirmed promotion/relegation, reset seasonal statistics and generate the next fixtures. Days will not skip: preseason wages and contract expiries process through Continue. Unfinished offers expire. Review renewals first; expired players become free agents.',lambda:self.command('next_season')),v['season_done'] and not v['match'])
+        change=next((m for m in v['leagues']['movements'] if m['club']=='c0'),None)
+        if change:self.text(change['kind']+' at next season preparation',x+570,424,21,GREEN)
         self.button('Review squad contracts',(x+260,408,280,44),lambda:self.nav('Squad'))
         self.text('SEASON HISTORY',x,486,21,MUTED)
         history=list(reversed(v['career']['history']))
@@ -175,7 +177,7 @@ class CareerScreens(ClauseScreens):
         self.pager(x,780,len(history),4)
 
     def open_season_history(self,season):
-        self.nav('History');self.history_season=season;self.page=0
+        self.nav('History');self.history_season=season;self.history_division=None;self.page=0
 
     def draw_history(self,x):
         h=next((h for h in self.v['career']['history'] if h['season']==self.history_season),None)
@@ -185,9 +187,20 @@ class CareerScreens(ClauseScreens):
         if cup and cup['winner']:
             self.text('Cup winners: '+self.club(cup['winner']),x,548,21,GREEN)
             self.button('Archived cup',(1200,194,200,40),lambda:self.nav('CupHistory'))
-        for i,c in enumerate(h['table']):
-            self.text(f"{i+1}  {c['name']}",x+20,254+i*36,24)
-            self.text(f"{c['points']} pts   {c['won']}W  {c['drawn']}D  {c['lost']}L",1050,254+i*36,23,MUTED)
+        league=h.get('leagues')
+        rows=h['table']
+        if league:
+            selected=self.history_division or league['own_division']
+            d=next(d for d in league['divisions'] if d['id']==selected)
+            rows=league['tables'][selected];index=league['divisions'].index(d)
+            target=league['divisions'][(index+1)%len(league['divisions'])]['id']
+            self.button('Switch division',(974,194,205,40),lambda:setattr(self,'history_division',target),len(league['divisions'])>1)
+            self.text(d['name'],x+20,238,18,MUTED)
+        for i,c in enumerate(rows):
+            self.text(f"{i+1}  {c['name']}",x+20,270+i*33,24)
+            move=next((m for m in (league or {}).get('movements',[]) if m['club']==c['id']),None)
+            if move:self.text(move['kind'],815,270+i*33,18,GREEN)
+            self.text(f"{c['points']} pts   {c['won']}W  {c['drawn']}D  {c['lost']}L",1050,270+i*33,23,MUTED)
         fixtures=[f for f in h['fixtures'] if 'c0' in (f['home'],f['away'])]
         self.page=min(self.page,len(fixtures)-1);f=fixtures[self.page]
         self.panel(x,575,1400-x,152)

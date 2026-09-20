@@ -147,6 +147,6 @@ class MarketTests(unittest.TestCase):
         from club_chairman.planning import player_rows
         self.act('scout',id='p20');self.progress(3)
         v=view(self.s);rows=player_rows(v,True,sort='Passing',market_scope='Club players')
-        self.assertEqual(rows[0]['id'],'p20');self.assertEqual(len(rows),126)
+        self.assertEqual(rows[0]['id'],'p20');self.assertEqual(len(rows),270)
         for p in self.s['players']:p['attrs']={k:1 for k in p['attrs']}
         self.assertEqual(rows,player_rows(view(self.s),True,sort='Passing',market_scope='Club players'))

@@ -126,15 +126,15 @@ class ExecutiveScreens:
         callback=(lambda:self.nav('Matchday' if self.v['match'] else 'Overview')) if self.state else (lambda:self.load_entry(latest['path'])) if latest else (lambda:None)
         self.button('Resume career' if self.state else 'Continue career',(104,489,359,53),callback,bool(self.state or latest))
         self.clipped_text(self.club('c0')+'  /  '+self.v['date'] if self.state else latest['label'] if latest else 'No saved career yet. Begin your first story.',104,552,359,18,MUTED)
-        self.button('New career',(104,602,359,48),lambda:self.confirm('Start a new career?','Begin with Northbridge Athletic in the compact Northshire League. A fresh seed creates the squad. Existing saved careers are kept.',self.start))
+        self.button('New career',(104,602,359,48),lambda:self.confirm('Start a new career?','Begin with Northbridge Athletic in the Northshire Premier, with a second division and promotion/relegation. A fresh seed creates the squad. Existing saved careers are kept.',self.start))
         self.button('Load / recover career',(104,664,359,48),lambda:self.nav('Load'))
         self.button('Settings',(104,728,166,43),lambda:self.nav('Settings'))
         self.button('Quit',(285,728,178,43),self.quit_request)
         self.panel(914,560,422,214)
         self.text('THE OWNERSHIP GAME',938,587,16,GREEN)
         self.wrap('Appoint the people.\nMake the big decisions.\nLeave a lasting club.',938,627,370,29,TEXT)
-        self.text('COMPETITIONS UPDATE 0.10',104,820,16,FAINT)
-        self.text('Northshire League  /  Playable development build',914,820,16,FAINT)
+        self.text('DIVISIONS UPDATE 0.11',104,820,16,FAINT)
+        self.text('Two divisions  /  Playable development build',914,820,16,FAINT)
 
     def executive_overview(self,x):
         from .ui import money
@@ -309,3 +309,40 @@ class ExecutiveScreens:
         self.pager(x,787,len(rows),5)
         future=cup['dates'][len(cup['rounds']):]
         self.clipped_text('Later round dates reserved: '+', '.join(dated(self.v,d) for d in future) if future else 'All rounds drawn. Results and the winner are saved with season history.',x,832,1130,15,MUTED)
+
+
+    def division_screen(self,x):
+        data=self.v['leagues']
+        if self.league_season!=self.v['season']:
+            self.league_id=data['own_division'];self.league_season=self.v['season']
+        d=next((d for d in data['divisions'] if d['id']==self.league_id),data['divisions'][0])
+        rows=data['tables'][d['id']];index=data['divisions'].index(d)
+        self.text(d['name'].upper(),x,200,24,GREEN)
+        other=data['divisions'][(index+1)%len(data['divisions'])]
+        self.button('Switch division',(974,190,205,42),lambda:(setattr(self,'league_id',other['id']),setattr(self,'page',0)),len(data['divisions'])>1)
+        self.button('Northshire Cup',(1200,190,200,42),lambda:self.nav('Cup'))
+        self.text('CLUB',x+15,245,20,MUTED)
+        for i,t in enumerate(['P','W','D','L','GF','GA','PTS']):self.text(t,890+i*70,245,20,MUTED)
+        count=data['exchange']
+        for i,c in enumerate(rows):
+            y=285+i*43
+            if c['id']=='c0':pygame.draw.rect(self.canvas,SELECTED,(x,y-8,1400-x,40),border_radius=4)
+            self.text(f"{i+1}   {c['name']}",x+15,y,24)
+            marker='UP' if index>0 and i<count else 'DOWN' if index<len(data['divisions'])-1 and i>=len(rows)-count else ''
+            if marker:self.text(marker,815,y+4,16,GREEN if marker=='UP' else WARNING)
+            for j,key in enumerate(['played','won','drawn','lost','gf','ga','points']):self.text(c[key],890+j*70,y,24)
+        rule='Legacy season: second division added next season.' if data['legacy'] else f'{count} clubs move each way. '+('No lower feeder division in this development world.' if index else f'Bottom {count} relegated to the Championship.')
+        self.clipped_text(rule,x+15,636,1100,18,MUTED)
+        self.text('Tie-breaks: points, goal difference, goals scored, head-to-head points, recorded draw.' if not data['legacy'] else 'This saved season retains its original tie-break rules.',x+15,662,17,MUTED)
+        if data['closed']:
+            own=next((m for m in data['movements'] if m['club']=='c0'),None)
+            message=own['kind']+' next season' if own else 'Division retained next season'
+            self.text('SEASON CLOSED  /  '+message,x+15,708,23,GREEN)
+            self.button('Season review',(1160,700,240,42),lambda:self.nav('Career'))
+        else:
+            self.text('Membership is fixed for this season. Results determine next season’s division.',x+15,714,20,MUTED)
+        self.button('Your division',(x,781,200,42),lambda:setattr(self,'league_id',data['own_division']))
+        self.button('Fixtures & reports',(x+225,781,240,42),lambda:self.nav('Fixtures'))
+
+        played=[f for f in self.v['fixtures'] if f['result'] is not None and 'c0' in (f['home'],f['away'])]
+        self.button('Open match report',(1160,781,240,42),lambda:self.open_report(played[-1]['id']),bool(played))

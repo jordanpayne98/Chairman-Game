@@ -1,8 +1,7 @@
 """Domestic knockout scheduling and advancement, independent of presentation.
 
-The Northshire development database remains eight clubs. Its cup shares the
-existing domestic registration and disciplinary rules; it does not expand the
-approved world's content or imply that promotion/relegation is implemented.
+The Northshire development cup shares domestic registration and player bans
+across both divisions. Full national and continental calendars remain separate.
 """
 from copy import deepcopy
 

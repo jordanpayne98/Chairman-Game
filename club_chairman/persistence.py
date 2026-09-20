@@ -10,7 +10,7 @@ import sqlite3
 import tempfile
 from .simulation import validate
 from .career import initialise
-from . import market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions
+from . import market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues
 
 
 def user_directory():
@@ -45,6 +45,9 @@ def migrate(state):
         # Preserve every scheduled match, signed term and RNG in an existing season.
         competitions.initialise(s,legacy=True)
         s['schema']=8
+    if s.get('schema')==8:
+        leagues.initialise(s,legacy=True)
+        s['schema']=9
     validate(s)
     return s
 
@@ -56,7 +59,7 @@ def load(path):
         with closing(sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True)) as db:
             if db.execute('PRAGMA integrity_check').fetchone() != ('ok',):raise SaveError('Save integrity check failed.')
             metadata=dict(db.execute('SELECT key, value FROM metadata'))
-            if metadata.get('schema') not in ('1','2','3','4','5','6','7','8'):raise SaveError('Unsupported save version. This build reads schemas 1–8.')
+            if metadata.get('schema') not in ('1','2','3','4','5','6','7','8','9'):raise SaveError('Unsupported save version. This build reads schemas 1–9.')
             raw=db.execute("SELECT payload FROM entities WHERE id='world'").fetchone()[0]
             if hashlib.sha256(raw.encode()).hexdigest()!=metadata['checksum']:raise SaveError('Save checksum does not match.')
             s=json.loads(raw)
