@@ -1,5 +1,19 @@
 # Development checkpoint
 
+## PLAY-013 — Recruitment Lists Update 0.13
+
+Date: 20 September 2026. Continued from PR #14 / published national-calendars head `180b68cafc0b70c35147fb895a5707a5a66910e3` in an isolated `game/named-shortlists` worktree. Inspected attached revision 0.2 and reconciled it against the current living revision 0.3, especially chapter 37 Q05/Q06 and chapter 38 UQ06. No GDD edits, predecessor merges or stack changes. This is a bounded recruitment QoL addition alongside the still-open world milestone.
+
+Implemented: create/select/rename/delete up to twenty named recruitment lists, unique 1–32-character names, stable IDs, independent memberships and retained targets across transfers/retirement. Selected-list membership drives table/profile controls and the shortlist filter; current selection is saved with the career. The shortlist filter searches all saved targets regardless of the market scope, while retaining explicit name/role filters. Reports remain authorised estimates.
+
+Bulk action: Save visible page freezes the displayed IDs, previews the new-entry count, confirms against the current revision and suppresses duplicates. It spends nothing and performs no recruitment action. Exact immediate Undo covers membership and list operations, including deletion; later management commands invalidate it. Invalid names retain the draft; closing a draft confirms discard. Keyboard navigation, pagination and existing whole-interface zoom are supported.
+
+Compatibility: schema 11 migrates schemas 1–10 in memory. The original shortlist becomes the first named list without changing other prior fields or source bytes. The legacy shortlist field is a validated mirror of the active list, preserving existing consumers. Private notes and comparison pins remain unchanged. List limits are interface implementation bounds, not changes to approved football design.
+
+Verification: five new domain and four new interface tests cover independent lists, no football/financial effects, save/load, migration/source preservation, rejected commands, exact Undo, duplicate command receipts, known-player validation, retained signed/retired targets, confirmed page scope, stale confirmations, protected name drafts, profile control overlap and keyboard/zoom navigation. The six existing planning tests passed. Recruitment, manager and player-profile captures inspected against the existing Executive styling; a detected profile/private-note overlap was corrected. Full regression and published Windows/Linux/package results will be recorded after completion.
+
+Remaining: no tags, reminders, shortlist expiry/rationale or general bulk task system. No change to feeder exchanges, reduced-detail countries, connected-world calendars, USA playoffs or continental qualification. Next competition task remains persistent feeder membership and reduced-detail state with validated entrants. Continue from this branch; use a focused PR targeting `game/national-calendars` under standing publication/build authorization, preserving open predecessors.
+
 ## PLAY-012 — National Calendars Update 0.12
 
 Date: 20 September 2026. Jordan requested proceeding after the completed Divisions Update. Branched from published `game/divisions-promotion` head `495dbd5d9f184b81737d9b9508f74781d2d7ce6a` onto `game/national-calendars`. Inspected the supplied revision 0.2 DOCX locally, then read the current living revision 0.3 competition/calendar requirements. Revision 0.3 explicitly defines the USA closed format and top-eight playoff. No GDD edits or predecessor merges.

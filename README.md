@@ -1,4 +1,4 @@
-# Club Chairman — National Calendars Update (0.12)
+# Club Chairman — Recruitment Lists Update (0.13)
 
 A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic in the compact Northshire world or an England, Wales or Brazil national development scenario, with continuing league seasons and domestic cups. This is a playable development version; the approved full AA game is still being built.
 
@@ -7,7 +7,7 @@ A playable early Python/Pygame football chairman simulation. Take charge of Nort
 Download **ClubChairman-Windows-preview** from the successful GitHub Actions run linked in the implementation pull request. Extract the entire ZIP into a folder, then open **ClubChairman.exe**. Keep the `_internal` folder beside the executable. Python installation is not required for the packaged build.
 
 1. Choose New career and appoint a manager in Staff.
-2. Filter and sort free agents in Recruitment. Save a shortlist, add private notes and pin up to four candidates to compare. Scout them before committing; reports use uncertain ranges.
+2. Filter and sort free agents in Recruitment. Use Lists to organise named shortlists, add private notes and pin up to four candidates to compare. Scout them before committing; reports use uncertain ranges.
 3. Review Finances > Forecast for the next 28 days, or Plan for the combined impact of pinned free agents. Plans change neither time nor funds; signings need individual confirmation. Review the wage limit and ticket price here too.
 4. Continue one day or advance to the next fixture. Required chairman decisions interrupt time.
 5. Watch text matches at 1x/2x/4x or skip. Your manager selects the team. Encourage them or request more attacking football; they can refuse.
@@ -15,11 +15,23 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1–0.11 / schema 1–9 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 10. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1–0.12 / schema 1–10 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 11. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
 Ctrl+K opens global search for known players, clubs, departments and help topics. Settings > Interface size cycles through 100/125/150/175% zoom. Mouse wheel pans vertically at larger sizes; Shift+wheel pans horizontally, and keyboard focus follows controls into view. Ctrl+0 restores 100%. This is whole-interface zoom; full responsive text reflow is still pending.
+
+## New in 0.13
+
+**Recruitment > Lists** creates, selects, renames and deletes named target lists. A player can belong to several lists. The selected list controls the table’s Saved/+ List buttons, Shortlist only filter and the profile’s Add/Remove shortlist action. Its name is visible in the table and profile. Up to twenty lists with unique names of 1–32 characters are supported; keep at least one list.
+
+**Save visible page** previews the number of new targets and adds only the displayed page after confirmation. Existing targets are not duplicated. This never commissions scouting or submits an offer. Undo reverses the latest membership edit or list operation, including deletion, until another management action commits.
+
+Shortlist only includes saved targets after signing, transfers or retirement; search and role filters still apply. Market scope is disabled in this mode so it cannot silently hide a saved player. Players keep their stable identity, notes and observed evidence. Unknown attributes remain unknown.
+
+Older careers retain all saved targets in a list named Shortlist. Lists, memberships and the selected list persist in schema 11 saves. Loading does not rewrite the original save. Input validation preserves an unfinished name; closing a name draft asks before discarding it. Tab and Enter work with the list controls, including at the existing zoom settings.
+
+This implements named recruitment lists (GDD Q06), visible-page shortlist additions (part of Q05), and immediate Undo (UQ06). Tags, reminders, expiry rules, broader entity-following, general multi-selection and task templates remain unfinished. World/feeder expansion remains the next competition dependency; this update does not add continental entrants or fictional qualification allocations.
 
 ## New in 0.12
 

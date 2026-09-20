@@ -16,6 +16,7 @@ from .business_ui import BusinessScreens
 from .football_ui import FootballScreens
 from .navigation import NavigationScreens
 from .staff_ui import StaffScreens
+from .shortlist_ui import ShortlistScreens
 from .executive_ui import ExecutiveScreens, TITLES, DESCRIPTIONS
 from .theme import BG,PANEL,BORDER,TEXT,MUTED,GREEN,BUTTON,RED,RAISED,SELECTED,FAINT, font as themed_font
 from .football import finished as match_finished
@@ -29,11 +30,11 @@ WIDTH,HEIGHT=1440,900
 def money(v):return f'£{v/100:,.0f}'
 
 
-class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
+class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
     def __init__(self,save_root=None):
         pygame.display.init();pygame.font.init()
         self.window=pygame.display.set_mode((1280,800),pygame.RESIZABLE)
-        pygame.display.set_caption('Club Chairman — National Calendars 0.12')
+        pygame.display.set_caption('Club Chairman — Recruitment Lists 0.13')
         self.canvas=pygame.Surface((WIDTH,HEIGHT))
         self.fonts={};self.inbox_selection=None;self.inbox_reader_page=0;self.inbox_reader_key=None;self._nav_style=None;self._inbox_style=None
         self.state=None;self.v=None;self.screen='Home';self.buttons=[];self.focus=0;self.running=True
@@ -42,6 +43,7 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
         self.role='All';self.sort='Name';self.descending=False;self.only_shortlist=False
         self.league_id=None;self.league_season=None;self.history_division=None;self.history_table_page=0;self.new_scenario='compact'
         self.tab='Forecast';self.match_report=None;self.profile_ids=[];self.views={};self.history=[];self.forward=[]
+        self.list_manager=False;self.list_name='';self.list_typing=False;self.list_page=0
         self.workspaces={};self.undo=None;self.editor=None;self.note_draft='';self.notification_log=[]
         self.modal_revision=None;self.modal_focus=0;self.message_seen='';self.note_active=False
         self.market_scope='Free agents';self.market_id=None;self.market_draft=None;self.market_tab='Deals'
@@ -145,6 +147,7 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
         except OSError:self.message='Could not save interface preferences.'
 
     def reset_workspace(self,views=None):
+        self.list_manager=False;self.list_name='';self.list_typing=False;self.list_page=0
         self.inbox_selection=None;self.inbox_reader_page=0;self.inbox_reader_key=None
         self.staff_tab='Manager';self.staff_person=None;self.staff_draft=None;self.staff_scope='Candidates';self.staff_role='All roles'
         self.responsibility=None;self.authority_draft=None;self.staff_league=False
@@ -299,9 +302,10 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
             self.notification_log.append(self.message);self.notification_log=self.notification_log[-40:];self.message_seen=self.message
         pygame.draw.line(self.canvas,BORDER,(245 if not self.collapsed else 100,850),(1400,850))
         self.clipped_text(self.message,245 if self.state and not self.collapsed else 26,HEIGHT-34,1120,18,GREEN)
-        if self.undo and self.undo[0]==self.state['revision']:
+        if not self.list_manager and self.undo and self.undo[0]==self.state['revision']:
             self.button('Undo',(1280,850,120,34),self.undo_planning)
         if self.editor:self.draw_note_editor()
+        if self.list_manager:self.draw_shortlists()
         if self.modal:self.draw_modal()
         if self.palette is not None:self.draw_search()
         self.draw_tooltip()
@@ -352,7 +356,9 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
         self.button('High to low' if self.descending else 'Low to high',(x+225,246,155,38),lambda:self.filter_change('descending',not self.descending))
         if recruitment:
             scopes=('Free agents','Club players','All')
-            self.button('Market: '+self.market_scope,(x+395,246,235,38),lambda:self.filter_change('market_scope',scopes[(scopes.index(self.market_scope)+1)%3]))
+            self.button('Saved targets' if self.only_shortlist else 'Market: '+self.market_scope,(x+395,246,235,38),lambda:self.filter_change('market_scope',scopes[(scopes.index(self.market_scope)+1)%3]),not self.only_shortlist)
+            name=self.shortlist_name()
+            self.button('Lists: '+(name if len(name)<=20 else name[:19]+'…'),(1080,246,320,38),self.open_shortlists)
         self.text(f'{len(rows)} results',x+650,257,22,MUTED)
         if not recruitment:self.button('Registration',(1200,246,200,38),lambda:(setattr(self,'tab','Registration'),setattr(self,'page',0)))
         pygame.draw.rect(self.canvas,RAISED,(x,298,1400-x,38),border_radius=4)
@@ -363,7 +369,7 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
             if i%2==0:pygame.draw.rect(self.canvas,PANEL,(x,y,1400-x,56))
             pygame.draw.line(self.canvas,BORDER,(x,y+56),(1400,y+56))
             self.text(p['name'],x+15,y+8,25)
-            self.text(f"{p['role']}  /  Age {p['age']}  /  {p['goals']} goals",x+15,y+32,18,MUTED)
+            self.text(f"{p['role']}  /  Age {p['age']}  /  "+('Retired' if p['retired'] else 'Your club' if recruitment and p['club']=='c0' else f"{p['goals']} goals"),x+15,y+32,18,MUTED)
             self.right_text(money(p['wage']),x+515,y+18,23)
             report=p['report'];info=report['confidence'] if report else 'Due '+dated(self.v,p['scout_due'])[:6] if p['scout_due'] else 'Not assessed'
             if report and self.sort.lower() in ATTRIBUTES:
@@ -374,7 +380,9 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
             self.button('Pinned' if p['id'] in self.v['planning']['comparison'] else '+ Pin',(1192,y+5,82,40),lambda pid=p['id']:self.toggle_plan('comparison',pid))
             self.button('Profile',(1285,y+5,105,40),lambda pid=p['id']:self.open_profile(pid))
         self.pager(x,780,len(rows),7)
-        self.text('Reports are estimates. Sorting uses range midpoints, never hidden ratings.',x+460,794,20,MUTED)
+        self.text('Reports are estimates. Sorting uses range midpoints, never hidden ratings.',x,751,20,MUTED)
+        self.button('Save visible page',(x+460,780,225,42),self.save_shortlist_page,any(p['id'] not in self.v['planning']['shortlist'] for p in rows[self.page*7:self.page*7+7]))
+        self.clipped_text('List: '+self.shortlist_name(),x+705,793,1400-x-710,20,MUTED)
         if not rows:self.wrap('No players match these filters. Use Reset filters, or turn off Shortlist only.',x+20,380,900,27)
 
     def reset_filters(self):
@@ -518,7 +526,7 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
             'Career adds continuing compact seasons, negotiated free-agent and renewal terms, manager replacement, academy trials/development and facility projects. Transfers adds club purchases, sales and loans. The full world and ownership systems remain in development.',
             'Shortcuts: Ctrl+S saves; Ctrl+F searches players; Alt+Left/Right navigates history; Space pauses live matches; F1 opens Help. Tab / Shift+Tab moves focus, Enter activates. Esc closes overlays or goes back.',
             'F2 explains the focused control. Settings offers optional sound and reduced motion. Contracts requires proposal, conditional acceptance, medical and final completion. Renew existing players before expiry; merely opening an offer cannot keep them registered.',
-            'Recruitment: filter by role, save a shortlist and pin up to four players. Compare uses scouted ranges. Finances > Plan projects pinned acquisition costs. Commercial offers dated sponsorships; Transfers lists loan returns and instalments. Forecasts are estimates and never sign players. League > Open match report reopens completed fixtures.'
+            'Recruitment: Lists creates, selects, renames and deletes named shortlists. Saved targets include signed or retired players. Undo reverses the last planning edit before another action. Pin up to four players. Compare uses scouted ranges. Finances > Plan projects pinned acquisition costs. Commercial offers dated sponsorships; Transfers lists loan returns and instalments. Forecasts are estimates and never sign players. League > Open match report reopens completed fixtures.'
         ]
         y=250
         for p in paragraphs:y=self.wrap(p,x+25,y,1350-x,21)+12
@@ -571,6 +579,7 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
         self.button('Save note',(910,585,190,40),self.save_note)
 
     def event(self,event):
+        if self.shortlist_event(event):return
         if event.type==pygame.QUIT:self.quit_request()
         elif event.type==pygame.MOUSEBUTTONDOWN and event.button==1:
             pos=((event.pos[0]-self.offset[0])/self.scale,(event.pos[1]-self.offset[1])/self.scale)
@@ -583,7 +592,7 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
             if self.ui_zoom>1:
                 axis=0 if pygame.key.get_mods()&pygame.KMOD_SHIFT else 1
                 self.pan[axis]=max(0,self.pan[axis]-event.y*65);self.focus_reveal=False
-            elif not self.modal and not self.editor and self.palette is None:self.page=max(0,self.page-event.y)
+            elif not self.modal and not self.editor and not self.list_manager and self.palette is None:self.page=max(0,self.page-event.y)
         elif event.type==pygame.KEYDOWN:
             if event.key==pygame.K_0 and event.mod&pygame.KMOD_CTRL:
                 self.change_zoom(1);return
@@ -644,7 +653,7 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
             for event in pygame.event.get():
                 self.event(event)
                 self.render()
-            if not self.modal and not self.editor and self.palette is None:
+            if not self.modal and not self.editor and not self.list_manager and self.palette is None:
                 if self.batch:self.continue_day()
                 if self.play and not self.match_report and self.screen=='Matchday' and self.v and self.v['match'] and not match_finished(self.v['match']):
                     self.elapsed+=dt*self.speed

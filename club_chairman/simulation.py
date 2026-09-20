@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations
+from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists
 from .football import finished as match_finished
 
 
@@ -90,7 +90,8 @@ def new_career(seed=42,scenario='compact'):
     world['calendar']=None
     if scenario!='compact':nations.configure(world,scenario)
     competitions.start_season(world)
-    world['schema']=10
+    shortlists.initialise(world)
+    world['schema']=11
     for p in world['players']:
         if p['club']:p['contract_end']=career.contractual_end(world,3)
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
@@ -180,10 +181,14 @@ def apply(s, action, payload):
     if result is not None:return result
     result=career.apply(s,action,payload)
     if result is not None:return result
+    if action == 'shortlist_manage':return shortlists.apply(s,payload)
     if action == 'planning':
         key = payload.get('key'); value = payload.get('value')
         known = {p['id'] for p in s['players']}
-        require(key in ('shortlist', 'comparison', 'notes', 'inbox_read'), 'Unknown planning record.')
+        require(key in ('shortlist', 'comparison', 'notes', 'inbox_read', 'shortlists'), 'Unknown planning record.')
+        if key=='shortlists':
+            shortlists.restore(s,value)
+            return 'Shortlist change undone. Time and money are unchanged.'
         if key in ('shortlist', 'comparison'):
             require(isinstance(value, list) and all(isinstance(x, str) for x in value), 'Invalid player selection.')
             require(len(value) == len(set(value)) and set(value) <= known, 'Select known players only.')
@@ -193,6 +198,7 @@ def apply(s, action, payload):
         else:
             require(type(value) is int and 0 <= value <= len(s['inbox']), 'Invalid read marker.')
         s['planning'][key] = deepcopy(value)
+        if key=='shortlist':shortlists.active(s['planning'])['players']=list(value)
         return 'Planning saved. Time and money are unchanged.'
     if action == 'hire':
         require(not s['season_done'] and s['match'] is None, 'Appointments are unavailable during a match or after season end.')
@@ -456,7 +462,7 @@ def close_season(s):
 
 
 def validate(s):
-    require(s.get('schema')==10,'Unsupported save schema. This build supports schema 10.')
+    require(s.get('schema')==11,'Unsupported save schema. This build supports schema 11.')
     leagues.validate(s)
     nations.validate(s)
     competitions.validate(s)
@@ -478,6 +484,7 @@ def validate(s):
     require(all(p['status'] in ('feasibility','quoted','construction','operational','cancelled') for p in s['career']['projects']),'Invalid project status.')
     known = {p['id'] for p in s['players']}
     plan = s['planning']
+    shortlists.validate(s)
     for key, limit in (('shortlist', len(known)), ('comparison', 4)):
         require(isinstance(plan[key], list) and all(isinstance(x, str) for x in plan[key]), 'Invalid saved planning selection.')
         require(len(plan[key]) <= limit and len(plan[key]) == len(set(plan[key])) and set(plan[key]) <= known, 'Invalid saved planning selection.')

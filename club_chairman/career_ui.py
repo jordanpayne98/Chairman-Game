@@ -282,6 +282,8 @@ class CareerScreens(ClauseScreens):
         self.sound.volume=0 if self.sound.volume>0 else .22;self.save_preferences()
 
     def control_help(self,label,enabled):
+        if label.startswith(('Lists: ','List: ')):
+            return 'Selected shortlist: '+self.shortlist_name()+'. Open the list manager to select, create, rename or delete a list.'
         staff_hints={
             'Review coverage':'Preview advisory assignments based on observed capabilities and available capacity. Authority remains manual until you approve a mode change.',
             'Review responsibility':'Review the named delegate, 28-day commitment allowance, duration limit and objective before applying them.',
@@ -292,6 +294,11 @@ class CareerScreens(ClauseScreens):
         }
         if label in staff_hints:return staff_hints[label]
         hints={
+            'Create list':'Create and select a private list with the typed name. Names must be unique, 1–32 characters; up to twenty lists are supported.',
+            'Rename':'Apply the typed name to the selected list. Its saved players are retained.',
+            'Delete selected':'Review deletion of the selected list only. Keep at least one list. Immediate Undo restores its name and members.',
+            'Save visible page':'Review adding only the displayed players to the selected list. Existing entries are skipped. No hidden pages, scouting or offers are included.',
+            'Saved targets':'The shortlist filter includes all saved targets, including signed or retired players. Turn off Shortlist only to change market scope.',
             'Registration':'Review your competition list, reserved arrivals and eligibility. Unlisted players remain paid. Confirm edits before the deadline.',
             'Search':'Search known people, departments and help with Ctrl+K. Results open screens without committing any action.',
             'Statistics':'Match statistics come from the same events as the score and commentary. xG records chance quality before the outcome.',
@@ -349,7 +356,7 @@ class CareerScreens(ClauseScreens):
             'Review completion':'Final irreversible review of agreed terms, medical advice and registration. Cash, employment and registration commit together.',
             'Renew contract':'Extend the current manager’s agreement on the same salary and notice terms. The review explains the additional guaranteed commitment.',
             'Prepare next season':'Archive the current table and results and create the next calendar once. Existing obligations persist; unresolved negotiations lapse.',
-            'Undo':'Reverse the last local shortlist or pin change. This is unavailable after another committed command and never reverses contracts, payments or matches.',
+            'Undo':'Reverse the last local shortlist membership, list management or pin change. This is unavailable after another committed command and never reverses contracts, payments or matches.',
             'Key events':'Filter commentary to goals, period markers and bench messages. This only changes the display; it does not change the match simulation.',
             'Lineups':'Show the players selected by each manager for this match. Names and roles are public; hidden abilities are not disclosed.',
             'Cancel':'Close this review without executing the proposed action. Focus returns to the control that opened it.',
