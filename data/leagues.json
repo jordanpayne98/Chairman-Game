@@ -1,0 +1,24 @@
+{
+  "exchange": 3,
+  "lower_prize_percent": 50,
+  "initial_ability": [
+    40,
+    62
+  ],
+  "cup_round_days": [
+    22,
+    43,
+    64,
+    85
+  ],
+  "lower_clubs": [
+    "Alderwick Town",
+    "Bramley Wanderers",
+    "Cedar Vale",
+    "Dunmere Athletic",
+    "Foxbridge United",
+    "Greyford Rovers",
+    "Oakstead City",
+    "Wellington Heath"
+  ]
+}

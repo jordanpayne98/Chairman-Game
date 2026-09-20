@@ -33,13 +33,14 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
     def __init__(self,save_root=None):
         pygame.display.init();pygame.font.init()
         self.window=pygame.display.set_mode((1280,800),pygame.RESIZABLE)
-        pygame.display.set_caption('Club Chairman — Competitions 0.10')
+        pygame.display.set_caption('Club Chairman — Divisions 0.11')
         self.canvas=pygame.Surface((WIDTH,HEIGHT))
         self.fonts={};self.inbox_selection=None;self.inbox_reader_page=0;self.inbox_reader_key=None;self._nav_style=None;self._inbox_style=None
         self.state=None;self.v=None;self.screen='Home';self.buttons=[];self.focus=0;self.running=True
         self.message='';self.modal=None;self.modal_page=0;self.collapsed=False;self.page=0;self.profile=None;self.search='';self.typing=False
         self.store=SaveStore(save_root);self.play=False;self.speed=1;self.elapsed=0;self.batch=False
         self.role='All';self.sort='Name';self.descending=False;self.only_shortlist=False
+        self.league_id=None;self.league_season=None;self.history_division=None
         self.tab='Forecast';self.match_report=None;self.profile_ids=[];self.views={};self.history=[];self.forward=[]
         self.workspaces={};self.undo=None;self.editor=None;self.note_draft='';self.notification_log=[]
         self.modal_revision=None;self.modal_focus=0;self.message_seen='';self.note_active=False
@@ -485,23 +486,7 @@ class App(ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballSc
         reserve_y=round(y+h-(f['reserve']-lo)/(hi-lo)*h)
         for dx in range(0,round(plot_w),10):pygame.draw.line(self.canvas,MUTED,(plot_x+dx,reserve_y),(min(plot_x+plot_w,plot_x+dx+4),reserve_y))
 
-    def draw_league(self,x):
-        self.button('Northshire Cup',(1200,190,200,42),lambda:self.nav('Cup'))
-        self.text('NORTHSHIRE LEAGUE  •  8 clubs / home and away',x,200,24,GREEN)
-        self.text('CLUB',x+15,245,20,MUTED)
-        for i,t in enumerate(['P','W','D','L','GF','GA','PTS']):self.text(t,890+i*70,245,20,MUTED)
-        for i,c in enumerate(self.v['table']):
-            y=285+i*48
-            if c['id']=='c0':pygame.draw.rect(self.canvas,BUTTON,(x,y-8,1400-x,44),border_radius=4)
-            self.text(f"{i+1}   {c['name']}",x+15,y,25)
-            for j,key in enumerate(['played','won','drawn','lost','gf','ga','points']):self.text(c[key],890+j*70,y,24)
-        fs=[f for f in self.v['fixtures'] if 'c0' in (f['home'],f['away'])]
-        f=fs[min(len(fs)-1,self.page)]
-        self.panel(x,690,1400-x,80)
-        score='vs' if not f['result'] else f"{f['result']['score'][0]}–{f['result']['score'][1]}"
-        self.text(f"{self.fixture_date(f)}   {self.club(f['home'])}  {score}  {self.club(f['away'])}",x+15,715,24)
-        self.pager(x,785,len(fs),1)
-        self.button('Open match report',(1160,785,240,42),lambda:self.open_report(f['id']),f['result'] is not None)
+    def draw_league(self,x):self.division_screen(x)
 
     def draw_cup(self,x):self.cup_screen(x)
 

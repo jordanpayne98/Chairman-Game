@@ -42,15 +42,24 @@ def initialise(s):
                    reputation=level,autonomy='Advisory',pending=None,workload=0,
                    morale=60,objectives=[],history=[],risk=rng.choice(('Cautious','Balanced','Ambitious')))
             data['people'].append(p)
-    for i,c in enumerate(s['clubs'][1:]):
+    s['staff']=data
+    add_club_staff(s,s['clubs'][1:])
+
+
+def add_club_staff(s,clubs):
+    from .simulation import rng_for
+    first=('Ellis','Morgan','Taylor','Robin','Casey','Harper','Alex','Sam','Drew')
+    last=('Bennett','Ward','Mason','Reed','Clarke','Morgan','Hayes','Brooks','Shaw')
+    for c in clubs:
+        i=next(i for i,candidate in enumerate(s['clubs'][1:]) if candidate['id']==c['id'])
         for role in ('Executive','Football director','Coaching'):
             pid=f"staff:{c['id']}:{role}";rng=rng_for(s['seed'],pid)
             skills={k:rng.randint(42,75) for k in CAPABILITIES}
-            data['people'].append(dict(id=pid,name=first[i%9]+' '+last[(i+3)%9],role=role,club=c['id'],
+            s['staff']['people'].append(dict(id=pid,name=first[i%9]+' '+last[(i+3)%9],role=role,club=c['id'],
                 capabilities=skills,expected_wage=60000,wage=60000,start=s['day'],end=s['day']+330,
                 notice_weeks=4,availability=100,reputation=60,autonomy='Advisory',pending=None,
                 workload=0,morale=60,objectives=[],history=[],risk=rng.choice(('Cautious','Balanced','Ambitious'))))
-    s['staff']=data
+
 
 
 def person(s,pid):

@@ -4,7 +4,7 @@ Domain functions operate only on the caller's uncommitted state copy. Simulation
 imports are local to keep the existing match engine separate from career policy.
 """
 from copy import deepcopy
-from . import market, clauses, people, registration, staff, club_ai
+from . import market, clauses, people, registration, staff, club_ai, leagues
 
 CAREER_DEFAULTS = dict(season_gap=14, offer_lifetime=7,
                       medical_days=2, manager_notice_weeks=4, academy_trial_fee=200000,
@@ -309,10 +309,12 @@ def apply(s,action,data):
             c['history'].append(dict(season=c['season'],table=deepcopy(table(s)),fixtures=deepcopy(s['fixtures']),cash=s['cash'],day=s['day']))
         from . import competitions
         c['history'][-1]['competitions']=deepcopy(s['competitions'])
+        c['history'][-1]['leagues']=leagues.snapshot(s)
         for o in c['offers'].values():
             if o['status'] not in ('completed','withdrawn','expired','rejected'):
                 o['status']='expired';market.close_purchase(s,o,'Season closed before registration.');o['transcript'].append('Season closed: unfinished discussion expired and reserved capacity released.')
         old_end=season_end(s);c['season']+=1;c['start']=old_end+settings['season_gap'];s['season_done']=False
+        leagues.rollover(s)
         for club in s['clubs']:
             for key in ('played','won','drawn','lost','gf','ga','points'):club[key]=0
             club['form']=[]
@@ -330,15 +332,7 @@ def apply(s,action,data):
                     p.update(club=club['id'],contract_end=c['start']+96);s['players'].append(p)
         active_free=[p for p in s['players'] if p['club'] is None and not p['youth'] and not p['retired']]
         for i in range(max(0,12-len(active_free))):s['players'].append(new_person(s,('GK','DEF','MID','FWD')[i%4],21,45+i%20,f"market:{c['season']}:{i}"))
-        ring=list(range(8));pairs=[]
-        for r in range(7):
-            pairs.append([(ring[-1-j],ring[j]) if r%2 else (ring[j],ring[-1-j]) for j in range(4)])
-            ring=[ring[0],ring[-1]]+ring[1:-1]
-        s['fixtures']=[]
-        for r in range(14):
-            for j,(a,b) in enumerate(pairs[r%7]):
-                if r>=7:a,b=b,a
-                s['fixtures'].append(dict(id=f"s{c['season']}-f{r}-{j}",day=c['start']+5+r*7,home=f'c{a}',away=f'c{b}',result=None))
+        leagues.schedule(s)
         competitions.start_season(s)
         news(s,'New season prepared',f"Season {c['season']} is ready. The two-week preseason advances normally with wages and deadlines. Review expiring contracts before Continue.")
         return 'New fixtures created. History retained. No days or recurring payments have been skipped.'

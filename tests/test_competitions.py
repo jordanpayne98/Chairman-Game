@@ -25,8 +25,8 @@ class CompetitionTests(unittest.TestCase):
 
     def test_seeded_draw_dates_and_non_power_of_two_byes(self):
         self.assertEqual(self.s['competitions'],new_career(42)['competitions'])
-        cup=self.s['competitions']['cup'];self.assertEqual(len(cup['rounds'][0]['fixtures']),4)
-        self.assertEqual(cup['dates'],[22,50,78]);competitions.validate(self.s)
+        cup=self.s['competitions']['cup'];self.assertEqual(len(cup['rounds'][0]['fixtures']),8)
+        self.assertEqual(cup['dates'],[22,43,64,85]);competitions.validate(self.s)
         # Six entrants: two real byes, two opening ties, then four semi-finalists.
         s=deepcopy(self.s);s['clubs']=s['clubs'][:6];s['fixtures']=[]
         competitions.start_season(s);r=s['competitions']['cup']['rounds'][0]
@@ -75,10 +75,11 @@ class CompetitionTests(unittest.TestCase):
                 f['result']={'winner':winner,'score':[0,0]}
         self.s['day']=22;competitions.progress(self.s)
         self.assertNotIn('c0',cup['rounds'][-1]['entrants'])
-        self.s['day']=49;self.s['decision']=None;self.act('continue')
+        self.s['day']=42;self.s['decision']=None;self.act('continue')
         self.assertIsNone(self.s['match']);self.assertEqual(len(self.s['competitions']['cup']['rounds']),3)
+        self.s['day']=63;self.s['decision']=None;self.act('continue')
         self.s['competitions']['cup']['prize']=125000
-        self.s['day']=77;self.s['decision']=None;self.act('continue')
+        self.s['day']=84;self.s['decision']=None;self.act('continue')
         self.assertIsNone(self.s['match']);self.assertTrue(self.s['competitions']['cup']['settled'])
         winner=self.s['competitions']['cup']['winner']
         awards=[e for e in self.s['market']['accounts'][winner]['ledger'] if e['reason']=='Cup winner prize']
@@ -101,7 +102,7 @@ class CompetitionTests(unittest.TestCase):
         old['day']=5;old['match']=start_match(old,old['fixtures'][0])
         for _ in range(27):football.step(old,old['match'])
         before=deepcopy(old);new=migrate(old)
-        self.assertEqual(old,before);self.assertEqual(new['schema'],8)
+        self.assertEqual(old,before);self.assertEqual(new['schema'],9)
         self.assertIsNone(new['competitions']['cup'])
         for key in ('fixtures','match','players','cash','ledger','career','reports'):self.assertEqual(new[key],old[key],key)
         validate(new)
@@ -111,14 +112,14 @@ class CompetitionTests(unittest.TestCase):
         from club_chairman.simulation import view
         from club_chairman.planning import forecast
         self.s['fixtures']=[f for f in self.s['fixtures'] if not f.get('knockout')]
-        self.s['config']['cup']['round_days']=[22,50,110]
+        self.s['config']['cup']['round_days']=[22,43,64,110]
         competitions.start_season(self.s)
         self.assertEqual(season_end(self.s),110)
         contract=contractual_end(self.s,2)
         self.assertEqual(contract,234)
         self.assertEqual(view(self.s)['season_end'],110)
         self.assertEqual(forecast(view(self.s),horizon=200)['end'],110)
-        for round_day in (22,50):
+        for round_day in (22,43,64):
             self.s['day']=round_day
             for f in self.s['fixtures']:
                 if f.get('knockout') and f['day']==round_day:f['result']={'winner':f['home']}

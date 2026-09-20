@@ -60,3 +60,23 @@ class CupInterfaceTests(unittest.TestCase):
         a=self.a;a.state['competitions']['cup']=None;a.v=view(a.state);a.nav('Cup')
         before=json.dumps(a.state,sort_keys=True);self.click('League table');self.assertEqual(a.screen,'League')
         a.nav('Fixtures');a.render();self.assertEqual(json.dumps(a.state,sort_keys=True),before)
+
+    def test_division_switch_and_archived_tables_preserve_state_at_zoom(self):
+        from test_leagues import completed_world
+        a=self.a;a.state=completed_world();a.state['career']['history']=[dict(season=1,
+            table=deepcopy(view(a.state)['table']),fixtures=deepcopy(a.state['fixtures']),
+            leagues=deepcopy(view(a.state)['leagues']),competitions=deepcopy(a.state['competitions']),
+            cash=a.state['cash'],day=96)]
+        a.v=view(a.state);before=json.dumps(a.state,sort_keys=True);a.nav('League')
+        a.render();self.assertEqual(a.league_id,'northshire-1')
+        self.click('Switch division');self.assertEqual(a.league_id,'northshire-2')
+        self.click('Your division');self.assertEqual(a.league_id,'northshire-1')
+        self.click('Season review');a.open_season_history(1)
+        self.click('Switch division');self.assertEqual(a.history_division,'northshire-2')
+        a.change_zoom(1.75)
+        for _ in range(12):
+            a.event(pygame.event.Event(pygame.KEYDOWN,key=pygame.K_TAB,unicode='\t',mod=0));a.render()
+            rect=a.buttons[a.focus%len(a.buttons)][0]
+            self.assertGreaterEqual(rect.left*a.scale+a.offset[0],0)
+            self.assertLessEqual(rect.right*a.scale+a.offset[0],a.window.get_width())
+        self.assertEqual(json.dumps(a.state,sort_keys=True),before)

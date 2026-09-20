@@ -1,5 +1,21 @@
 # Development checkpoint
 
+## PLAY-011 — Divisions Update 0.11
+
+Date: 20 September 2026. Jordan requested proceeding with GDD implementation. Continued the recorded next milestone from `game/domestic-cup` head `f9e97d21a8b9736e4d0946cf167abb17c8a4fe95` on `game/divisions-promotion`. Current GDD revision 0.3 competition requirements remain authoritative; no GDD edits, engine changes or predecessor merges.
+
+Implemented: two eight-club home/away divisions, 300 initial players, a shared sixteen-club cup, recorded sporting tie-breaks, automatic three-up/three-down outcomes, division-specific prize settlement for every club, atomic membership exchange and regenerated schedules at next-season preparation. Membership and fixtures are validated against one another; club statistics reconcile to league results and frozen movement reconciles to final tables. Existing owner contracts, cash, scouting and staff survive relegation. Names, ability range, exchange count, prize multiplier and cup dates are configurable development content.
+
+Interface: switchable live and historical division tables, movement markers, season-close notice and linked career preparation, current/archived cup access, fixture reports and retained latest-report shortcut. Executive styling retained; rendered Premier, Championship, season review and archive layouts inspected. Navigation/read-only checks include 175% zoom.
+
+Compatibility: schema 9 loads schemas 1–8 without editing source files. Existing seasons retain eight clubs, original fixtures and original tie-breaks; expansion happens only at the next boundary without retrospective movement. A genuine v0.10 minute-27 SQLite save generated using the published predecessor resumed with every original top-level field matching except schema. That career completed its old 63-fixture season, archived the original table/cup, then expanded once. Source bytes remained identical and the expanded career roundtripped successfully.
+
+Verification before publication: four focused division tests, 29 UI tests and 13 staff/delegation tests passed. The initial full 117-test run found two regressions: missing report shortcut (restored) and an AI observation test that prepared only the original seven rivals (extended to all rivals). Added five division/domain/UI regressions, bringing the suite to 122. Final complete suite and integrated two-season checks are required on the published head; read the implementation PR for their results and the Windows artifact. Source display smoke, optimized environment check and dependency check passed.
+
+Remaining: two compact fictional divisions, no feeder replacement beneath the Championship, no full 636-club/national content, continental qualification or international calendars. Lower-division prizes are provisionally 50% of Premier awards; rival aggregate income still needs full financial parity. Existing background squad replenishment remains development scaffolding. Full regulation, promotion-linked contract clauses, world setup and release-readiness gates remain open.
+
+Publication: publish under the standing authorization as a PR targeting `game/domestic-cup`, preserving the predecessor chain. Record exact-head CI and Windows package evidence in that PR. Next competition work: national/world content definitions and season-calendar structure, then continental qualification and feeder movement, respecting the full GDD rather than treating the compact world as final scope.
+
 ## PLAY-010 — Domestic Cup Update 0.10
 
 Date: 20 September 2026. Jordan clarified that the task is implementing the GDD into the existing game, not editing the document. Continued from published UI head `844f0719e2641022ac3cfeadcf2d078e04103a95` on `game/domestic-cup`. Read the attached 0.2 baseline, identified the newer living revision 0.3 in the prior checkpoint, and checked its current competition requirements. No GDD edits, engine changes or predecessor merges.
