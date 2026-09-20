@@ -39,7 +39,8 @@ HIDDEN = ('professionalism', 'adaptability', 'consistency', 'ambition', 'injury_
 
 def overall(p, weights=None):
     weights = (weights or WEIGHTS)[p['role']]
-    return max(1, min(100, int(sum(p['attrs'][k] * w for k, w in weights.items()) + .5)))
+    order=tuple(WEIGHTS[p['role']])+tuple(k for k in ATTRIBUTES if k not in WEIGHTS[p['role']])
+    return max(1, min(100, int(sum(p['attrs'][k]*weights[k] for k in order if k in weights)+.5)))
 
 
 def enrich(s, p):
@@ -82,14 +83,18 @@ def report(s, p, source, radius):
     from .simulation import rng_for
     rng = rng_for(s['seed'], f"report:{p['id']}:{s['day']}")
     ranges = {}
-    for k, value in p['attrs'].items():
+    ordered=('passing','finishing','tackling','goalkeeping')
+    ordered=ordered+tuple(k for k in ATTRIBUTES if k not in ordered)
+    for k in ordered:
+        if k not in p['attrs']:continue
+        value=p['attrs'][k]
         estimate = max(1, min(100, round(value + rng.randint(-7, 7))))
         ranges[k] = [max(1, estimate-radius), min(100, estimate+radius)]
     result = dict(day=s['day'], source=source,
                   confidence='Moderate' if radius < 9 else 'Low', ranges=ranges)
     if 'potential' in p:
         weights = s['config']['people']['weights'][p['role']]
-        result['overall'] = [max(1, min(100, round(sum(ranges[k][i]*w for k,w in weights.items())))) for i in (0,1)]
+        result['overall'] = [max(1, min(100, round(math.fsum(ranges[k][i]*w for k,w in weights.items())))) for i in (0,1)]
         estimate = p['potential'] + rng.randint(-8, 8)
         uncertainty = radius + (9 if p['age'] < 21 else 4)
         result['potential'] = [max(1,min(100,estimate-uncertainty)), max(1,min(100,estimate+uncertainty))]
@@ -124,6 +129,9 @@ def process_day(s):
             if medical['stage'] == 'available' and p['club'] == 'c0':
                 news(s, 'Medical clearance', p['name'] + ' is available after rehabilitation and conditioning.')
         recovery = cfg['recovery_base'] + cfg['recovery_fitness_factor']*p['attrs']['natural_fitness']
+        if 'staff' in s and p['club']:
+            medical=[q for q in s['staff']['people'] if q['club']==p['club'] and q['role']=='Medical']
+            if medical:recovery+=max(q['capabilities']['operations'] for q in medical)/100
         if d['load'] == 'Light': recovery += 2
         if d['load'] == 'Intense': recovery -= 2
         p['condition'] = round(min(100, p['condition']+recovery*(.45 if injured else 1)), 3)
@@ -137,6 +145,9 @@ def process_day(s):
             minutes = min(1, d['minutes']/90)
             headroom = max(0, (p['potential']-rating)/20)
             growth = cfg['weekly_growth']*age*min(1,headroom)*load*(.5+p['hidden']['professionalism']/100)*(.65+minutes*.35)*(1+.06*coaching)
+            if 'staff' in s:
+                from .staff import capability
+                growth*=1+(capability(s,p['club'],'coaching')-50)/250
             keys = GROUPS.get(d['focus'], ATTRIBUTES)
             for key in keys:
                 p['attrs'][key] = round(min(100, p['attrs'][key]+growth), 4)

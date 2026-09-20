@@ -1,6 +1,6 @@
-# Football and development engineering parameters
+# Simulation engineering parameters
 
-Version 0.7. These are inspectable implementation details for the fictional compact league, **not a replacement GDD or approval of new full-world rules**. Approved catalogue, potential bands and striker weights follow living GDD revision 0.3 chapters 9–11 and 17. Other weights, rates and league settings are provisional calibration data stored in each career's configuration.
+Version 0.8. These are inspectable implementation details for the fictional compact league, **not a replacement GDD or approval of new full-world rules**. Approved catalogue, potential bands and striker weights follow living GDD revision 0.3 chapters 9–11 and 17. Other weights, rates and league settings are provisional calibration data stored in each career's configuration.
 
 ## Ability and knowledge
 
@@ -40,3 +40,18 @@ Remaining football scope includes richer formations/roles, complete restart and 
 ## Measured calibration sample
 
 Source version 0.7, seeds 0–999, the first compact-league fixture, default rules and no appointed owner-club manager: 1,000 matches averaged 2.591 goals, 19.561 representative shots, 2.527 xG, 3.286 yellows, .329 dismissals, .271 injuries and 5.351 substitutions across both teams. Mean duration was 95.497 minutes; home/draw/away proportions were 42.2%/22.0%/35.8%. Goals per match ranged 0–9. This catches gross balance errors; it is not empirical validation, a full-season injury study or the approved ten 50-season full-world release gate.
+
+
+## Staff, authority and rival clubs (0.8)
+
+The nine departmental roles use ten capability fields from the approved staff model. The compact database contains 27 free candidates and three opening staff per rival club. Initial references use ±12-point ranges, interviews ±6, and own working observations ±3 around a stable noisy estimate. These are implementation tuning, not a claim of precise assessment. The original three-manager hiring desk remains separate.
+
+Owner recruitment takes one day before interview, then two days to join from unemployment or seven days from another club. Employer compensation is four weeks of the old salary, transferred at binding acceptance. New salary is reserved immediately and enters actual payroll on the joining date. Contracts last one to three compact seasons. Notice is the lesser of four weeks' salary and remaining guaranteed salary; paid compensation is not refunded if the new appointment is later cancelled. Forecasts include joining and expiry dates. Actual staff salary is included in each club's existing payroll/accrual model.
+
+Each responsibility consumes 25 of 100 capacity units, permitting at most four per employee. Fully allocated owner staff gain two workload points per week; otherwise workload falls by three, bounded 0–100. Relevant departmental capability is reduced by max(.7, 1 − workload/400). Training growth multiplies by 1 + (coaching capability − 50)/250. Scouting report radius multiplies by 1 − (assessment capability − 50)/150, rounded with a minimum radius of four. A medical lead adds operations capability/100 to daily condition recovery. Other capability effects, richer availability and personality behaviours remain incomplete.
+
+Default delegated authority is £80,000 per department and £300,000 club-wide over a rolling 28 days, with a 365-day duration ceiling. Active conditional reservations remain counted until completed or released, even when older than the rolling period. Employment exposure includes signing/transfer fees and guaranteed wages, less remaining existing base wages for renewals. Academy admission includes the fee and guaranteed salary. Project approval includes construction cost and 365 days of upkeep. Performance bonuses/options cannot be auto-authorised. Owner approval can grant a one-off authority exception but cannot bypass domain affordability, consent, medical or registration checks. Cases expire after seven days. These defaults are configurable saved tuning, not new GDD financial policy.
+
+AI clubs review every seven days. Their wage ceiling is 90% of configured weekly operating income minus configured overheads. Cash cover is three weeks of existing payroll/overheads plus pending wages, alongside all scheduled transfer bills and reserved fees. Appointments and renewals check these same commitments; owner-originated outgoing player deals also enforce the receiving club's limits. Target/max senior squad sizes are 19/20. Player selection uses persisted noisy overall estimates, public role, salary and fee; observation uncertainty depends on assessment staff and refreshes after 28 days. Conditional AI registrations take two days and have an 8% seeded medical-withdrawal chance. Final completion rechecks eligibility and financial commitments, transfers the actual fee, settles sell-on rights, pays signing costs and changes employment/registration. No extra funds are injected to make a transfer succeed.
+
+Rival finances still use the provisional aggregate weekly income introduced in 0.5. Full supporter/commercial economics, complex AI negotiations, manager/staff parity and financially complete long-term population policy are future work. The compact implementation is not the full-world economic or 50-season release gate.

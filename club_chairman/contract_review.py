@@ -55,6 +55,8 @@ def attention(v):
     people = {p['id']: p for p in v['players']}
     for o in v['career']['offers'].values():
         if o['status'] in CLOSED: continue
+        authority=v.get('delegation',{}).get('responsibilities',{}).get('contracts',{})
+        if o.get('delegate') and o['delegate']==authority.get('delegate') and authority.get('mode')=='Autonomous':continue
         p = people[o['player']]
         cutoff = min(o['expires'], v['window_end']) if o['kind'] != 'renew' else min(o['expires'], p['contract_end'] or o['expires'])
         if o['status'] == 'ready' or cutoff - v['day'] <= 1:

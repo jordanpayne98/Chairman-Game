@@ -12,6 +12,7 @@ def run():
         nonlocal s
         s,_=execute(s,Command(f"smoke:{s['revision']}",s['revision'],action,data))
     act('budget',value=4000000);act('hire',id='m1');act('scout',id='p145')
+    act('staff_contact',id='staff:0:0');delegated=False
     act('development_plan',id='p4',focus='Technical',load='Light')
     act('registration_submit',players=list(s['registration']['c0']))
     act('planning',key='shortlist',value=['p145']);act('planning',key='comparison',value=['p145'])
@@ -38,6 +39,16 @@ def run():
     for season in (1,2):
         while not s['season_done']:
             if s['match'] is None:
+                appointment=s['staff']['offers']['staff:0:0']
+                if appointment['status']=='contact' and s['day']>=appointment['interview_due']:
+                    employee=next(p for p in s['staff']['people'] if p['id']=='staff:0:0')
+                    act('staff_interview',id=employee['id'])
+                    act('staff_propose',id=employee['id'],wage=employee['expected_wage']*12//10,duration=3,autonomy='Advisory')
+                    act('staff_accept',id=employee['id'])
+                if not delegated and next(p for p in s['staff']['people'] if p['id']=='staff:0:0')['club']=='c0':
+                    for key in ('executive','recruitment'):
+                        act('delegation_set',key=key,delegate='staff:0:0',mode='Autonomous',limit=8000000,days=365,objective='Maintain')
+                    delegated=True
                 if s['career']['offers']['p20']['status']=='ready':
                     act('complete_offer',id='p20');act('exercise_option',id='p20')
                 for key in (loan_deal['id'],sale_deal['id']):
@@ -81,4 +92,6 @@ def run():
     results=[f['result'] for f in s['fixtures']]
     if not all(m['engine']==2 and m['finished'] for m in results):raise RuntimeError('Football match did not finish')
     if not any(any(e['kind']=='substitution' for e in m['events']) for m in results):raise RuntimeError('Manager substitutions missing')
-    print('Packaged career check passed: football rules and substitutions, registration, player development, bonuses, club option, retained sell-on right, transfers, instalments, sale, loan return, sponsorship, two seasons, negotiations, academy, project, manager replacement, save/resume and 112 fixtures.')
+    if not delegated or not any(e['action']=='decision' for e in s['delegation']['log']):raise RuntimeError('Staff recruitment or autonomous club decisions missing')
+    if not any(d['status']=='completed' for d in s['club_ai']['decisions']):raise RuntimeError('Rival club recruitment did not complete')
+    print('Packaged career check passed: staff interviews and contracts, delegated decisions, rival recruitment, football rules and substitutions, registration, development, bonuses, options, sell-on rights, transfers, instalments, loans, sponsorship, two seasons, academy, facilities, manager replacement, save/resume and 112 fixtures.')

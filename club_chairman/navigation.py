@@ -2,6 +2,7 @@
 SCREENS=('Overview','Inbox','Squad','Staff','Recruitment','Contracts','Transfers','Commercial',
          'Academy','Facilities','Finances','League','Matchday','Career','Settings','Help','Activity')
 HELP={
+    'staff people recruitment interview appointment delegation responsibilities approvals authority capacity':'Staff',
     'cash budget payroll funding forecast':'Finances',
     'registration eligibility suspension injury fitness training':'Squad',
     'signing renewal bonus option release employment':'Contracts',

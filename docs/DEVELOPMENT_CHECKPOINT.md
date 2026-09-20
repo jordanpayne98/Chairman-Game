@@ -1,5 +1,25 @@
 # Development checkpoint
 
+## PLAY-008 — Staff and Delegation Update 0.8
+
+Date: 20 September 2026. Continued authorised work toward the finished game from PR #9 / 0.7 head `fe6775272fea1c42c15ba2801789604239cbafdb`. Current living GDD revision 0.3 staff/authority/scouting sections and approved visual references informed the work. No design-document replacement, scope removal or full-AA completion claim. Branch: `game/staff-delegation`.
+
+Implemented: nine departmental staff roles with ten assessed capabilities, candidate search/shortlist, contact/interview/counters, salary/duration/approval terms, compensation and dated starts, wage reservations, renewal and notice. Existing manager workflow retained. Department assignment/capacity, coverage preview, three presets, club and department rolling commitment limits, duration authority, approval cases, cancellation/reassignment, recorded reasons/outcomes and monthly oversight all connect to real simulation commands. Forecasts include dated staff pay and capability effects connect to scouting, coaching and recovery.
+
+Delegates now handle basic recruitment/contracts, training/recovery, academy admissions, sponsorship, requested facilities and club decisions within authority. Guaranteed wages/project upkeep count toward limits; reservations cannot be reused or spending split around the club cap. Domain consent/cash/medical/registration checks still apply. One-off owner approval rechecks authority and terms; duplicate cases cannot pay twice. Staff departure returns work to the owner, cancels unsigned delegated discussions and preserves signed commitments. Finance provides forecasts/briefings; owner capital, budgets and staff appointments remain owner decisions.
+
+Rival clubs review squad needs and persisted uncertain observations, hire/renew staff, renew affordable player contracts and stage player transfers through conditional consent and medical. Real cash/payroll/reservations, existing dated bills and three-week cover constrain decisions. Payments settle between existing accounts, including sell-on beneficiaries. Rival private targets/observations remain hidden; public completed signings appear in the league report. Aggregate income, compressed AI hiring and scheduled population repair remain provisional; complete financial parity is not claimed.
+
+Fixed all three PR #9 findings: weekly baseline sponsorship now precedes same-day transfer bills, outgoing enquiries check the receiving club rather than incorrectly checking the owner's full list, and external availability cannot leak unobserved fitness. Save/resume verification also fixed dictionary-order dependencies in observations and automatic decisions.
+
+Verification: domain coverage of compensation/start/payroll, capacity/protected approval terms, future exposure, split limits, atomic denials, stale/duplicate approvals, departures and signed commitments. A month of delegated work matches the complete state after a mid-month save/resume. AI knowledge/privacy/affordability and prior review fixes are exercised. Rendered staff mouse/keyboard flows, saved drafts, preview purity and 175% zoom reachability were checked; populated profiles/responsibilities/approvals/reports inspected. Genuine 0.7 minute-27 migration preserved original bytes and identical existing football/financial/player records through full time; schema-7 roundtrip passed. Final source and Windows/Linux/package results are recorded in the implementation PR after completion.
+
+Confirmed locally: all 102 regression tests passed, including 13 staff/authority domain tests, five staff input tests and three prior-review regressions. The enhanced two-season / 112-fixture source self-test and headless display smoke passed. Windows/Linux CI and packaged executable results belong in the implementation PR after confirmation.
+
+Schema 7 reads schemas 1–6 and preserves older source saves. Original staff roster/account additions are explicit compact-world fixtures, not reconstructed history. Code remains Git-backed. Jordan's standing authorization covers publishing this update, its PR and Windows build; do not merge existing open branches without instruction.
+
+Next dependency: valid expanded competition/season structures, promotion/relegation and generated cups. Complete staff agreements/capability effects, manager recruitment integration, configurable exclusions, personality/promises, full clauses, financial parity, world content, ownership/groups/succession, production UI/assets/accessibility and all release gates remain on RELEASE_READINESS.md. Continue from this implementation; the full game remains unfinished.
+
 ## PLAY-007 — Football and Development Update 0.7
 
 Date: 20 September 2026. Jordan requested continued work toward the finished, polished game. Current living GDD revision 0.3 and both approved visual references were inspected. This integrated branch starts from the verified 0.6 head `1defdf784a7465f8615e361a02aa6136de90b5d3`, including PR #8 and its 0.5 foundation. No GDD changes, scope removal or full-AA completion claim.

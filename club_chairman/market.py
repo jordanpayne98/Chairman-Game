@@ -59,7 +59,9 @@ def wage_for(s,p,cid,day=None):
     return p['wage'] if p['club']==cid and (p['contract_end'] is None or day<=p['contract_end']) else 0
 
 
-def club_payroll(s,cid):return sum(wage_for(s,p,cid) for p in s['players'])+(s['manager']['wage'] if cid=='c0' and s['manager'] else 0)
+def club_payroll(s,cid):
+    from .staff import payroll
+    return sum(wage_for(s,p,cid) for p in s['players'])+(s['manager']['wage'] if cid=='c0' and s['manager'] else 0)+payroll(s,cid)
 
 
 def can_release(s,p,cid):
@@ -85,16 +87,19 @@ def upfront_for_offer(s,o):
 
 def extra_reservations(s,cid='c0',exclude=None):
     deals=[d for d in s['market']['deals'].values() if d['id']!=exclude and d['status'] in ('medical','ready') and d['target']==cid]
-    return sum(d['fee'] for d in deals),sum(d['wage_cost'] for d in deals)
+    ai=[d for d in s.get('club_ai',{}).get('decisions',[]) if d['club']==cid and d['status']=='medical' and d['id']!=exclude]
+    return sum(d['fee'] for d in deals)+sum(d['fee']+d['signing_fee'] for d in ai),sum(d['wage_cost'] for d in deals)+sum(d['wage'] for d in ai)
 
 
 def registration_check(s,p,cid):
     from .simulation import require
+    from .club_ai import pending_for
     from .career import window_end
     require(s['match'] is None,'Finish matchday before changing registration.')
     require(not s['season_done'] and s['day']<=window_end(s),'The registration window is closed.')
     require(not p['retired'] and not p['youth'],'Only active senior players can use this market.')
     require(active_loan(s,p['id']) is None,'Resolve the existing loan before another registration change.')
+    require(pending_for(s,p['id']) is None,'This player has a conditional agreement elsewhere. Wait for its outcome.')
     require(cid in {c['id'] for c in s['clubs']},'Unknown destination club.')
     registration.check_arrival(s,p,cid)
 
@@ -181,13 +186,14 @@ def apply(s,action,data):
     require(s['match'] is None,'Finish matchday before changing club agreements.')
     cfg=s['config']['market'];day=s['day']
     if action in ('club_enquire','sale_enquire','loan_enquire'):
-        p=person(s,data.get('id'));registration_check(s,p,'c0')
+        p=person(s,data.get('id'))
         require(active_deal(s,p['id']) is None,'A club discussion is already open for this person.')
         o=s['career']['offers'].get(p['id']);require(not o or o['status'] in TERMINAL,'Resolve the existing personal contract discussion first.')
         require(p['club'] is not None,'Free agents negotiate directly in Contracts.')
         buying=p['club']!='c0';source=p['club'];target='c0' if buying else data.get('club')
         require(target in s['market']['accounts'] or target=='c0','Select a receiving club.')
         require(target!=source,'Choose a different club.')
+        registration_check(s,p,target)
         require(can_release(s,p,source),'The current club must retain its minimum senior squad and goalkeeper cover.')
         kind='buy' if action=='club_enquire' else 'sale' if action=='sale_enquire' else 'loan'
         require((kind!='buy' or buying) and (kind!='sale' or not buying),'Use the correct transaction for this registration.')
@@ -273,6 +279,11 @@ def apply(s,action,data):
         fees,wages=reservations(s) if d['target']=='c0' else extra_reservations(s,d['target'])
         require(club_cash(s,d['target'])-fees-d['fee']>=s['config']['operating_buffer'],'The receiving club has insufficient unreserved cash.')
         if d['target']=='c0':require(club_payroll(s,'c0')+wages+d['wage_cost']<=s['budget'],'Incoming loan exceeds wage capacity.')
+        elif 'club_ai' in s:
+            from .club_ai import budgets
+            b=budgets(s,d['target'])
+            require(club_payroll(s,d['target'])+wages+d['wage_cost']<=b['wage_limit'],'The receiving club cannot authorise these wages.')
+            require(club_cash(s,d['target'])-fees-d['fee']-b['bills']>=b['reserve']+d['wage_cost']*s['config']['club_ai']['reserve_weeks'],'The receiving club must retain cover for its existing bills and running costs.')
         d.update(status='medical',due=day+cfg['medical_days'])
         d['transcript'].append('Player: Temporary placement agreed.' if d['kind']=='loan' else 'Player: The receiving club employment terms are accepted.')
         return 'Consent recorded and medical booked. Receiving-club capacity reserved.'
@@ -280,6 +291,11 @@ def apply(s,action,data):
     fees,wages=reservations(s) if d['target']=='c0' else extra_reservations(s,d['target'])
     require(club_cash(s,d['target'])-fees>=s['config']['operating_buffer'],'Receiving-club cash changed; revise funding first.')
     if d['target']=='c0':require(club_payroll(s,'c0')+wages<=s['budget'] and s['manager'] is not None,'Incoming loan lacks manager or wage capacity.')
+    elif 'club_ai' in s:
+        from .club_ai import budgets
+        b=budgets(s,d['target'])
+        require(club_payroll(s,d['target'])+wages<=b['wage_limit'],'The receiving club’s payroll authority changed.')
+        require(club_cash(s,d['target'])-fees-b['bills']>=b['reserve'],'The receiving club must retain its committed cash cover.')
     transfer_cash(s,d['id']+':fee',d['target'],d['source'],d['fee'],'Loan fee' if d['kind']=='loan' else 'Player transfer')
     if d['kind']=='loan':
         if d.get('days') is not None:d['end']=day+d['days']

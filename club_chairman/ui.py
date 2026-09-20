@@ -15,6 +15,7 @@ from .career_ui import CareerScreens
 from .business_ui import BusinessScreens
 from .football_ui import FootballScreens
 from .navigation import NavigationScreens
+from .staff_ui import StaffScreens
 from .football import finished as match_finished
 from .contract_review import attention
 from .presentation import crest, portrait, Soundscape
@@ -27,11 +28,11 @@ WIDTH,HEIGHT=1440,900
 def money(v):return f'£{v/100:,.0f}'
 
 
-class App(CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
+class App(StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
     def __init__(self,save_root=None):
         pygame.display.init();pygame.font.init()
         self.window=pygame.display.set_mode((1280,800),pygame.RESIZABLE)
-        pygame.display.set_caption('Club Chairman — Football & Player Development 0.7')
+        pygame.display.set_caption('Club Chairman — Staff & Delegation 0.8')
         self.canvas=pygame.Surface((WIDTH,HEIGHT))
         self.fonts={}
         self.state=None;self.v=None;self.screen='Home';self.buttons=[];self.focus=0;self.running=True
@@ -44,6 +45,8 @@ class App(CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
         self.market_scope='Free agents';self.market_id=None;self.market_draft=None;self.market_tab='Deals'
         self.outgoing_player=None;self.outgoing_kind='sale';self.sponsor_right=None;self.sponsor_draft=None
         self.profile_tab='Attributes';self.registration_draft=None
+        self.staff_tab='Manager';self.staff_person=None;self.staff_draft=None;self.staff_scope='Candidates';self.staff_role='All roles'
+        self.responsibility=None;self.authority_draft=None;self.staff_league=False
         self.key_events_only=False;self.offer_id=None;self.offer_draft=None;self.offer_tab='Terms';self.offer_archive=None;self.history_season=None;self.load_cache=None
         self.reduced_motion=False;self.tooltips_enabled=True;self.explain_focus=False;self.help_regions=[]
         self.hover_key=None;self.hover_since=0;self.goal_until=0;self.last_score=None
@@ -90,7 +93,7 @@ class App(CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
         self.help_regions.append((r,self.control_help(label,enabled),idx))
 
     def position(self):
-        return {key:getattr(self,key) for key in ('screen','page','profile','search','role','sort','descending','only_shortlist','tab','match_report','profile_ids','offer_id','offer_draft','offer_tab','offer_archive','history_season','market_scope','market_id','market_draft','market_tab','outgoing_player','outgoing_kind','sponsor_right','sponsor_draft','profile_tab','registration_draft')}
+        return {key:getattr(self,key) for key in ('screen','page','profile','search','role','sort','descending','only_shortlist','tab','match_report','profile_ids','offer_id','offer_draft','offer_tab','offer_archive','history_season','market_scope','market_id','market_draft','market_tab','outgoing_player','outgoing_kind','sponsor_right','sponsor_draft','profile_tab','registration_draft','staff_tab','staff_person','staff_draft','staff_scope','staff_role','responsibility','authority_draft','staff_league')}
 
     def restore_position(self,position):
         for key,value in position.items():
@@ -109,6 +112,8 @@ class App(CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
         except OSError:self.message='Could not save interface preferences.'
 
     def reset_workspace(self,views=None):
+        self.staff_tab='Manager';self.staff_person=None;self.staff_draft=None;self.staff_scope='Candidates';self.staff_role='All roles'
+        self.responsibility=None;self.authority_draft=None;self.staff_league=False
         self.views=views if isinstance(views,dict) else {};self.history=[];self.forward=[];self.undo=None;self.editor=None
         self.market_scope='Free agents';self.market_id=None;self.market_draft=None;self.market_tab='Deals';self.outgoing_player=None;self.outgoing_kind='sale';self.sponsor_right=None;self.sponsor_draft=None
         self.notification_log=[];self.message_seen='';self.offer_id=None;self.offer_draft=None;self.offer_tab='Terms';self.offer_archive=None;self.history_season=None;self.last_score=None;self.goal_until=0
@@ -216,10 +221,14 @@ class App(CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
 
     def continue_day(self):
         before={(r['player'],r['label']) for r in attention(self.v)}
+        prior_cases={c['id'] for c in self.v['delegation']['cases']}
         if self.command('continue'):
             if self.v['match']:self.nav('Matchday');self.match_report=None;self.page=0;self.batch=False
             elif self.v['decision']:self.nav('Overview');self.batch=False
             elif self.batch:
+                pending=[c for c in self.v['delegation']['cases'] if c['id'] not in prior_cases and c['status']=='pending']
+                if pending:
+                    self.batch=False;self.nav('Staff');self.staff_section('Approvals');self.message='A new staff proposal needs your review.';return
                 urgent=[r for r in attention(self.v) if (r['player'],r['label']) not in before]
                 if urgent:
                     self.batch=False;self.business_attention(urgent[0])
@@ -261,7 +270,7 @@ class App(CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
 
     def home(self):
         self.text('CLUB CHAIRMAN',100,100,60)
-        self.text('FOOTBALL & PLAYER DEVELOPMENT 0.7  /  NORTHSHIRE LEAGUE',104,170,25,GREEN)
+        self.text('STAFF & DELEGATION 0.8  /  NORTHSHIRE LEAGUE',104,170,25,GREEN)
         self.wrap('Take the chair at Northbridge Athletic. Appoint your manager, strengthen the squad and balance ambition against the club bank account.',104,225,770,29,TEXT)
         self.wrap('An evolving ownership game: continuing seasons, contracts, academy development and facility investment in a compact fictional league. The full AA world remains in development.',104,330,800,24)
         if self.screen=='Load':
@@ -382,7 +391,7 @@ class App(CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
             self.wrap(n['body'],x+18,y+49,1350-x,22)
         self.pager(x,785,len(rows),4)
 
-    def draw_staff(self,x):self.staff_screen(x)
+    def draw_staff(self,x):StaffScreens.draw_staff(self,x)
 
     def draw_squad(self,x):
         if self.tab=='Registration' and not self.profile:self.registration_screen(x)

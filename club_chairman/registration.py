@@ -32,6 +32,8 @@ def reserved(s,cid,exclude=None):
         if cid=='c0' and o['kind']!='renew' and o['status'] in ('medical','ready'):ids.add(o['player'])
     for d in s['market']['deals'].values():
         if d['target']==cid and d['status'] in ('medical','ready'):ids.add(d['player'])
+    for d in s.get('club_ai',{}).get('decisions',[]):
+        if d['club']==cid and d['status']=='medical':ids.add(d['player'])
     ids.discard(exclude)
     return [p for p in s['players'] if p['id'] in ids and p['club']!=cid]
 

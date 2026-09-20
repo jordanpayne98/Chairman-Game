@@ -156,7 +156,7 @@ class CareerScreens(ClauseScreens):
                 else:
                     self.confirm('Replace '+m['name']+' with '+c['name'],f"Immediate notice payment {money(cost)} plus signing fee {money(c['fee'])}. New weekly salary {money(c['wage'])} through next season. Existing player contracts and accrued payroll remain. The working relationship with the new manager starts afresh.",lambda:self.command('manager_replace',id=c['id'],duration=2))
             self.button('Appointed' if current else 'Review '+candidate['name'],(1110,y+34,270,44),review,not current and not v['match'])
-        self.text('Candidate styles are public. Staff interviews and wider department recruitment remain in development.',x,797,21,MUTED)
+        self.text('Open People for departmental recruitment, then Responsibilities to allocate capacity and authority.',x,797,21,MUTED)
 
     def draw_career(self,x):
         v=self.v;self.panel(x,195,1400-x,190,'Career journal')
@@ -260,6 +260,15 @@ class CareerScreens(ClauseScreens):
         self.sound.volume=0 if self.sound.volume>0 else .22;self.save_preferences()
 
     def control_help(self,label,enabled):
+        staff_hints={
+            'Review coverage':'Preview advisory assignments based on observed capabilities and available capacity. Authority remains manual until you approve a mode change.',
+            'Review responsibility':'Review the named delegate, 28-day commitment allowance, duration limit and objective before applying them.',
+            'Review staff appointment':'Use the candidate’s latest agreed terms. Compensation is paid now; future salary is reserved and starts on the joining date.',
+            'Review staff dismissal':'Preview notice pay and coverage gaps. Signed obligations remain; unsigned delegated work is cancelled.',
+            'Review proposal':'Review one staff action, its reason, guaranteed exposure and duration. Approval is explicit even when it exceeds delegated limits.',
+            'Executive':'Preview automatic action by appointed staff within department and club limits. Protected approval clauses and vacancies still require you.',
+        }
+        if label in staff_hints:return staff_hints[label]
         hints={
             'Registration':'Review your competition list, reserved arrivals and eligibility. Unlisted players remain paid. Confirm edits before the deadline.',
             'Search':'Search known people, departments and help with Ctrl+K. Results open screens without committing any action.',

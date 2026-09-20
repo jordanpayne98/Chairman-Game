@@ -108,6 +108,8 @@ class MarketTests(unittest.TestCase):
         self.assertEqual(payroll(self.s),wages)
         with self.assertRaises(ValueError):self.act('loan_recall',id=d['id'])
     def test_no_last_keeper_sale_or_unfunded_counterparty(self):
+        # Give the buyer wage room so this fixture isolates keeper/cash guards.
+        self.s['config']['club_ai']['payroll_income_percent']=100
         self.act('sale_enquire',id='p0',club='c1');d=next(reversed(self.s['market']['deals'].values()))
         self.act('market_accept',id=d['id']);self.progress(2);self.act('market_complete',id=d['id'])
         with self.assertRaises(ValueError):self.act('sale_enquire',id='p1',club='c2')

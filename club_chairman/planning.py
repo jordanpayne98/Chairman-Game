@@ -99,6 +99,10 @@ def forecast(v, players=(), horizon=28):
         bills-=sum(c['deferred'] for c in terms['contracts'] if v['day']+c['defer_days']==day)
         sponsorship+=sponsor;cash+=sponsor+bills;low+=sponsor+bills;high+=sponsor+bills
         manager=v['manager'];committed+=manager['wage'] if manager and manager.get('contract_end',end)>=day else 0
+        for employee in v.get('staff',{}).get('people',[]):
+            pending=employee.get('pending')
+            if pending and pending['club']=='c0' and pending['start']<=day<=pending['end']:committed+=pending['wage']
+            elif employee['club']=='c0' and employee['start']<=day<=employee['end']:committed+=employee['wage']
         extra=sum(p['upkeep'] for p in v.get('career',{}).get('projects',[]) if p['status']=='construction' and p['due']<=day)
         accrued += committed+sum(c['wage'] for c in terms['contracts'] if c['end']>=day)+v['terms']['weekly_overheads']+extra
         if day % 7 == 0:

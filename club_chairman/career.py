@@ -4,7 +4,7 @@ Domain functions operate only on the caller's uncommitted state copy. Simulation
 imports are local to keep the existing match engine separate from career policy.
 """
 from copy import deepcopy
-from . import market, clauses, people, registration
+from . import market, clauses, people, registration, staff, club_ai
 
 CAREER_DEFAULTS = dict(season_gap=14, offer_lifetime=7,
                       medical_days=2, manager_notice_weeks=4, academy_trial_fee=200000,
@@ -45,7 +45,7 @@ def available_capacity(s):
 def reservations(s,exclude=None):
     deals=[o for key,o in s['career']['offers'].items() if key!=exclude and o['status'] in ('medical','ready')]
     fees,wages=market.extra_reservations(s) if 'market' in s else (0,0)
-    return fees+sum(o['fee']+market.upfront_for_offer(s,o) for o in deals),wages+sum(o['wage_delta'] for o in deals)
+    return fees+sum(o['fee']+market.upfront_for_offer(s,o) for o in deals),wages+sum(o['wage_delta'] for o in deals)+staff.reservations(s)
 
 
 def manager_severance(s):
@@ -112,7 +112,8 @@ def process_day(s):
             if p['club']=='c0':
                 clauses.release(s,p['id'],'c0')
                 p['club']=None;p['youth']=False;news(s,'Player contract expired',p['name']+' is now a free agent. No renewal was signed.')
-            else:p['contract_end']=season_end(s)  # Existing AI preview-club retention policy.
+            else:
+                employer=p['club'];clauses.release(s,p['id'],employer);p['club']=None;p['youth']=False
     if s['manager'] and day>s['manager']['contract_end']:
         name=s['manager']['name'];s['manager']=None
         news(s,'Manager contract expired',name+' has left. Appoint a manager before advancing again.')
@@ -158,6 +159,7 @@ def apply(s,action,data):
     if action=='enquire':
         require(s['match'] is None,'Contract discussions pause during matchday.')
         p=person(s,data.get('id'));require(not p['retired'] and not p['youth'],'Only active senior players can negotiate here.')
+        require(club_ai.pending_for(s,p['id']) is None,'This player has accepted a conditional offer elsewhere; wait for its outcome.')
         require(market.active_loan(s,p['id']) is None,'Resolve the loan before negotiating a permanent contract.')
         deal=market.transfer_deal(s,p['id'])
         require(p['club'] in (None,'c0') or deal is not None,'Agree selling-club terms in Transfers first.')
@@ -311,7 +313,6 @@ def apply(s,action,data):
         for p in s['players']:
             p['career_goals']+=p['goals'];p['career_appearances']+=p['appearances'];p['goals']=0;p['appearances']=0
             loan=market.active_loan(s,p['id'])
-            if p['club'] not in (None,'c0') and not loan:p['contract_end']=c['start']+96
             if p['age']>=36 and p['club']!='c0' and not loan:p['retired']=True;p['club']=None
             if p['youth'] and p['club'] is None:p['retired']=True
         # Keep opponents playable. Scheduled background entrants have new identities.

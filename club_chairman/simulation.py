@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career, market, commercial, clauses, people, registration, football
+from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai
 from .football import finished as match_finished
 
 
@@ -19,6 +19,7 @@ class Command:
     payload: dict
     actor: str = 'owner'
     scope: str = 'c0'
+    responsibility: str = ''
 
 
 def definition():
@@ -83,7 +84,8 @@ def new_career(seed=42):
     commercial.initialise(world)
     clauses.initialise(world)
     people.initialise(world);registration.initialise(world);football.initialise(world)
-    world['schema']=6
+    staff.initialise(world);delegation.initialise(world);club_ai.initialise(world)
+    world['schema']=7
     for p in world['players']:
         if p['club']:p['contract_end']=316
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
@@ -92,6 +94,8 @@ def new_career(seed=42):
 
 
 def make_report(s, p, source='Recruitment analyst', radius=9):
+    if source=='Recruitment analyst' and 'staff' in s:
+        radius=max(4,round(radius*(1-(staff.capability(s,'c0','ability_assessment')-50)/150)))
     return people.report(s,p,source,radius)
 
 
@@ -135,11 +139,16 @@ def execute(state, command):
         require(prior['action'] == command.action and prior['payload'] == command.payload, 'Command ID reused for different work.')
         return state, prior['message']
     require(command.revision == state['revision'], 'The career changed. Review and try again.')
-    require(command.actor == 'owner' and command.scope == 'c0', 'This action is outside your authority.')
+    require(command.scope=='c0','This action is outside your authority.')
     s = deepcopy(state)
     prior_clubs={p['id']:p['club'] for p in s['players'] if not p['youth']}
-    message = apply(s, command.action, command.payload)
+    if command.actor=='owner':message=apply(s,command.action,command.payload)
+    else:
+        rule=s['delegation']['responsibilities'].get(command.responsibility)
+        require(rule and rule['delegate']==command.actor,'This action is outside your authority.')
+        message=delegation.perform(s,command.responsibility,command.action,command.payload,'Authorised staff command.')
     registration.sync(s,prior_clubs)
+    delegation.reconcile(s)
     s['revision'] += 1
     s['receipts'][command.id] = dict(action=command.action, payload=deepcopy(command.payload), message=message)
     validate(s)
@@ -148,6 +157,10 @@ def execute(state, command):
 
 def apply(s, action, payload):
     cfg = s['config']
+    result=staff.apply(s,action,payload)
+    if result is not None:return result
+    result=delegation.apply(s,action,payload)
+    if result is not None:return result
     result=people.apply(s,action,payload)
     if result is not None:return result
     result=registration.apply(s,action,payload)
@@ -239,18 +252,21 @@ def apply(s, action, payload):
         s['day']=tomorrow
         previous_clubs={p['id']:p['club'] for p in s['players'] if not p['youth']}
         commercial.process_day(s)
+        if tomorrow % 7 == 0:
+            posting(s, f'sponsor:{tomorrow}', cfg['weekly_sponsor'], 'Weekly sponsorship')
         market.process_day(s)
         career.process_day(s)
+        staff.process_day(s)
         people.process_day(s)
+        club_ai.process_day(s)
         registration.sync(s,previous_clubs)
         market.accrue_accounts(s)
         if tomorrow % 7 == 0:
             due = (s['accrued_costs'] + payroll(s) + cfg['weekly_overheads']) // 7
-            require(s['cash'] + cfg['weekly_sponsor'] >= due, 'Payroll shortfall: inject owner funds before Continue. No unpaid day has advanced.')
+            require(s['cash'] >= due, 'Payroll shortfall: inject owner funds before Continue. No unpaid day has advanced.')
         s['day'] = tomorrow
         s['accrued_costs'] += payroll(s) + cfg['weekly_overheads']
         if tomorrow % 7 == 0:
-            posting(s, f'sponsor:{tomorrow}', cfg['weekly_sponsor'], 'Weekly sponsorship')
             posting(s, f'payroll:{tomorrow}', -(s['accrued_costs']//7), 'Accrued payroll and operations')
             s['accrued_costs'] %= 7
         clauses.settle_payables(s)
@@ -266,6 +282,7 @@ def apply(s, action, payload):
                 cost=150000 if season_day in (3,45) else 350000, morale=2 if season_day in (3,45) else 7,
                 supporters=7 if season_day in (3,45) else 1)
             news(s, 'Chairman decision required', s['decision']['title'])
+        delegation.process_day(s)
         fixtures = [f for f in s['fixtures'] if f['day']==tomorrow]
         if fixtures:
             require(s['manager'] is not None,'Appoint a manager before the fixture.')
@@ -415,7 +432,8 @@ def settle_matchday(s):
 
 
 def validate(s):
-    require(s.get('schema')==6,'Unsupported save schema. This build supports schema 6.')
+    require(s.get('schema')==7,'Unsupported save schema. This build supports schema 7.')
+    staff.validate(s);delegation.validate(s);club_ai.validate(s)
     people.validate(s);registration.validate(s)
     clauses.validate(s)
     market.validate(s)
@@ -451,7 +469,7 @@ def view(s):
             for key in ('condition','fatigue','sharpness','morale','medical'):row[key]=None
         upcoming=next((f for f in s['fixtures'] if 'c0' in (f['home'],f['away']) and f['result'] is None),None)
         opponent=(upcoming['away'] if upcoming['home']=='c0' else upcoming['home']) if upcoming else None
-        row['availability']=registration.reason(s,p,p['club'],opponent if p['club']=='c0' else None) if p['club'] else 'Free agent'
+        row['availability']=registration.reason(s,p,'c0',opponent) if p['club']=='c0' else 'Free agent' if p['club'] is None else 'Not assessed by your staff'
         row['development']={k:deepcopy(p['development'][k]) for k in ('focus','load','last_day')} if p['club']=='c0' else None
         row['scout_due']=s['scouting'].get(p['id'])
         row['transfer_quote']=market.quote(s,p) if p['club'] not in (None,'c0') else 0
@@ -471,6 +489,9 @@ def view(s):
                 severance=career.manager_severance(s),career_settings=deepcopy(s['config']['career']),project_specs=deepcopy(s['config']['projects']))
     snapshot['market']={k:deepcopy(s['market'][k]) for k in ('deals','loans','obligations')}
     snapshot['registration']=registration.snapshot(s)
+    snapshot['staff']=staff.snapshot(s)
+    snapshot['delegation']=delegation.snapshot(s)
+    snapshot['club_ai']=club_ai.snapshot(s)
     snapshot['commercial']=deepcopy(s['commercial'])
     snapshot['clauses']=clauses.snapshot(s)
     snapshot['clause_settings']=deepcopy(s['config']['clauses'])

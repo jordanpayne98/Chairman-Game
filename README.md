@@ -1,4 +1,4 @@
-# Club Chairman — Football and Development Update (0.7)
+# Club Chairman — Staff and Delegation Update (0.8)
 
 A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic through continuing 14-match seasons in an eight-club fictional development league. This is a playable development version; the approved full AA game is still being built.
 
@@ -15,13 +15,24 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1–0.6 / schema 1–5 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 6. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1–0.7 / schema 1–6 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 7. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
 Ctrl+K opens global search for known players, clubs, departments and help topics. Settings > Interface size cycles through 100/125/150/175% zoom. Mouse wheel pans vertically at larger sizes; Shift+wheel pans horizontally, and keyboard focus follows controls into view. Ctrl+0 restores 100%. This is whole-interface zoom; full responsive text reflow is still pending.
 
-## New in 0.7
+## New in 0.8
+
+- Staff > People adds nine departmental roles, assessed capability ranges, shortlists, next-day interviews, salary counters, contract duration, protected approval terms, dated appointments, renewals and notice payments. Recruiting from another club pays compensation and respects a joining delay. Pending salary counts against your wage limit and dated forecast.
+- Staff > Responsibilities lets you assign available staff, review coverage and apply Hands-on, Balanced or Executive presets. Each department has approval mode, maximum contract duration and a rolling commitment limit; a shared club limit prevents splitting expenditure between departments. Vacancies remain with the owner and your manager still controls match selection and tactics.
+- Delegates can scout, negotiate basic player contracts, maintain training/recovery, admit academy players, negotiate sponsorship, review facilities and handle scheduled club decisions. Future guaranteed wages and project upkeep count toward authority. Cash, consent, medical and registration rules still apply. Bonuses and player options require the normal owner-led Contracts workflow.
+- Staff > Approvals presents exceptions for an explicit, single-use decision. Changed authority or terms invalidate old approvals. Reports explain completed actions, and a monthly digest reconciles decisions and commitments. Staff departure reclaims authority and cancels unsigned delegated work while signed obligations remain binding.
+- Rival clubs review observed player ability, squad needs, staff vacancies, expiring contracts, wage capacity, pending commitments, dated bills and a cash reserve. Transfers pass conditional agreement and medical stages before payment and registration. League activity shows completed public moves, keeping rival targets and assessments private.
+- Fixes from the 0.7 review: weekly sponsorship arrives before same-day transfer bills, outgoing enquiries check the receiving club's registration capacity, and external availability no longer reveals hidden fitness.
+
+To try delegation: appoint a manager, then contact and interview candidates under Staff > People. Sign affordable appointments and advance to their joining dates. In Responsibilities, choose **Review coverage** and review a preset. One employee can cover up to four departments; three employees can cover all nine. Balanced asks you to approve actions; Executive authorises actions within your chosen limits. Watch Approvals and Reports while advancing the career. The original manager hiring workflow remains on Staff > Manager.
+
+## Included from 0.7
 
 - Player profiles show the approved 37 football attributes in Technical, Mental, Physical and Goalkeeping groups, with uncertain position-weighted overall and potential estimates. Stored scouting evidence ages; hidden values are excluded from the interface and search.
 - Development plans connect training focus and load to weekly growth, playing time, fatigue, recovery and quarterly potential reviews. Potential is sampled once and saved. Condition, medical estimates and availability help explain squad selection.
@@ -77,7 +88,7 @@ The 0.4 release used schema 3 with retained offer history; 0.5 carries those rec
 - Contextual hover explanations and keyboard F2 help; financial assumptions available through Why this forecast?; cached presentation snapshots for the expanded screens.
 - Correct forecast settlement during a paused final away match and a verified migration from an actual 0.2 mid-match save.
 
-Full clause coverage, advanced loan restrictions and delegation remain on the release checklist. Senior-player free-agent signings and renewals now share the reviewed contract workflow.
+Full clause coverage, advanced loan restrictions and complete staff/authority behaviour remain on the release checklist. Senior-player free-agent signings and renewals now share the reviewed contract workflow.
 
 ## Included from 0.2
 
@@ -101,7 +112,7 @@ Full clause coverage, advanced loan restrictions and delegation remain on the re
 
 ## Preview boundaries
 
-This is an early playable version, not the finished AA game. The eight-club compact calendar remains development content. Full 14-nation world content, career creation/acquisitions, owner succession, multi-club groups, complete role/scouting/development behaviour, all staff roles/delegation, full transfer/loan clauses and competition rules, complete football/set-piece/tactical models, promotion/cups, complete commercial demand and rights obligations, autonomous AI finances, detailed assets and the remaining accessibility/QoL requirements are still pending. The new career systems are connected playable implementations of a subset of their approved scope.
+This is an early playable version, not the finished AA game. The eight-club compact calendar remains development content. Full 14-nation world content, career creation/acquisitions, owner succession, multi-club groups, complete role/scouting/development behaviour, complete staff agreements, capability effects and group delegation, full transfer/loan clauses and competition rules, complete football/set-piece/tactical models, promotion/cups, complete commercial demand and rights obligations, full AI financial parity, detailed assets and the remaining accessibility/QoL requirements are still pending. The new career systems are connected playable implementations of a subset of their approved scope.
 
 See [release readiness](docs/RELEASE_READINESS.md) for the complete retained scope and [the asset register](docs/ASSET_REGISTER.md) for artwork/audio provenance. No full AA release gate is claimed complete.
 

@@ -188,6 +188,8 @@ class QolInterfaceTests(unittest.TestCase):
 
     def test_sell_on_and_loan_duration_controls_change_reviewed_terms(self):
         a=self.app;a.command('budget',value=4000000);a.command('hire',id='m0')
+        # Keep the receiving club affordable while testing the loan controls.
+        a.state['config']['club_ai']['payroll_income_percent']=100
         a.open_profile('p20');self.click('Club enquiry');self.click('Type: none');self.click('+5%')
         self.click('Send club offer');self.click('Review club consent')
         self.assertIn('15% of the next gross transfer fee',a.modal[1]);self.click('Cancel')
