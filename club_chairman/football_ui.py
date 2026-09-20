@@ -32,6 +32,8 @@ class FootballScreens:
             self.text(label,left+15,267,16,MUTED)
             self.clipped_text(value,left+15,296,width-30,32,GREEN if i==0 else TEXT)
             self.clipped_text(caption,left+15,348,width-30,15,MUTED)
+        name=self.shortlist_name()
+        self.button('List: '+(name if len(name)<=19 else name[:18]+'…'),(970,389,235,38),self.open_shortlists)
         tabs=('Attributes','Goalkeeping','Development','Contract')
         active=self.profile_tab if self.profile_tab in tabs else 'Attributes'
         for i,label in enumerate(tabs):

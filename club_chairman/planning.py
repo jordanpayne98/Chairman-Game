@@ -10,7 +10,7 @@ def dated(v, day):
 
 
 def player_rows(v, recruitment, search='', role='All', only_shortlist=False, sort='Name', descending=False, market_scope='Free agents'):
-    rows = [p for p in v['players'] if ((p['club']!='c0' and (market_scope=='All' or (p['club'] is None)==(market_scope=='Free agents'))) if recruitment else p['club']=='c0')
+    rows = [p for p in v['players'] if ((only_shortlist or (p['club']!='c0' and (market_scope=='All' or (p['club'] is None)==(market_scope=='Free agents')))) if recruitment else p['club']=='c0')
             and (not p.get('retired',False) or only_shortlist) and not p.get('youth',False)
             and search.casefold() in p['name'].casefold()
             and (role == 'All' or p['role'] == role)

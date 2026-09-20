@@ -102,7 +102,7 @@ class CompetitionTests(unittest.TestCase):
         old['day']=5;old['match']=start_match(old,old['fixtures'][0])
         for _ in range(27):football.step(old,old['match'])
         before=deepcopy(old);new=migrate(old)
-        self.assertEqual(old,before);self.assertEqual(new['schema'],10)
+        self.assertEqual(old,before);self.assertEqual(new['schema'],11)
         self.assertIsNone(new['competitions']['cup'])
         for key in ('fixtures','match','players','cash','ledger','career','reports'):self.assertEqual(new[key],old[key],key)
         validate(new)

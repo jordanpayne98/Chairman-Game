@@ -103,3 +103,7 @@ This is a working compact-league foundation. AI clubs still receive provisional 
 4. Complete UI/accessibility/content families and perform full-world simulation, performance, exploit, usability and release gates.
 
 All rows remain part of the approved game. A working screen or one passing test does not close an entire row.
+
+## Recruitment lists milestone 0.13
+
+Q06 now has up to twenty named player shortlists, independent memberships, persistent selection and stable links through transfers/retirement. Q05 has confirmed additions of the current visible page only, with duplicate suppression; this is not general multi-selection, scouting batching or task templates. UQ06 covers exact immediate Undo of membership changes and list create/rename/select/delete, invalidated by later management commands. Existing notes remain shared per player in the current single owned club. Tags, reminders, shortlist rationale/expiry, multi-club scope and other followed entity types remain required.
