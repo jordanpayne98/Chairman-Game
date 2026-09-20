@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career, market, commercial
+from . import career, market, commercial, clauses
 
 
 @dataclass(frozen=True)
@@ -80,6 +80,7 @@ def new_career(seed=42):
     career.initialise(world)
     market.initialise(world)
     commercial.initialise(world)
+    clauses.initialise(world)
     for p in world['players']:
         if p['club']:p['contract_end']=316
     news(world, 'Welcome to Northbridge', 'Appoint a manager, review your wage budget, and request scouting before the first match. The compact eight-club league now continues into further seasons.')
@@ -146,6 +147,8 @@ def execute(state, command):
 
 def apply(s, action, payload):
     cfg = s['config']
+    result=clauses.apply(s,action,payload)
+    if result is not None:return result
     result=market.apply(s,action,payload)
     if result is not None:return result
     result=commercial.apply(s,action,payload)
@@ -206,6 +209,7 @@ def apply(s, action, payload):
         require(s['owner_cash'] >= amount, 'Owner funds are insufficient.')
         s['owner_cash'] -= amount
         posting(s, f"equity:{s['revision']}", amount, 'Owner equity injection')
+        clauses.settle_payables(s)
         return '£50,000 moved from owner funds to club equity.'
     if action == 'decision':
         require(s['decision'] is not None, 'No decision is pending.')
@@ -241,6 +245,7 @@ def apply(s, action, payload):
             posting(s, f'sponsor:{tomorrow}', cfg['weekly_sponsor'], 'Weekly sponsorship')
             posting(s, f'payroll:{tomorrow}', -(s['accrued_costs']//7), 'Accrued payroll and operations')
             s['accrued_costs'] %= 7
+        clauses.settle_payables(s)
         for pid, due in list(s['scouting'].items()):
             if due <= tomorrow:
                 p = next(p for p in s['players'] if p['id']==pid)
@@ -346,7 +351,7 @@ def step_match(s,m):
             m['score'][side]+=1;shooter['goals']+=1
             text=f"GOAL — {shooter['name']} finishes for {s['clubs'][int((m['home'] if side==0 else m['away'])[1:])]['name']}."
         else: text=f"{shooter['name']}: {'saved by the goalkeeper' if target else 'shot off target'}."
-        m['events'].append(dict(minute=m['minute'],text=text,kind='goal' if goal else 'shot'))
+        m['events'].append(dict(minute=m['minute'],text=text,kind='goal' if goal else 'shot',player=shooter['id']))
     if m['minute'] in (45,90):m['events'].append(dict(minute=m['minute'],text='Half time' if m['minute']==45 else 'Full time',kind='period'))
     m['rng']=rng.getstate()
 
@@ -354,6 +359,7 @@ def step_match(s,m):
 def record_result(s,m):
     f=next(f for f in s['fixtures'] if f['id']==m['fixture'])
     if f['result'] is not None:return
+    clauses.record_match(s,m)
     f['result']=deepcopy({k:m[k] for k in ('score','events','shots','on_target','xg','possession','lineups')})
     for side,cid in enumerate([m['home'],m['away']]):
         c=next(c for c in s['clubs'] if c['id']==cid);gf,ga=m['score'][side],m['score'][1-side]
@@ -392,10 +398,12 @@ def settle_matchday(s):
         s['accrued_costs']=0
         s['season_done']=True
         news(s,'Season complete',f'Northbridge finished {position+1} of 8. Review the table and finances. Open Career to review contracts, preserve this season’s history and prepare the next campaign.')
+    clauses.settle_payables(s)
 
 
 def validate(s):
-    require(s.get('schema')==4,'Unsupported save schema. This build supports schema 4.')
+    require(s.get('schema')==5,'Unsupported save schema. This build supports schema 5.')
+    clauses.validate(s)
     market.validate(s)
     commercial.validate(s)
     require(type(s['cash']) is int and type(s['owner_cash']) is int,'Invalid cash data.')
@@ -442,6 +450,8 @@ def view(s):
                 severance=career.manager_severance(s),career_settings=deepcopy(s['config']['career']),project_specs=deepcopy(s['config']['projects']))
     snapshot['market']={k:deepcopy(s['market'][k]) for k in ('deals','loans','obligations')}
     snapshot['commercial']=deepcopy(s['commercial'])
+    snapshot['clauses']=clauses.snapshot(s)
+    snapshot['clause_settings']=deepcopy(s['config']['clauses'])
     snapshot['market_settings']=deepcopy(s['config']['market'])
     snapshot['commercial_settings']=deepcopy(s['config']['commercial'])
     snapshot['terms']['capacity']=career.available_capacity(s)

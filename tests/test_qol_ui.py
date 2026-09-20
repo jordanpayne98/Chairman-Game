@@ -172,3 +172,33 @@ class QolInterfaceTests(unittest.TestCase):
         self.assertEqual(next(p for p in a.v['players'] if p['id']=='p2')['club'],'c1')
         self.click('Back to desk');self.click('Loans');self.click('Review recall');self.click('Confirm')
         self.assertEqual(next(p for p in a.v['players'] if p['id']=='p2')['club'],'c0')
+
+    def test_bonus_option_draft_review_signing_and_extension_controls(self):
+        a=self.app;a.command('budget',value=4000000);a.command('hire',id='m0')
+        a.open_profile('p146');self.click('Negotiate contract');self.click('Clauses')
+        self.click('+',0);self.click('+',1);self.click('Club option: None')
+        draft=dict(a.offer_draft);self.click('Finances');self.click('Contracts')
+        self.assertEqual(a.offer_draft,draft)
+        self.click('Send proposal');self.click('Review conditional acceptance')
+        self.assertIn('£25 per appearance',a.modal[1]);self.assertIn('Club option',a.modal[1]);self.click('Confirm')
+        a.command('continue');a.command('continue');self.click('Review completion');self.click('Confirm')
+        self.click('< Discussions');self.click('Clauses');self.click('Review extension')
+        self.assertIn('Additional guaranteed wages',a.modal[1]);self.click('Confirm')
+        self.assertEqual(a.state['clauses']['employment']['p146']['option_status'],'exercised')
+
+    def test_sell_on_and_loan_duration_controls_change_reviewed_terms(self):
+        a=self.app;a.command('budget',value=4000000);a.command('hire',id='m0')
+        a.open_profile('p20');self.click('Club enquiry');self.click('Type: none');self.click('+5%')
+        self.click('Send club offer');self.click('Review club consent')
+        self.assertIn('15% of the next gross transfer fee',a.modal[1]);self.click('Cancel')
+        self.click('Withdraw deal');self.click('Confirm')
+        a.nav('Squad');a.open_profile('p2');self.click('Review sale');self.click('Request club quote',0)
+        self.click('Type: none');d=a.v['market']['deals'][a.market_id]
+        self.assertEqual(d['sell_on_percent'],10)
+        self.click('Withdraw deal');self.click('Confirm')
+        a.nav('Squad');a.open_profile('p2');self.click('Review loan');self.click('Request club quote',0)
+        self.click('Term -14 days');self.click('Term -14 days');self.click('Term -14 days')
+        self.assertEqual(a.v['market']['deals'][a.market_id]['days'],14)
+        self.click('Review conditional deal');self.click('Confirm')
+        a.command('continue');a.command('continue');self.click('Review registration');self.click('Confirm')
+        loan=a.state['market']['loans'][0];self.assertEqual(loan['end']-loan['start'],14)

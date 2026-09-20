@@ -28,7 +28,7 @@ class App(CareerScreens,BusinessScreens):
     def __init__(self,save_root=None):
         pygame.display.init();pygame.font.init()
         self.window=pygame.display.set_mode((1280,800),pygame.RESIZABLE)
-        pygame.display.set_caption('Club Chairman — Transfer and Commercial Update 0.5')
+        pygame.display.set_caption('Club Chairman — Contract Clauses Update 0.6')
         self.canvas=pygame.Surface((WIDTH,HEIGHT))
         self.fonts={}
         self.state=None;self.v=None;self.screen='Home';self.buttons=[];self.focus=0;self.running=True
@@ -252,7 +252,7 @@ class App(CareerScreens,BusinessScreens):
 
     def home(self):
         self.text('CLUB CHAIRMAN',100,100,60)
-        self.text('TRANSFER AND COMMERCIAL UPDATE 0.5  /  NORTHSHIRE LEAGUE',104,170,25,GREEN)
+        self.text('CONTRACT CLAUSES UPDATE 0.6  /  NORTHSHIRE LEAGUE',104,170,25,GREEN)
         self.wrap('Take the chair at Northbridge Athletic. Appoint your manager, strengthen the squad and balance ambition against the club bank account.',104,225,770,29,TEXT)
         self.wrap('An evolving ownership game: continuing seasons, contracts, academy development and facility investment in a compact fictional league. The full AA world remains in development.',104,330,800,24)
         if self.screen=='Load':
@@ -513,13 +513,13 @@ class App(CareerScreens,BusinessScreens):
         v=self.v
         for i,name in enumerate(('Forecast','Plan','Ledger')):
             self.button(('• ' if self.tab==name else '')+name,(x+i*165,190,150,40),lambda n=name:self.set_finance_tab(n))
-        self.button('Why this forecast?',(1160,190,240,40),lambda:self.confirm('Forecast assumptions','All money is stored in pence. Costs follow committed wages, contract expiry, scheduled project openings and weekly settlement dates. Gate receipts hold current supporter mood and ticket prices, with an attendance sensitivity of ±15%. Signed sponsorship schedules, transfer instalments and loan returns are included. Unaccepted future deals, prizes and unapproved projects are excluded. A pinned plan assumes completion today at the latest agent terms, or indicative demands before negotiation. It excludes a target’s own reservation to avoid double counting; other reservations still constrain affordability. This is a planning estimate, not a guaranteed bank balance.',None))
+        self.button('Why this forecast?',(1160,190,240,40),lambda:self.confirm('Forecast assumptions','All money is stored in pence. Costs follow committed wages, contract expiry, scheduled project openings and weekly settlement dates. Gate receipts hold current supporter mood and ticket prices, with an attendance sensitivity of ±15%. Signed sponsorship schedules, transfer instalments, loan returns and unpaid earned bonuses are included. Future performance bonuses, unused extension options and untriggered sell-on rights are excluded; inspect them in Contracts > Clauses. Unaccepted future deals, prizes and unapproved projects are excluded. A pinned plan assumes completion today at the latest agent terms, or indicative demands before negotiation. It excludes a target’s own reservation to avoid double counting; other reservations still constrain affordability. This is a planning estimate, not a guaranteed bank balance.',None))
         self.panel(x,250,1400-x,142,'Cash and commitments')
         self.text(f"Club cash {money(v['cash'])}   /   Owner funds {money(v['owner_cash'])}",x+20,290,28,GREEN)
         self.text(f"Payroll {money(v['payroll'])} / week   |   Limit {money(v['budget'])}   |   Headroom {money(v['budget']-v['payroll'])}",x+20,334,24)
         self.button('Budget -£2k',(x,410,160,42),lambda:self.command('budget',value=v['budget']-200000))
         self.button('Budget +£2k',(x+170,410,160,42),lambda:self.command('budget',value=v['budget']+200000))
-        self.button('Inject £50,000',(x+340,410,190,42),lambda:self.confirm('Fund the club',f"Transfer £50,000 from your owner funds into club equity? Club cash becomes {money(v['cash']+5000000)}; owner funds become {money(v['owner_cash']-5000000)}. This adds no repayment or weekly cost.",lambda:self.command('fund')),v['owner_cash']>=5000000)
+        self.button('Inject £50,000',(x+340,410,190,42),lambda:self.confirm('Fund the club',f"Transfer £50,000 from your owner funds into club equity? Club cash becomes {money(max(0,v['cash']+5000000-sum(b['amount']-b['paid'] for b in v['clauses']['payables'] if b['source']=='c0')))}; owner funds become {money(v['owner_cash']-5000000)}. Any unpaid earned bonuses settle from the available funds. This equity adds no repayment or weekly cost.",lambda:self.command('fund')),v['owner_cash']>=5000000)
         self.text('Tickets '+money(v['tickets']),x+560,424,23)
         self.button('- £2',(1200,410,88,42),lambda:self.command('tickets',value=v['tickets']-200),not v['match'] and v['tickets']>1000)
         self.button('+ £2',(1300,410,88,42),lambda:self.command('tickets',value=v['tickets']+200),not v['match'] and v['tickets']<3000)

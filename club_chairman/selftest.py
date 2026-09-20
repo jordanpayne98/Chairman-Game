@@ -19,10 +19,10 @@ def run():
     if forecast(snapshot,[target])['cash']>=forecast(snapshot)['cash']:raise RuntimeError('Signing costs missing from forecast')
     # Exercise the new departments in the actual executable as well as unit tests.
     act('club_enquire',id='p20');deal=next(reversed(s['market']['deals'].values()))
-    act('club_propose',id=deal['id'],fee=deal['fee'],upfront_percent=50,defer_days=28)
+    act('club_propose',id=deal['id'],fee=deal['fee'],upfront_percent=50,defer_days=28,sell_on_kind='profit',sell_on_percent=10)
     act('club_accept',id=deal['id']);act('enquire',id='p20')
     target=next(p for p in s['players'] if p['id']=='p20')
-    act('propose_offer',id='p20',wage=target['wage'],fee=target['fee'],duration=3);act('accept_offer',id='p20')
+    act('propose_offer',id='p20',wage=target['wage'],fee=target['fee'],duration=3,appearance_bonus=2500,goal_bonus=5000,club_option=True);act('accept_offer',id='p20')
     act('loan_enquire',id='p2',club='c1');loan_deal=next(reversed(s['market']['deals'].values()))
     act('loan_terms',id=loan_deal['id'],share=75,days=56);act('market_accept',id=loan_deal['id'])
     act('sale_enquire',id='p3',club='c2');sale_deal=next(reversed(s['market']['deals'].values()));act('market_accept',id=sale_deal['id'])
@@ -36,7 +36,8 @@ def run():
     for season in (1,2):
         while not s['season_done']:
             if s['match'] is None:
-                if s['career']['offers']['p20']['status']=='ready':act('complete_offer',id='p20')
+                if s['career']['offers']['p20']['status']=='ready':
+                    act('complete_offer',id='p20');act('exercise_option',id='p20')
                 for key in (loan_deal['id'],sale_deal['id']):
                     if s['market']['deals'][key]['status']=='ready':act('market_complete',id=key)
             project=s['career']['projects'][0]
@@ -70,4 +71,7 @@ def run():
     if s['market']['deals'][deal['id']]['status']!='completed' or s['market']['obligations'][0]['status']!='paid':raise RuntimeError('Transfer or instalment did not complete')
     if s['market']['loans'][0]['status']!='returned':raise RuntimeError('Loan did not return')
     if s['commercial']['contracts'][0]['paid']!=1280000:raise RuntimeError('Sponsorship schedule did not settle exactly')
-    print('Packaged career check passed: transfers, instalments, sale, loan return, sponsorship,  two seasons, negotiations, reservations, academy, completed project, manager replacement, save/resume and 112 fixtures.')
+    if s['clauses']['employment']['p20']['option_status']!='exercised':raise RuntimeError('Club option was not exercised')
+    if not s['clauses']['payables'] or any(b['amount']!=b['paid'] for b in s['clauses']['payables']):raise RuntimeError('Earned bonuses failed to settle')
+    if s['clauses']['sell_on'][0]['percent']!=10:raise RuntimeError('Sell-on right was lost')
+    print('Packaged career check passed: bonuses, club option, retained sell-on right, transfers, instalments, sale, loan return, sponsorship, two seasons, negotiations, academy, project, manager replacement, save/resume and 112 fixtures.')

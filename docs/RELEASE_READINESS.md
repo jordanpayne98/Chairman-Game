@@ -2,7 +2,7 @@
 
 Implementation tracking against the **approved living GDD revision 0.3**. This is an engineering checklist, not a replacement design document, new design approval or a reduced release scope. The full AA game is **not release-ready**. No percentage-complete claim is made.
 
-## Current playable scope: Transfer and Commercial Update 0.5
+## Current playable scope: Contract Clauses Update 0.6
 
 A compact eight-club league continues across seasons, with fourteen weekly rounds and a two-week preseason. This development calendar is not the approved full international football world. Original 0.1/0.2 saves migrate without replacing their source. Their existing contracts retain their actual end dates: review renewals before progressing beyond those dates.
 
@@ -12,7 +12,7 @@ A compact eight-club league continues across seasons, with fourteen weekly round
 | 4–5: owner and group | Finite owner cash separate from club funds | Owner creation, personality, aging/retirement/succession, shares, due diligence, acquisitions and group authority |
 | 6–8: world and competitions | Eight fictional clubs, league table, persistent fixture history | Approved 14-nation / 38-division / 636-club content, history, promotion/relegation, domestic/continental cups, supporting nations and internationals |
 | 9–11: people and knowledge | Four prototype attributes, uncertain delayed reports, hidden-data-safe filtering/comparison | Full attribute catalogue and role models, dynamic potential, richer scouting, staff knowledge and discovery |
-| 12: contracts | Free-agent and own-player negotiations, counteroffers, expiry/cooldown, reserved capacity, medical review, atomic completion, renewal and expiry; club purchases/sales, deferred fees and senior loans with wage sharing, recall refunds and timed return | Complete bonuses/options/sell-on clause catalogue, richer club/player negotiations, competition-specific eligibility, advanced loan restrictions and full transaction coverage |
+| 12: contracts | Free-agent and own-player negotiations, counteroffers, expiry/cooldown, reserved capacity, medical review, atomic completion, renewal and expiry; club purchases/sales, deferred fees and senior loans with wage sharing, recall refunds and timed return; appearance/goal bonuses, a one-season club option, gross/profit sell-on rights and earned bonus payables | Release clauses, player options, conditional transfer/promotion bonuses, wage escalators/relegation reductions and loan purchase clauses, richer club/player negotiations, competition-specific eligibility, advanced loan restrictions and full transaction coverage |
 | 13: academy | Persistent annual trial cohort, individual admissions, wages, promotion from 16, periodic training estimates | Full youth/reserve squads and competitions, regional pools, plans, loans, mature development model and population balance |
 | 14–16: staff and authority | Three manager candidates, renewal/replacement/notice exposure, trust and bench response | Role catalogue, interviews, complex agreements/promises, capacity, delegation presets, autonomy and sparse relationship systems |
 | 17: football | Deterministic possession/chance simulation, live/skip equivalence, commentary, lineups, stored reports | Full football rules, substitutions, cards, injuries/recovery, extra time/penalties, richer tactical reasoning and calibrated outcomes |
@@ -21,12 +21,21 @@ A compact eight-club league continues across seasons, with fourteen weekly round
 | 20: facilities | Training/academy/stand proposals, fixed-price construction, timed closure/opening, capacity/upkeep effects | Full stand/asset records, land/leases, permission/tender/inspection, staged payments, risks/change orders, new ground and rights consistency |
 | 21: dialogue | State-driven contract transcript and factual event inbox | All approved scenario families, voice variations, promises, condition validation and localisation keys |
 | 22–24: interface | Executive shell, dashboard, comparisons, contracts, academy, facilities, history, hints and keyboard help | Complete departmental screens, profile side panels, responsive text scaling, global search and consistent validation/denial coverage |
-| 25–26: data and saves | Snapshot tuning, JSON inside atomic SQLite, checksum verification, backups and migrations 1→2→3→4 | Pack import/conflict tooling, approved mod formats, full normalised/indexed event storage and world-scale performance |
+| 25–26: data and saves | Snapshot tuning, JSON inside atomic SQLite, checksum verification, backups and migrations 1→2→3→4→5 | Pack import/conflict tooling, approved mod formats, full normalised/indexed event storage and world-scale performance |
 | 27–31: delivery and content | Playable versioned milestones and this evidence register | Full staged gates, complete production database/assets/dialogue manifest, historical retention and population datasets |
 | 32: usability/accessibility | Keyboard actions, F2 explanations, safe modal focus, help and reduced motion | Guided onboarding, 100/125/150/175% text-scale workflows, remapping/conflicts, contrast audit and representative playtests |
 | 33: presentation | Original deterministic crests/portraits/stadium diagram, goal emphasis, construction indicator, optional synthesised cues | Finished art direction/assets throughout, kits/competition/milestone art, complete volume controls/ambience, localisation architecture and editorial pass |
 | 34–35: release | Targeted tests, real previous-build save migration, Windows packaging workflow | Ten 50-season full-world runs, performance profile at years 1/10/50, exploit suites, clean offline install and all release gates |
 | 37–39: system/UI QoL | Shortlist/notes/pins, estimates/cost comparisons, forecast, history memory, offer drafts, unread distinction and tooltips | Named lists/scenarios, advanced tables, safe bulk operations, notification policies, saved layouts, calendars, complete recovery browser and all QAT workflows |
+
+## Evidence for the clause milestone
+
+- Bonuses derive from persisted match events, settle once and preserve unpaid balances after expiry/sale. Live, skipped and saved/resumed play agree.
+- Gross/profit resale tests reconcile payer, seller and beneficiary cash, retain original deferred debt, handle loss sales and verify a sell-on receipt during repurchase against the review.
+- Options extend employment once; invalid or changed clauses after conditional consent fail atomically. Save roundtrips retain rights and payments.
+- Loan duration now starts at registration and rechecks employment at completion. Existing signed loan dates remain unchanged.
+- Actual published 0.5 code created a minute-27 save with an active loan. Schema-5 resume matched cash, ledger, people, table, loan dates and legacy match results/commentary; new shooter-ID metadata was excluded from the comparison. Original save bytes were unchanged.
+- Source test and executable build results are recorded in the implementation PR. Physical Windows playtesting and the full AA gates remain open.
 
 ## Evidence for the transfer and commercial milestone
 

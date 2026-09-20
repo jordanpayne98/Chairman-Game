@@ -4,7 +4,7 @@ Domain functions operate only on the caller's uncommitted state copy. Simulation
 imports are local to keep the existing match engine separate from career policy.
 """
 from copy import deepcopy
-from . import market
+from . import market, clauses
 
 CAREER_DEFAULTS = dict(season_gap=14, offer_lifetime=7,
                       medical_days=2, manager_notice_weeks=4, academy_trial_fee=200000,
@@ -109,6 +109,7 @@ def process_day(s):
         p['age']=max(0,(day-p['birth_day'])//365)
         if p['club'] and p['contract_end'] is not None and day>p['contract_end']:
             if p['club']=='c0':
+                clauses.release(s,p['id'],'c0')
                 p['club']=None;p['youth']=False;news(s,'Player contract expired',p['name']+' is now a free agent. No renewal was signed.')
             else:p['contract_end']=season_end(s)  # Existing AI preview-club retention policy.
     if s['manager'] and day>s['manager']['contract_end']:
@@ -200,17 +201,21 @@ def apply(s,action,data):
             require(type(fee) is int and 0<=fee<=10000000,'Signing fee must be £0–£100,000.')
             require(type(duration) is int and 1<=duration<=3,'Choose one to three seasons.')
             end=contractual_end(s,duration);require(end>s['day'] and (o['kind']!='renew' or end>p['contract_end']),'Renewal must extend beyond the existing agreement.')
-            proposal=(wage,fee,duration)
+            extra=clauses.validate_terms(s,data)
+            proposal=(wage,fee,duration,*extra.values())
             require(proposal!=tuple(o.get('last_proposal',[])),'These exact terms were already considered; change the offer or accept the counter.')
             o['last_proposal']=list(proposal);o['rounds']+=1
             rng=rng_for(s['seed'],'contract-priority:'+p['id']);discount=rng.randint(90,103)
             security=1-(duration-1)*.025
             required_wage=round(p['wage']*discount/100*security)
+            if extra['club_option']:required_wage=required_wage*(100+cfg['clauses']['option_wage_premium'])//100
             required_fee=0 if o['kind']=='renew' else p['fee']*.9
             acceptable=wage>=required_wage and fee>=required_fee
             o.update(wage=wage,fee=fee,duration=duration,end=end,expires=s['day']+settings['offer_lifetime'])
+            o.update(extra)
             if o.get('deal_id'):o['expires']=min(o['expires'],s['market']['deals'][o['deal_id']]['expires'])
             o['transcript'].append(f"Chairman: £{wage/100:,.0f}/week, £{fee/100:,.0f} fee, {duration} seasons.")
+            if any(extra.values()):o['transcript'].append('Clauses: '+clauses.description(extra))
             if acceptable:
                 o['status']='agreed';o['transcript'].append('Agent: Those terms work. We can proceed to the medical and registration review.')
             elif o['rounds']>=3:
@@ -237,6 +242,7 @@ def apply(s,action,data):
             o['transcript'].append('Conditional acceptance recorded. Cash and payroll capacity are reserved; employment has not changed.')
             return 'Medical arranged. Capacity reserved until completion, expiry or withdrawal.'
         require(o['status']=='ready','The medical and registration review are not ready.')
+        require(o['kind']!='renew' or o['end']>p['contract_end'],'Renewal no longer extends the current agreement.')
         require(s['manager'] is not None,'Appoint a manager before completing this contract.')
         fees,wages=reservations(s,exclude=p['id']);delta=o['wage']-(p['wage'] if o['kind']=='renew' else 0)
         require(s['cash']-fees-o['fee']-market.upfront_for_offer(s,o)>=cfg['operating_buffer'],'Insufficient unreserved cash at completion.')
@@ -245,6 +251,7 @@ def apply(s,action,data):
         posting(s,o['id'],-o['fee'],'Contract signing fee' if o['kind']!='renew' else 'Contract renewal fee')
         if o['kind']!='renew':s['transfer_spend']+=o['fee']
         p.update(club='c0',wage=o['wage'],contract_end=o['end'],injury_until=max(p['injury_until'],s['day']+o['medical_days']))
+        clauses.sign(s,p,o)
         s['scouting'].pop(p['id'],None)
         if p['id'] not in s['reports']:s['reports'][p['id']]=make_report(s,p,'Coaching staff',5)
         o['status']='completed';o['transcript'].append('Registration complete. The signed terms are now binding.')

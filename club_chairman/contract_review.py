@@ -21,8 +21,11 @@ def review(v, offer, draft=None):
     old_wage = p['wage'] if offer['kind'] == 'renew' else 0
     delta = terms['wage'] - old_wage
     cash_after = v['cash'] - terms['fee']-upfront
+    from .clauses import sell_on_due
+    receipt=sum(amount for right,amount in sell_on_due(v,p['id'],deal.get('source'),deal.get('fee',0)) if right['beneficiary']=='c0') if deal else 0
+    cash_after+=receipt
     headroom = v['budget'] - v['payroll'] - reserved_wages - delta
-    available = cash_after - reserved_cash - v['terms']['operating_buffer']
+    available = cash_after - receipt - reserved_cash - v['terms']['operating_buffer']
     days = max(0, end - v['day'])
     future = terms['wage'] * days // 7
     old_future = old_wage * max(0, (p['contract_end'] or v['day']) - v['day']) // 7
@@ -39,7 +42,7 @@ def review(v, offer, draft=None):
         reasons.append('The medical cannot finish before registration closes.')
     if offer['kind'] == 'renew' and end <= (p['contract_end'] or 0):
         reasons.append('Renewal must extend the existing agreement.')
-    return dict(end=end, future=future, upfront=upfront, deferred=deferred, total=terms['fee'] + upfront + deferred + future,
+    return dict(end=end, future=future, upfront=upfront, deferred=deferred, sell_on_receipt=receipt, total=terms['fee'] + upfront + deferred + future,
                 additional=terms['fee'] + upfront + deferred + future - old_future, wage_delta=delta,
                 cash_after=cash_after, available=available, headroom=headroom,
                 reserved_cash=reserved_cash, reserved_wages=reserved_wages,

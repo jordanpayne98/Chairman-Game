@@ -4,6 +4,7 @@ All commands run inside Simulation's copy-on-commit transaction. Public quotes
 are persisted; opening a screen never rerolls a counterparty response.
 """
 from copy import deepcopy
+from . import clauses
 
 DEFAULTS = dict(asking_multiple=3,minimum_squad=14,minimum_goalkeepers=1,
                 ai_opening_cash=35000000,ai_weekly_income=3000000,ai_weekly_overheads=350000,
@@ -106,6 +107,7 @@ def complete_purchase(s,o):
     require(p['club']==d['source'] and can_release(s,p,d['source']),'The selling club can no longer release this player.')
     require(s['day']<=d['expires'],'The selling-club agreement expired.')
     transfer_cash(s,d['id']+':upfront','c0',d['source'],d['upfront'],'Transfer fee: '+p['name'])
+    clauses.complete_sale(s,d)
     remainder=d['fee']-d['upfront']
     if remainder:
         s['market']['obligations'].append(dict(id=d['id']+':deferred',source='c0',target=d['source'],amount=remainder,
@@ -174,7 +176,7 @@ def validate(s):
 def apply(s,action,data):
     from .simulation import require,news
     from .career import window_end,reservations,person
-    if action not in ('club_enquire','club_propose','club_accept','market_withdraw','sale_enquire','loan_enquire','market_accept','market_complete','loan_recall','loan_terms'):return None
+    if action not in ('club_enquire','club_propose','club_accept','market_withdraw','sale_enquire','sale_terms','loan_enquire','market_accept','market_complete','loan_recall','loan_terms'):return None
     require(s['match'] is None,'Finish matchday before changing club agreements.')
     cfg=s['config']['market'];day=s['day']
     if action in ('club_enquire','sale_enquire','loan_enquire'):
@@ -190,10 +192,11 @@ def apply(s,action,data):
         require((kind!='buy' or buying) and (kind!='sale' or not buying),'Use the correct transaction for this registration.')
         price=quote(s,p) if kind!='loan' else cfg['loan_fee']
         key=f"club:{p['id']}:{s['revision']}"
-        end=min(day+56,p['contract_end']) if kind=='loan' else None
-        if kind=='loan':require(end-day>=cfg['minimum_loan_days'],'Employment expires too soon for this loan.')
+        days=min(56,p['contract_end']-day-cfg['medical_days']) if kind=='loan' else None
+        end=day+cfg['medical_days']+days if kind=='loan' else None
+        if kind=='loan':require(days>=cfg['minimum_loan_days'],'Employment expires too soon for this loan.')
         s['market']['deals'][key]=dict(id=key,player=p['id'],kind=kind,source=source,target=target,status='quote',fee=price,
-            upfront=price,defer_days=28,share=100,end=end,wage_cost=p['wage'],rounds=0,expires=min(day+cfg['quote_days'],window_end(s)),
+            upfront=price,defer_days=28,share=100,end=end,days=days,wage_cost=p['wage'],rounds=0,expires=min(day+cfg['quote_days'],window_end(s)),
             transcript=[f"Club: Proposed {kind}. Fee £{price/100:,.0f}. The player will review employment or temporary placement separately."])
         return 'Club discussion opened. No money, employment or registration has changed.'
     if action=='loan_recall':
@@ -225,10 +228,12 @@ def apply(s,action,data):
         require(type(fee) is int and 0<=fee<=100000000,'Choose a transfer fee between £0 and £1,000,000.')
         require(type(percent) is int and cfg['minimum_upfront_percent']<=percent<=100,'At least half of the transfer fee is payable immediately.')
         require(type(defer) is int and 7<=defer<=cfg['max_installment_days'],'Deferred payment must be due within 7–56 days.')
-        proposal=[fee,percent,defer];require(proposal!=d.get('last_proposal'),'The club has already considered these terms.')
+        sell_on=clauses.validate_sell_on(s,data)
+        proposal=[fee,percent,defer,*sell_on.values()];require(proposal!=d.get('last_proposal'),'The club has already considered these terms.')
         d['last_proposal']=proposal;d['rounds']+=1
         minimum=quote(s,p);accepted=fee>=minimum
         d.update(fee=fee if accepted else minimum,upfront=(fee if accepted else minimum)*percent//100,defer_days=defer,status='agreed' if accepted else 'counter')
+        d.update(sell_on)
         if not accepted and d['rounds']>=3:d['status']='rejected'
         d['transcript'].append('Club: Accepted. Personal terms remain outstanding.' if accepted else 'Club: The minimum fee is our quoted valuation.' if d['status']=='counter' else 'Club: Negotiations ended after three unsuccessful proposals.')
         return 'Club response recorded. No fee has been paid.'
@@ -236,14 +241,23 @@ def apply(s,action,data):
         require(d['kind']=='buy' and d['status'] in ('agreed','counter'),'Submit a club offer first.')
         d['status']='seller_agreed';d['transcript'].append('Club terms agreed subject to personal terms, medical and registration.')
         return 'Selling-club consent recorded. Open personal terms to continue.'
+    if action=='sale_terms':
+        require(d['kind']=='sale' and d['status']=='quote','Only an unaccepted sale quote can change.')
+        sell_on=clauses.validate_sell_on(s,data)
+        # Transparent preview valuation: retained upside reduces today's bid.
+        discount=sell_on['sell_on_percent'] if sell_on['sell_on_kind']=='gross' else sell_on['sell_on_percent']//2
+        fee=quote(s,p)*(100-discount)//100
+        d.update(sell_on,fee=fee,upfront=fee)
+        d['transcript'].append(f"Buyer: £{fee/100:,.0f} with {sell_on['sell_on_percent']}% {sell_on['sell_on_kind']} sell-on terms.")
+        return 'Buyer quote revised. No funds or registration changed.'
     if action=='loan_terms':
         require(d['kind']=='loan' and d['status']=='quote','Only an unaccepted loan quote can change.')
         share=data.get('share');days=data.get('days')
         require(type(share) is int and 50<=share<=100,'The borrower must cover 50–100% of wages.')
         require(type(days) is int and cfg['minimum_loan_days']<=days<=84,'Choose a loan of 14–84 days.')
-        require(day+days<=p['contract_end'],'The loan must finish before employment expires.')
+        require(day+cfg['medical_days']+days<=p['contract_end'],'The loan and medical must fit before employment expires.')
         fee=cfg['loan_fee']+p['wage']*(100-share)*days//700
-        d.update(share=share,end=day+days,fee=fee,upfront=fee,wage_cost=p['wage']*share//100)
+        d.update(share=share,days=days,end=day+cfg['medical_days']+days,fee=fee,upfront=fee,wage_cost=p['wage']*share//100)
         d['transcript'].append('Revised loan quote: reduced recurring wage cover is offset by a larger fee.')
         return 'Loan quote revised. No payment or registration change.'
     require(d['kind'] in ('loan','sale'),'Complete purchases through the personal contract workflow.')
@@ -251,6 +265,9 @@ def apply(s,action,data):
         require(d['status']=='quote','This deal has already been accepted.')
         require(day+cfg['medical_days']<=d['expires'],'Medical checks cannot finish before this offer expires.')
         require(s['manager'] is not None,'Appoint a manager first.')
+        if d['kind']=='loan' and d.get('days') is not None:
+            require(day+cfg['medical_days']+d['days']<=p['contract_end'],'The full loan term no longer fits before employment expires.')
+            d['end']=day+cfg['medical_days']+d['days']
         fees,wages=reservations(s) if d['target']=='c0' else extra_reservations(s,d['target'])
         require(club_cash(s,d['target'])-fees-d['fee']>=s['config']['operating_buffer'],'The receiving club has insufficient unreserved cash.')
         if d['target']=='c0':require(club_payroll(s,'c0')+wages+d['wage_cost']<=s['budget'],'Incoming loan exceeds wage capacity.')
@@ -263,10 +280,12 @@ def apply(s,action,data):
     if d['target']=='c0':require(club_payroll(s,'c0')+wages<=s['budget'] and s['manager'] is not None,'Incoming loan lacks manager or wage capacity.')
     transfer_cash(s,d['id']+':fee',d['target'],d['source'],d['fee'],'Loan fee' if d['kind']=='loan' else 'Player transfer')
     if d['kind']=='loan':
+        if d.get('days') is not None:d['end']=day+d['days']
         require(p['contract_end']>=d['end'] and day<d['end'],'Loan dates no longer fit employment.')
         s['market']['loans'].append(dict(id=d['id'],player=p['id'],source=d['source'],target=d['target'],start=day,end=d['end'],share=d['share'],fee=d['fee'],status='active'))
     else:
         from .career import contractual_end
+        clauses.complete_sale(s,d)
         p['contract_end']=contractual_end(s,2)
     p['club']=d['target'];d.update(status='completed',completed=day)
     d['transcript'].append('Fee settled and registration completed atomically.')

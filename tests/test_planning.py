@@ -52,7 +52,7 @@ class PlanningTests(unittest.TestCase):
                 db.execute('INSERT INTO entities VALUES (?,?)',('world',raw));db.commit()
             finally:db.close()
             original=path.read_bytes();upgraded=load(path)
-            self.assertEqual(path.read_bytes(),original);self.assertEqual(upgraded['schema'],4)
+            self.assertEqual(path.read_bytes(),original);self.assertEqual(upgraded['schema'],5)
             original_finish,_=execute(self.s,Command('end',self.s['revision'],'match_step',{'minutes':90}))
             loaded_finish,_=execute(upgraded,Command('end',upgraded['revision'],'match_step',{'minutes':90}))
             for key in ('fixtures','cash','clubs','players','ledger'):

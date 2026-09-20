@@ -67,7 +67,7 @@ class MarketTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.act('enquire',id=p['id'])
         with self.assertRaises(ValueError):self.act('loan_enquire',id=p['id'],club='c2')
         self.s['config']['capacity']=0;f=forecast(view(self.s),horizon=60)
-        self.progress(57)
+        self.progress(59)
         self.assertEqual(next(p for p in self.s['players'] if p['id']=='p20')['club'],'c1')
         self.assertIsNone(active_loan(self.s,'p20'))
         self.progress(62);self.assertEqual(f['cash'],self.s['cash'])

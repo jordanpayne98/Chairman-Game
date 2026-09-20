@@ -1,6 +1,7 @@
 """Transfer and commercial departments; commands own all state mutations."""
 from .planning import dated
 from .market import TERMINAL
+from .clauses import sell_on_due
 
 TEXT=(231,238,238);MUTED=(159,179,187);GREEN=(98,214,161);RED=(246,150,142)
 def money(n):return f'£{n/100:,.0f}'
@@ -82,11 +83,11 @@ class BusinessScreens:
         self.button('Back to desk',(x,190,180,42),lambda:(setattr(self,'market_id',None),setattr(self,'market_draft',None)))
         self.text(p['name']+' / '+d['kind'].upper()+' / '+d['status'].upper(),x+205,202,27,GREEN)
         self.text(self.club(d['source'])+' to '+self.club(d['target']),x,250,26)
-        self.panel(x,295,565,381,'Club terms')
-        right=x+585;self.panel(right,295,1400-right,381,'Conditions and adviser briefing')
+        self.panel(x,295,565,435,'Club terms')
+        right=x+585;self.panel(right,295,1400-right,435,'Conditions and adviser briefing')
         if d['kind']=='buy':
-            if self.market_draft is None:self.market_draft=dict(fee=d['fee'],upfront_percent=round(d['upfront']*100/max(1,d['fee'])),defer_days=d['defer_days'])
-            editable=d['status'] in ('quote','counter');draft=self.market_draft if editable else dict(fee=d['fee'],upfront_percent=round(d['upfront']*100/max(1,d['fee'])),defer_days=d['defer_days'])
+            if self.market_draft is None:self.market_draft=dict(fee=d['fee'],upfront_percent=round(d['upfront']*100/max(1,d['fee'])),defer_days=d['defer_days'],sell_on_kind=d.get('sell_on_kind','none'),sell_on_percent=d.get('sell_on_percent',0))
+            editable=d['status'] in ('quote','counter');draft=self.market_draft if editable else dict(fee=d['fee'],upfront_percent=round(d['upfront']*100/max(1,d['fee'])),defer_days=d['defer_days'],sell_on_kind=d.get('sell_on_kind','none'),sell_on_percent=d.get('sell_on_percent',0))
             fields=[('fee','Transfer fee',money(draft['fee']),500000),('upfront_percent','Pay now',str(draft['upfront_percent'])+'%',25),('defer_days','Deferred days',str(draft['defer_days']),7)]
             for i,(key,label,value,step) in enumerate(fields):
                 y=355+i*63;self.text(label,x+20,y,25,MUTED);self.text(value,x+235,y,26)
@@ -94,28 +95,39 @@ class BusinessScreens:
                 self.button('+',(x+480,y-8,50,40),lambda k=key,n=step:self.market_edit(k,n),editable)
             self.text('Current club quote: '+money(d['fee']),x+20,556,24)
             self.text('Now '+money(d['upfront'])+' / later '+money(d['fee']-d['upfront']),x+20,596,23)
+            self.sell_on_controls(x+20,638,d,editable)
             y=self.wrap('The transfer fee is separate from the player signing fee and wages. Agreed club terms alone do not sign the player or reserve cash.',right+20,352,1360-right,24,TEXT)
             self.wrap('A deferred fee becomes a dated obligation only when registration completes. It remains due after a sale or season change.',right+20,y+20,1360-right,23,MUTED)
+            self.wrap(('Unsent draft: ' if editable else '')+self.sell_on_text(dict(d,**{k:draft.get(k,d.get(k)) for k in ('sell_on_kind','sell_on_percent')})),right+20,537,1360-right,21,MUTED)
             if editable:self.button('Send club offer',(x,773,205,46),lambda:self.market_send(d),not self.v['match'])
             if d['status'] in ('agreed','counter'):
-                self.button('Review club consent',(x+225,773,240,46),lambda:self.confirm('Agree selling-club terms',f"Fee {money(d['fee'])}: {money(d['upfront'])} at registration and {money(d['fee']-d['upfront'])} after {d['defer_days']} days. Personal terms and medical remain outstanding; no money is paid now.",lambda:self.command('club_accept',id=d['id'])),not self.v['match'])
+                self.button('Review club consent',(x+225,773,240,46),lambda:self.confirm('Agree selling-club terms',f"Fee {money(d['fee'])}: {money(d['upfront'])} at registration and {money(d['fee']-d['upfront'])} after {d['defer_days']} days. Personal terms and medical remain outstanding; no money is paid now. {self.sell_on_text(d)}",lambda:self.command('club_accept',id=d['id'])),not self.v['match'])
             if d['status']=='seller_agreed':self.button('Personal terms',(x,773,230,46),lambda:self.contract_open(p['id']),not self.v['match'])
         else:
             self.text('Club fee '+money(d['fee']),x+20,351,30,GREEN)
             self.text('Weekly wage '+money(d['wage_cost']),x+20,402,25)
             if d['kind']=='loan':
                 self.text('Borrower wage share '+str(d['share'])+'%',x+20,448,23)
-                self.text('Return after '+dated(self.v,d['end']),x+20,488,24)
-                self.button('Wage share -25%',(x+20,541,220,40),lambda:self.command('loan_terms',id=d['id'],share=d['share']-25,days=d['end']-self.v['day']),d['status']=='quote' and d['share']>50)
-                self.button('Wage share +25%',(x+260,541,230,40),lambda:self.command('loan_terms',id=d['id'],share=d['share']+25,days=d['end']-self.v['day']),d['status']=='quote' and d['share']<100)
+                days=d.get('days')
+                self.text((str(days)+' days from registration' if days else 'Legacy end '+dated(self.v,d['end'])),x+20,488,24)
+                self.button('Term -14 days',(x+20,595,220,40),lambda:self.command('loan_terms',id=d['id'],share=d['share'],days=days-14),d['status']=='quote' and days is not None and days>14)
+                self.button('Term +14 days',(x+260,595,230,40),lambda:self.command('loan_terms',id=d['id'],share=d['share'],days=days+14),d['status']=='quote' and days is not None and days<84)
+                self.button('Wage share -25%',(x+20,541,220,40),lambda:self.command('loan_terms',id=d['id'],share=d['share']-25,days=d.get('days') or d['end']-self.v['day']),d['status']=='quote' and d['share']>50)
+                self.button('Wage share +25%',(x+260,541,230,40),lambda:self.command('loan_terms',id=d['id'],share=d['share']+25,days=d.get('days') or d['end']-self.v['day']),d['status']=='quote' and d['share']<100)
                 self.wrap('Lower wage cover increases the upfront fee. Full employer wages resume on return. Early recall refunds the unserved share of the fee. The loan cannot outlast employment.',right+20,354,1360-right,24,TEXT)
-            else:self.wrap('The receiving club must fund the fee and retain player consent. The player keeps their identity and history; employment and registration change together at final completion.',right+20,354,1360-right,24,TEXT)
-            if d['status']=='quote':self.button('Review conditional deal',(x,773,275,46),lambda:self.confirm('Accept conditional '+d['kind'],f"Receiving club {self.club(d['target'])} pays {money(d['fee'])} on completion and carries {money(d['wage_cost'])}/week. Medical and consent checks take {self.v['market_settings']['medical_days']} days. Registration remains unchanged until final review.",lambda:self.command('market_accept',id=d['id'])),not self.v['match'])
-            elif d['status']=='ready':self.button('Review registration',(x,773,260,46),lambda:self.confirm('Complete '+d['kind']+' of '+p['name'],f"Settle {money(d['fee'])} from {self.club(d['target'])} to {self.club(d['source'])}. Move registration and wage responsibility now. This cannot be undone. "+('Early recall refunds the unserved share of the fee. The original employment survives and the player returns after '+dated(self.v,d['end'])+'.' if d['kind']=='loan' else 'The receiving club starts a new employment agreement.'),lambda:self.command('market_complete',id=d['id'])),not self.v['match'])
+            else:
+                self.sell_on_controls(x+20,467,d,d['status']=='quote')
+                owed=sum(amount for _,amount in sell_on_due(self.v,p['id'],d['source'],d['fee']))
+                self.text('Prior sell-on payment '+money(owed),x+20,598,23,MUTED)
+                self.text('Net sale receipt '+money(d['fee']-owed),x+20,641,25,GREEN)
+                self.wrap(self.sell_on_text(d),right+20,505,1360-right,21,MUTED)
+                self.wrap('The receiving club must fund the fee and retain player consent. The player keeps their identity and history; employment and registration change together at final completion.',right+20,354,1360-right,24,TEXT)
+            if d['status']=='quote':self.button('Review conditional deal',(x,773,275,46),lambda:self.confirm('Accept conditional '+d['kind'],f"Receiving club {self.club(d['target'])} pays {money(d['fee'])} on completion and carries {money(d['wage_cost'])}/week. Medical and consent checks take {self.v['market_settings']['medical_days']} days. Registration remains unchanged until final review. {self.sell_on_text(d) if d['kind']=='sale' else str(d.get('days') or 'Legacy')+' days; full duration is checked at registration.'}",lambda:self.command('market_accept',id=d['id'])),not self.v['match'])
+            elif d['status']=='ready':self.button('Review registration',(x,773,260,46),lambda:self.confirm('Complete '+d['kind']+' of '+p['name'],f"Settle {money(d['fee'])} from {self.club(d['target'])} to {self.club(d['source'])}. Move registration and wage responsibility now. This cannot be undone. "+('Early recall refunds the unserved share of the fee. The original employment survives and the player returns after '+dated(self.v,self.v['day']+d['days'] if d.get('days') else d['end'])+'.' if d['kind']=='loan' else 'The receiving club starts a new employment agreement. '+self.sell_on_text(d)+' Existing sell-on payable '+money(owed)+'; net receipt '+money(d['fee']-owed)+'.'),lambda:self.command('market_complete',id=d['id'])),not self.v['match'])
             elif d['status']=='medical':self.text('Medical due '+dated(self.v,d['due'])+'. Continue to the review.',x,791,24,GREEN)
-        self.wrap(d['transcript'][-1],x+20,700,1340-x,22,MUTED)
+        self.wrap(d['transcript'][-1],x+20,742,1340-x,22,MUTED)
         if d['status'] not in TERMINAL:
-            self.text('Consent expires '+dated(self.v,d['expires']),right+20,617,22,MUTED)
+            self.text('Consent expires '+dated(self.v,d['expires']),right+20,691,22,MUTED)
             self.button('Withdraw deal',(1200,773,200,46),lambda:self.confirm('Withdraw club discussion','Release associated reservations and personal discussions. Completed payments and signed contracts are not affected.',lambda:self.command('market_withdraw',id=d['id'])),not self.v['match'])
 
     def sponsor_open(self,right):

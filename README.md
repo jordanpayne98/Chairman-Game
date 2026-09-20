@@ -1,4 +1,4 @@
-# Club Chairman — Transfer and Commercial Update (0.5)
+# Club Chairman — Contract Clauses Update (0.6)
 
 A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic through continuing 14-match seasons in an eight-club fictional development league. This is a playable development version; the approved full AA game is still being built.
 
@@ -15,16 +15,28 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1–0.4 / schema 1–3 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 4. Older executables cannot read these new saves. Existing contracts retain their original expiry dates; renew before advancing beyond them. New careers start with longer contracts to introduce the continuing-season loop. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1–0.5 / schema 1–4 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 5. Older executables cannot read these new saves. Existing contracts retain their original expiry dates; renew before advancing beyond them. New careers start with longer contracts to introduce the continuing-season loop. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
-## New in 0.5
+## New in 0.6
+
+- Contracts > Clauses adds negotiable appearance and goal bonuses plus a one-season club extension option. Changes belong to the sent proposal; conditional or completed terms cannot be silently edited. Agent counters retain the clause package.
+- Earned bonuses settle once per fixture, using player identities in the match event stream. Live, skipped and saved/resumed matches agree. Unpaid amounts remain visible in the clause register, survive employment ending and settle when funding is available. Loan bonuses remain the parent employer's responsibility.
+- The signed clause register shows employment terms, option availability, next-sale rights and earned/paid bonus totals. Exercising a club option previews additional guaranteed wages and cannot be repeated.
+- Club purchase/sale reviews support one gross-proceeds or profit-based sell-on right. A resale pays the original beneficiary atomically; profit uses the full acquisition fee, including deferred instalments. Original instalments remain due after resale. Rights persist through a loan and end at the next permanent transfer or release.
+- Sales display existing sell-on costs and net receipts. Retaining future upside reduces the receiving club's upfront quote. Purchases preserve a clause proposal alongside the fee and schedule.
+- Loan duration controls cover 14–84 days. Newly agreed durations begin at final registration, after the medical, and employment coverage is checked again. This fixes the PR #7 review finding. Existing 0.5 signed loans and pending fixed-date agreements retain their dates.
+- Schema 5 reads schemas 1–4 without inventing past clauses or bonus payments. Guaranteed forecasts include earned unpaid bonuses but exclude unknown future performance, unexercised options and untriggered sell-on rights. Base wage budgets exclude performance bonuses; these are additional cash costs with no lifetime cap.
+
+This milestone does not complete the full clause catalogue. Player options, release clauses, conditional transfer/promotion bonuses, wage escalators/relegation reductions, loan purchase clauses, full nation eligibility and autonomous AI negotiation remain open.
+
+## Included from 0.5
 
 - Recruitment includes contracted players, with retained market filters, scouting, notes, shortlists and authorised comparisons. True abilities remain hidden.
 - Transfers desk: negotiate a selling-club fee, immediate percentage and deferred date, then complete personal terms and medical through Contracts. Club and player consent must both be valid; cash, registration and future obligations commit together.
 - Player sales: select a receiving club, obtain a persisted quote, complete consent/medical checks and confirm registration. Both clubs record the same cash transfer; insufficient counterparty funds or inadequate remaining squad cover blocks completion.
-- Incoming and outgoing senior loans: borrower wage shares from 50–100%, consent, medical and final review, preserved original employment, automatic return and window-limited recall. Early recall refunds the unserved fee proportion, shown before approval. Current UI uses a 56-day quote; shorter employment shortens it. The command model supports 14–84 days.
+- Incoming and outgoing senior loans: borrower wage shares from 50–100%, consent, medical and final review, preserved original employment, automatic return and window-limited recall. Early recall refunds the unserved fee proportion, shown before approval. The default quote is up to 56 days; duration controls allow 14–84 days where employment permits.
 - Dated transfer obligations survive season changes and are paid exactly once. Transfers > Payments lists them. Loans > Review recall shows refunds and returning wage responsibility.
 - Commercial: training, digital and stadium rights; editable income/duration proposals, counteroffers, exclusivity validation, weekly settlements, expiry and naming-rights supporter effects. Active naming rights appear on the ground screen. The legacy core sponsorship remains separate.
 - Forecasts include signed sponsorship schedules, deferred transfer payments and loan wage returns. Proposed acquisitions remain explicitly hypothetical; draft and competing reservations are separated.

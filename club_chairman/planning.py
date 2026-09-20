@@ -74,7 +74,8 @@ def forecast(v, players=(), horizon=28):
     """
     terms = signing_terms(v, players)
     end = v['day'] if v['season_done'] else min(v['season_end'], v['day']+horizon)
-    cash = v['cash']-terms['fee']; low=cash; high=cash
+    bonus_due=sum(b['amount']-b['paid'] for b in v.get('clauses',{}).get('payables',[]) if b['source']=='c0')
+    cash = v['cash']-terms['fee']-bonus_due; low=cash; high=cash
     accrued = v['accrued_costs']; sponsorship=costs=gates=0
     points = [dict(day=v['day'], cash=cash, low=low, high=high)]
     daily = v['payroll']+terms['wage']+v['terms']['weekly_overheads']
@@ -112,7 +113,7 @@ def forecast(v, players=(), horizon=28):
     return dict(points=points, cash=cash, low=low, high=high, end=end,
                 minimum=min(p['low'] for p in points), sponsorship=sponsorship,
                 costs=costs, gates=gates, accrued=accrued//7, terms=terms,
-                reserve=v['terms']['operating_buffer'])
+                bonus_due=bonus_due,reserve=v['terms']['operating_buffer'])
 
 
 def projected_wage(p,day):
