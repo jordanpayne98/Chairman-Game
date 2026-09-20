@@ -1,4 +1,4 @@
-# Club Chairman — Contract Clauses Update (0.6)
+# Club Chairman — Football and Development Update (0.7)
 
 A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic through continuing 14-match seasons in an eight-club fictional development league. This is a playable development version; the approved full AA game is still being built.
 
@@ -15,11 +15,22 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1–0.5 / schema 1–4 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 5. Older executables cannot read these new saves. Existing contracts retain their original expiry dates; renew before advancing beyond them. New careers start with longer contracts to introduce the continuing-season loop. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1–0.6 / schema 1–5 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 6. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
-## New in 0.6
+Ctrl+K opens global search for known players, clubs, departments and help topics. Settings > Interface size cycles through 100/125/150/175% zoom. Mouse wheel pans vertically at larger sizes; Shift+wheel pans horizontally, and keyboard focus follows controls into view. Ctrl+0 restores 100%. This is whole-interface zoom; full responsive text reflow is still pending.
+
+## New in 0.7
+
+- Player profiles show the approved 37 football attributes in Technical, Mental, Physical and Goalkeeping groups, with uncertain position-weighted overall and potential estimates. Stored scouting evidence ages; hidden values are excluded from the interface and search.
+- Development plans connect training focus and load to weekly growth, playing time, fatigue, recovery and quarterly potential reviews. Potential is sampled once and saved. Condition, medical estimates and availability help explain squad selection.
+- Squad > Registration provides a reviewed competition list with senior, under-21 and non-homegrown allowances. Contract and loan completion check reserved list capacity. Injury, suspension, age, registration and loan-against-parent restrictions apply to selection.
+- The new saved possession engine includes manager substitutions, yellow/second-yellow/red cards, future suspensions, dated injuries, added time and tactical responses. Action attributes, condition, fatigue and numerical advantage affect outcomes. Minimum-player failures award the fixture without blocking Continue.
+- Live, skipped and saved/resumed matches use one event stream. Match review includes commentary, lineups, substitutions, minutes, action-based ratings and team statistics; bonuses cover participating substitutes. Extra time and shootouts are available to knockout fixtures in the engine; the playable league has no cup schedule yet.
+- Full profiles, registration, global search and interface zoom are connected to existing keyboard navigation, confirmation and save flows. Football and development tuning is recorded in [engineering formulas](docs/FORMULAS.md).
+
+## Included from 0.6
 
 - Contracts > Clauses adds negotiable appearance and goal bonuses plus a one-season club extension option. Changes belong to the sent proposal; conditional or completed terms cannot be silently edited. Agent counters retain the clause package.
 - Earned bonuses settle once per fixture, using player identities in the match event stream. Live, skipped and saved/resumed matches agree. Unpaid amounts remain visible in the clause register, survive employment ending and settle when funding is available. Loan bonuses remain the parent employer's responsibility.
@@ -90,7 +101,7 @@ Full clause coverage, advanced loan restrictions and delegation remain on the re
 
 ## Preview boundaries
 
-This is an early playable version, not the finished AA game. The eight-club compact calendar remains development content. Full 14-nation world content, career creation/acquisitions, owner succession, multi-club groups, full attributes/potential, all staff roles/delegation, full transfer/loan clauses and rules, full football rules, promotion/cups, complete commercial demand and rights obligations, autonomous AI finances, detailed assets and the remaining accessibility/QoL requirements are still pending. The new career systems are connected playable implementations of a subset of their approved scope.
+This is an early playable version, not the finished AA game. The eight-club compact calendar remains development content. Full 14-nation world content, career creation/acquisitions, owner succession, multi-club groups, complete role/scouting/development behaviour, all staff roles/delegation, full transfer/loan clauses and competition rules, complete football/set-piece/tactical models, promotion/cups, complete commercial demand and rights obligations, autonomous AI finances, detailed assets and the remaining accessibility/QoL requirements are still pending. The new career systems are connected playable implementations of a subset of their approved scope.
 
 See [release readiness](docs/RELEASE_READINESS.md) for the complete retained scope and [the asset register](docs/ASSET_REGISTER.md) for artwork/audio provenance. No full AA release gate is claimed complete.
 

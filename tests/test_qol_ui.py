@@ -69,7 +69,7 @@ class QolInterfaceTests(unittest.TestCase):
         self.assertIsNotNone(a.state['decision']);self.assertFalse(a.command('continue'))
         a.command('decision',choice='decline')
         while not a.state['match']:a.command('continue')
-        a.command('match_step',minutes=90);a.command('match_close')
+        a.command('match_skip');a.command('match_close')
         self.click('League');before=json.dumps(a.state,sort_keys=True)
         self.click('Open match report');self.click('Lineups');self.click('Show commentary');self.click('Key events')
         self.assertEqual(before,json.dumps(a.state,sort_keys=True))
@@ -109,11 +109,11 @@ class QolInterfaceTests(unittest.TestCase):
             if a.state['decision']:a.command('decision',choice='decline')
             a.command('continue')
         a.last_score=(9,9)  # A previous match or restored UI must not trigger a cue.
-        a.state['config']['shot_rate']=0
+        a.state['config']['football']['actions_per_minute']=0
         with patch.object(a.sound,'play') as sound:
             a.command('match_step',minutes=1);sound.assert_not_called()
-            a.state['config']['shot_rate']=10
-            a.command('match_step',minutes=90)
+            a.state['config']['football']['actions_per_minute']=2
+            a.command('match_skip')
             self.assertGreater(sum(a.v['match']['score']),0);sound.assert_called_once_with('goal')
 
     def test_fast_forward_stops_for_medical_and_preserves_explicit_control(self):

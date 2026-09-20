@@ -22,7 +22,7 @@ class PlanningTests(unittest.TestCase):
     def advance(self,day):
         while self.s['day']<day or self.s['match']:
             if self.s['match']:
-                self.act('match_step',minutes=90) if self.s['match']['minute']<90 else self.act('match_close')
+                self.act('match_skip') if not self.s['match'].get('finished',self.s['match']['minute']>=90) else self.act('match_close')
             elif self.s['decision']:self.act('decision',choice='decline')
             else:self.act('continue')
 
@@ -52,9 +52,9 @@ class PlanningTests(unittest.TestCase):
                 db.execute('INSERT INTO entities VALUES (?,?)',('world',raw));db.commit()
             finally:db.close()
             original=path.read_bytes();upgraded=load(path)
-            self.assertEqual(path.read_bytes(),original);self.assertEqual(upgraded['schema'],5)
-            original_finish,_=execute(self.s,Command('end',self.s['revision'],'match_step',{'minutes':90}))
-            loaded_finish,_=execute(upgraded,Command('end',upgraded['revision'],'match_step',{'minutes':90}))
+            self.assertEqual(path.read_bytes(),original);self.assertEqual(upgraded['schema'],6)
+            original_finish,_=execute(self.s,Command('end',self.s['revision'],'match_skip',{}))
+            loaded_finish,_=execute(upgraded,Command('end',upgraded['revision'],'match_skip',{}))
             for key in ('fixtures','cash','clubs','players','ledger'):
                 self.assertEqual(original_finish[key],loaded_finish[key])
 

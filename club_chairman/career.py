@@ -4,7 +4,7 @@ Domain functions operate only on the caller's uncommitted state copy. Simulation
 imports are local to keep the existing match engine separate from career policy.
 """
 from copy import deepcopy
-from . import market, clauses
+from . import market, clauses, people, registration
 
 CAREER_DEFAULTS = dict(season_gap=14, offer_lifetime=7,
                       medical_days=2, manager_notice_weeks=4, academy_trial_fee=200000,
@@ -83,10 +83,11 @@ def new_person(s,role,age,level,key,youth=False):
     first=['Jude','Toby','Finn','Luca','Kai','Ellis','Rory','Milo','Reuben','Joel','Alfie','Dylan']
     last=['Walsh','Harris','Chapman','Stewart','Edwards','Murray','Grant','Walker','Carter','Wood','Ross','Cole']
     attrs={k:max(1,min(100,level+rng.randint(-7,7))) for k in ('passing','finishing','tackling','goalkeeping')}
-    return dict(id=f'n{n}',name=rng.choice(first)+' '+rng.choice(last),club=None,role=role,age=age,
+    result=dict(id=f'n{n}',name=rng.choice(first)+' '+rng.choice(last),club=None,role=role,age=age,
                 attrs=attrs,wage=(100 if youth else 450+level*13)*100,fee=(500 if youth else 3000+level*350)*100,
                 goals=0,appearances=0,career_goals=0,career_appearances=0,contract_end=None,youth=youth,retired=False,
                 birth_day=s['day']-age*365-rng.randrange(365),injury_until=0)
+    return people.enrich(s,result) if 'people' in s['config'] else result
 
 
 def process_day(s):
@@ -127,18 +128,6 @@ def process_day(s):
             p['status']='operational';career['facilities'][p['kind']]+=1
             s['config']['capacity']+=p['capacity'];s['config']['weekly_overheads']+=p['upkeep']
             news(s,'Facility opened',p['name']+' is operational. Capacity and running costs have been updated.')
-    if day%28==0:
-        names=[]
-        for p in s['players']:
-            if p['club']!='c0' or p['retired'] or p['age']>23:continue
-            rng=rng_for(s['seed'],f"development:{p['id']}:{day}")
-            training=career['facilities']['training'];ceiling=85 if p['age']<21 else 78
-            key={'GK':'goalkeeping','DEF':'tackling','MID':'passing','FWD':'finishing'}[p['role']]
-            if rng.random()<min(.8,.25+.08*training) and p['injury_until']<=day:
-                p['attrs'][key]=max(p['attrs'][key],min(ceiling,p['attrs'][key]+1))
-                names.append(p['name'])
-            s['reports'][p['id']]=make_report(s,p,'Academy coaches' if p['youth'] else 'Coaching staff',9 if p['youth'] else 5)
-        if names:news(s,'Development review',', '.join(names[:5])+': staff have refreshed their estimates. Development remains uncertain.')
 
 
 def apply(s,action,data):
@@ -229,6 +218,7 @@ def apply(s,action,data):
             due=s['day']+(settings['medical_days'] if o['kind']!='renew' else 0)
             if o['kind']!='renew':
                 require(due<=min(window_end(s),season_end(s)), 'The medical cannot finish before registration closes. No capacity was reserved.')
+            if o['kind']!='renew':registration.check_arrival(s,p,'c0')
             fee,wages=reservations(s,exclude=p['id']);delta=o['wage']-(p['wage'] if o['kind']=='renew' else 0)
             require(s['manager'] is not None,'Appoint a manager before agreeing contracts.')
             require(s['cash']-fee-o['fee']-market.upfront_for_offer(s,o)>=cfg['operating_buffer'],'Insufficient unreserved cash.')
@@ -247,6 +237,7 @@ def apply(s,action,data):
         fees,wages=reservations(s,exclude=p['id']);delta=o['wage']-(p['wage'] if o['kind']=='renew' else 0)
         require(s['cash']-fees-o['fee']-market.upfront_for_offer(s,o)>=cfg['operating_buffer'],'Insufficient unreserved cash at completion.')
         require(payroll(s)+wages+delta<=s['budget'],'Wage capacity changed; revise the budget or withdraw.')
+        if o['kind']!='renew':registration.check_arrival(s,p,'c0')
         if o['kind']=='transfer':market.complete_purchase(s,o)
         posting(s,o['id'],-o['fee'],'Contract signing fee' if o['kind']!='renew' else 'Contract renewal fee')
         if o['kind']!='renew':s['transfer_spend']+=o['fee']
@@ -282,6 +273,7 @@ def apply(s,action,data):
             p.update(club='c0',contract_end=contractual_end(s,3));message='Academy place agreed. Development is uncertain.'
         else:
             require(p['club']=='c0' and p['age']>=16,'Promotion requires an owned academy player aged at least 16.')
+            registration.check_arrival(s,p,'c0')
             p['youth']=False;message='Promoted to the senior squad on existing contract terms. Minutes are not guaranteed.'
         news(s,'Academy pathway',p['name']+': '+message);return message
     if action=='project_plan':

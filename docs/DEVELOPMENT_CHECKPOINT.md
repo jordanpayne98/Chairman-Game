@@ -1,5 +1,23 @@
 # Development checkpoint
 
+## PLAY-007 — Football and Development Update 0.7
+
+Date: 20 September 2026. Jordan requested continued work toward the finished, polished game. Current living GDD revision 0.3 and both approved visual references were inspected. This integrated branch starts from the verified 0.6 head `1defdf784a7465f8615e361a02aa6136de90b5d3`, including PR #8 and its 0.5 foundation. No GDD changes, scope removal or full-AA completion claim.
+
+Connected implementation: all 37 visible football attributes, separate condition/fatigue/sharpness/morale/medical records, hidden development factors, weighted overall and saved one-time potential; weekly training focus/load development, monthly coaching evidence, quarterly bounded youth potential reviews and dated recovery. Reports remain uncertain, stored and aged; external fitness and hidden truth are absent from public views. See FORMULAS.md for provisional weights, rates and remaining behavioural gaps.
+
+Competition registration is shared across list editing, conditional reservations, contract/loan completion and team selection. Senior/age/homegrown/loan counts, parent-club restrictions, injury and future suspensions are checked. Omitted players keep employment and wages. The saved football engine tracks possession actions, current players/bench, tactical changes, substitutions, fouls/cards, injuries, added time, statistics and ratings. Forfeit/abandonment rules avoid a progression deadlock. Extra time and shootouts are tested engine support; generated cups are still open. Appearance bonuses include participating substitutes and exclude unused benches/administrative awards.
+
+Presentation: grouped player attributes, Development and Contract tabs, competition-list draft/review, expanded match commentary/lineups/statistics, factual manager review, public global search (Ctrl+K), and saved 100/125/150/175% interface zoom with wheel pan, focus following and Ctrl+0 recovery. Native art and existing charcoal/green shell retained. This is whole-interface zoom, not completed responsive text reflow or the entire accessibility gate.
+
+Compatibility: schema 6 reads schemas 1–5. Old in-progress matches and remaining same-day fixtures finish on the original engine; subsequent matches use the new engine. Migration preserves original money, old attributes, reports, employment, receipts and match RNG. Old reports do not magically acquire knowledge of the new catalogue. Genuine 0.6 minute-27 save completion matched old cash/ledger/table/fixtures/clauses/market/commercial records and every pre-existing player field; original save bytes unchanged; schema-6 roundtrip passed.
+
+Verification: meaningful domain/input coverage for knowledge boundaries, potential persistence and caps, registration/eligibility, suspensions, removed-player actions, injuries, live/skip/resume parity, shootouts, training/list/search UI and maximum-zoom keyboard access. New screens rendered and inspected. A 1,000-match calibration sample averages 2.591 goals and 19.561 representative shots; methodology and limits are recorded in FORMULAS.md. Final regression and packaged results belong in the implementation PR after confirmation.
+
+Confirmed locally: all 81 regression tests passed; the final football-rule follow-up passed all 11 targeted tests; the enhanced two-season / 112-fixture executable self-test and headless display smoke passed. Packaging now carries the documentation linked from READ-ME.md. Windows/Linux CI and the packaged executable results will be recorded in the implementation PR.
+
+Publication authorization continues from Jordan's explicit approval below for this and future updates, pull requests and Windows builds. Publish `game/football-depth` without merging unrelated/open PRs or resetting existing work. Code remains Git-backed. The full AA game remains unfinished: staff/delegation and AI financial decisions are the next dependency, followed by valid expanded competitions, ownership/groups/succession, complete economy/commercial/assets and the full UI/content/accessibility/release gates in RELEASE_READINESS.md. Continue from this checkpoint.
+
 ## PLAY-006 — Contract Clauses Update 0.6
 
 Date: 20 September 2026. Continued from PR #7 head b9773f05b8d9f017eba792848f4f93e1f22f4113. Current canonical GDD revision 0.3 chapters 12, 18 and 38 checked; attached revision 0.2 is older. Approved visual reference inspected. No GDD changes or scope reduction. This branch includes the 0.5 milestone and fixes its reviewed loan-duration issue; the integrated PR targets main.

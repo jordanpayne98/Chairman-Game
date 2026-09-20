@@ -12,6 +12,8 @@ def run():
         nonlocal s
         s,_=execute(s,Command(f"smoke:{s['revision']}",s['revision'],action,data))
     act('budget',value=4000000);act('hire',id='m1');act('scout',id='p145')
+    act('development_plan',id='p4',focus='Technical',load='Light')
+    act('registration_submit',players=list(s['registration']['c0']))
     act('planning',key='shortlist',value=['p145']);act('planning',key='comparison',value=['p145'])
     act('planning',key='notes',value={'p145':'Scout before committing.'})
     snapshot=view(s);target=next(p for p in snapshot['players'] if p['id']=='p145')
@@ -51,14 +53,14 @@ def run():
                 act('complete_offer',id='p145');signed=True
             if s['decision']:act('decision',choice='approve')
             elif s['match']:
-                if s['match']['minute']<90:
+                if not s['match'].get('finished',s['match']['minute']>=90):
                     if not resumed:
                         act('match_step',minutes=20);act('intervene',choice='attack')
                         with tempfile.TemporaryDirectory() as tmp:
                             path=Path(tmp)/'smoke.sqlite3';save(s,path);s=load(path)
                         if s['planning']['notes'].get('p145')!='Scout before committing.':raise RuntimeError('Planning save failed')
                         resumed=True
-                    act('match_step',minutes=90)
+                    act('match_skip')
                 else:act('match_close')
             else:act('continue')
         validate(s)
@@ -74,4 +76,9 @@ def run():
     if s['clauses']['employment']['p20']['option_status']!='exercised':raise RuntimeError('Club option was not exercised')
     if not s['clauses']['payables'] or any(b['amount']!=b['paid'] for b in s['clauses']['payables']):raise RuntimeError('Earned bonuses failed to settle')
     if s['clauses']['sell_on'][0]['percent']!=10:raise RuntimeError('Sell-on right was lost')
-    print('Packaged career check passed: bonuses, club option, retained sell-on right, transfers, instalments, sale, loan return, sponsorship, two seasons, negotiations, academy, project, manager replacement, save/resume and 112 fixtures.')
+    p=next(p for p in s['players'] if p['id']=='p4')
+    if not p['development']['history'] or p['development']['focus']!='Technical':raise RuntimeError('Development plan or history was lost')
+    results=[f['result'] for f in s['fixtures']]
+    if not all(m['engine']==2 and m['finished'] for m in results):raise RuntimeError('Football match did not finish')
+    if not any(any(e['kind']=='substitution' for e in m['events']) for m in results):raise RuntimeError('Manager substitutions missing')
+    print('Packaged career check passed: football rules and substitutions, registration, player development, bonuses, club option, retained sell-on right, transfers, instalments, sale, loan return, sponsorship, two seasons, negotiations, academy, project, manager replacement, save/resume and 112 fixtures.')

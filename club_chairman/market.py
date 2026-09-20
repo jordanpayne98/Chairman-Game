@@ -4,7 +4,7 @@ All commands run inside Simulation's copy-on-commit transaction. Public quotes
 are persisted; opening a screen never rerolls a counterparty response.
 """
 from copy import deepcopy
-from . import clauses
+from . import clauses, registration
 
 DEFAULTS = dict(asking_multiple=3,minimum_squad=14,minimum_goalkeepers=1,
                 ai_opening_cash=35000000,ai_weekly_income=3000000,ai_weekly_overheads=350000,
@@ -96,6 +96,7 @@ def registration_check(s,p,cid):
     require(not p['retired'] and not p['youth'],'Only active senior players can use this market.')
     require(active_loan(s,p['id']) is None,'Resolve the existing loan before another registration change.')
     require(cid in {c['id'] for c in s['clubs']},'Unknown destination club.')
+    registration.check_arrival(s,p,cid)
 
 
 def complete_purchase(s,o):
@@ -261,6 +262,7 @@ def apply(s,action,data):
         d['transcript'].append('Revised loan quote: reduced recurring wage cover is offset by a larger fee.')
         return 'Loan quote revised. No payment or registration change.'
     require(d['kind'] in ('loan','sale'),'Complete purchases through the personal contract workflow.')
+    if d['kind']=='loan':registration.check_arrival(s,p,d['target'],is_loan=True)
     if action=='market_accept':
         require(d['status']=='quote','This deal has already been accepted.')
         require(day+cfg['medical_days']<=d['expires'],'Medical checks cannot finish before this offer expires.')

@@ -56,7 +56,7 @@ def end_employment(s, pid):
 def record_match(s, match):
     from .simulation import news
     existing = {b['id'] for b in s['clauses']['payables']}
-    for side, lineup in enumerate(match['lineups']):
+    for side, lineup in enumerate(match.get('participants',match['lineups'])):
         cid = match['home'] if side == 0 else match['away']
         for pid in lineup:
             contract = s['clauses']['employment'].get(pid)

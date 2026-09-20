@@ -250,9 +250,10 @@ class CareerScreens(ClauseScreens):
         self.wrap('Original short click and goal cues. Every sound has a visible equivalent. Audio is optional; a missing device never blocks play.',x+385,348,720,24)
         self.button('Tooltips: '+('On' if self.tooltips_enabled else 'Off'),(x+25,425,330,46),lambda:self.setting('tooltips_enabled',not self.tooltips_enabled))
         self.wrap('Hover over a control for an explanation. Keyboard: focus the control with Tab and press F2. Escape closes the explanation.',x+385,433,720,24)
-        self.text('Your preferences are separate from career saves.',x+25,540,24,MUTED)
+        self.button(f'Interface size: {self.ui_zoom*100:.0f}%',(x+25,510,330,46),self.change_zoom)
+        self.wrap('100–175% interface zoom. Scroll to pan; Shift+wheel pans sideways. Tab reveals focused controls. Ctrl+0 restores 100%.',x+385,510,720,22)
         self.panel(x,630,1400-x,155,'Shortcuts')
-        self.wrap('Ctrl+S: save / Ctrl+F: player search / Alt+Left or Right: history / Space: pause live match / F1: handbook / F2: focused explanation / Tab and Shift+Tab: navigate controls. Every essential action also has a visible control.',x+25,680,1080,23,TEXT)
+        self.wrap('Ctrl+K: global search / Ctrl+0: reset zoom / Ctrl+S: save / Ctrl+F: player search / Alt+Left or Right: history / Space: pause live match / F1: handbook / F2: focused explanation / Tab and Shift+Tab: navigate controls. Every essential action also has a visible control.',x+25,680,1080,23,TEXT)
 
     def setting(self,key,value):setattr(self,key,value);self.save_preferences()
     def toggle_audio(self):
@@ -260,6 +261,10 @@ class CareerScreens(ClauseScreens):
 
     def control_help(self,label,enabled):
         hints={
+            'Registration':'Review your competition list, reserved arrivals and eligibility. Unlisted players remain paid. Confirm edits before the deadline.',
+            'Search':'Search known people, departments and help with Ctrl+K. Results open screens without committing any action.',
+            'Statistics':'Match statistics come from the same events as the score and commentary. xG records chance quality before the outcome.',
+            'Development':'Inspect condition, injury estimates and weekly training plans. Scouted potential is an estimate, not guaranteed growth.',
             'Clauses':'Inspect signed performance bonuses, extension options, sell-on rights and any unpaid earned bonuses. New terms are sent with the contract proposal.',
             'Review extension':'Use a signed club option once, before employment expires. Review the additional guaranteed wages; existing bonuses continue.',
             'Term -14 days':'Change the requested loan length. New loan terms run from final registration, after the medical, and must fit inside employment.',
@@ -274,7 +279,7 @@ class CareerScreens(ClauseScreens):
             'Send club offer':'Submit the draft club fee and payment schedule. A counteroffer remains separate from your unsent edits.',
             'Review club consent':'Agree the latest selling-club terms. No fee is paid or reserved until conditional personal acceptance.',
             'Review conditional deal':'Reserve receiving-club capacity while medical and player-consent checks finish. Registration remains unchanged.',
-            'Review registration':'Complete the reviewed sale or loan. Club payments and registration update in one transaction.',
+            'Review registration':'Review the competition list or transfer before confirming. Eligibility, capacity and current consent are validated before commitment.',
             'Payments':'Inspect guaranteed dated transfer fees. They remain due after a season change or subsequent player sale.',
             'Loans':'Inspect borrower, parent club, wage contribution and return dates. Recall requires an open registration window.',
             'Send sponsor proposal':'Submit proposed income and duration. Signing uses the latest sponsor response, not unsent draft edits.',

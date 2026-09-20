@@ -40,15 +40,16 @@ class ClauseTests(unittest.TestCase):
     def test_bonus_live_skip_and_midmatch_resume_pay_same_events_once(self):
         self.sign(appearance_bonus=2500,goal_bonus=5000)
         self.player('p146')['attrs']['passing']=100
+        self.player('p146')['potential']=100  # Keep the boosted selection fixture valid.
         while not self.s['match']:
             if self.s['decision']:self.act('decision',choice='decline')
             self.act('continue')
         self.assertIn('p146',sum(self.s['match']['lineups'],[]))
-        base=deepcopy(self.s);self.act('match_step',minutes=90);skipped=deepcopy(self.s)
+        base=deepcopy(self.s);self.act('match_skip');skipped=deepcopy(self.s)
         self.s=base;self.act('match_step',minutes=27)
         with tempfile.TemporaryDirectory() as root:
             path=Path(root)/'midmatch.sqlite3';save(self.s,path);self.s=load(path)
-        while self.s['match']['minute']<90:self.act('match_step',minutes=1)
+        while not self.s['match'].get('finished',self.s['match']['minute']>=90):self.act('match_step',minutes=1)
         for key in ('cash','players','ledger','clauses','fixtures'):
             self.assertEqual(self.s[key],skipped[key],key)
         match=self.s['match'];goals=sum(e['kind']=='goal' and e.get('player')=='p146' for e in match['events'])
@@ -59,12 +60,13 @@ class ClauseTests(unittest.TestCase):
 
     def test_bonus_arrears_survive_expiry_and_are_settled_by_funding(self):
         self.sign(appearance_bonus=100000)
-        self.player('p146')['attrs']['passing']=100;self.s['config']['capacity']=0
+        self.player('p146')['attrs']['passing']=100;self.player('p146')['potential']=100
+        self.s['config']['capacity']=0
         while not self.s['match']:
             if self.s['decision']:self.act('decision',choice='decline')
             self.act('continue')
         posting(self.s,'test:empty-cash',-self.s['cash'],'Test fixture')
-        self.act('match_step',minutes=90)
+        self.act('match_skip')
         bill=self.s['clauses']['payables'][0]
         self.assertEqual((bill['amount'],bill['paid'],bill['status']),(100000,0,'arrears'))
         projected=forecast(view(self.s),horizon=0);self.assertEqual(projected['cash'],-100000)

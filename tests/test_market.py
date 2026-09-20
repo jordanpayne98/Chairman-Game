@@ -18,7 +18,7 @@ class MarketTests(unittest.TestCase):
     def progress(self,day):
         while self.s['day']<day or self.s['match']:
             if self.s['match']:
-                self.act('match_step',minutes=90) if self.s['match']['minute']<90 else self.act('match_close')
+                self.act('match_skip') if not self.s['match'].get('finished',self.s['match']['minute']>=90) else self.act('match_close')
             elif self.s['decision']:self.act('decision',choice='decline')
             elif self.s['season_done']:self.act('next_season')
             else:self.act('continue')
