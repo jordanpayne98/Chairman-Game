@@ -9,6 +9,7 @@ from .football_ui import interval
 
 class StaffScreens:
     def staff_section(self,tab):
+        self.manager_person=None
         self.staff_tab=tab;self.staff_person=None;self.staff_draft=None;self.responsibility=None;self.authority_draft=None
         self.page=0;self.focus=0;self.focus_reveal=True;self.save_preferences()
 

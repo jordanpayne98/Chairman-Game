@@ -3,7 +3,6 @@ import pygame
 from .planning import dated
 from .contract_review import review, CLOSED
 from .presentation import crest,portrait,pitch
-from .simulation import MANAGERS
 from .commercial import venue_name
 from .clause_ui import ClauseScreens
 from .clauses import terms as clause_terms, description as clause_description
@@ -136,6 +135,9 @@ class CareerScreens(ClauseScreens):
 
     def staff_screen(self,x):
         v=self.v;m=v['manager'];cost=v['severance']
+        selected=getattr(self,'manager_person',None)
+        person=next((p for p in v['manager_candidates'] if p['id']==selected),None)
+        if person:self.manager_profile(x,person);return
         if m:
             self.panel(x,195,1400-x,182,'Manager office');portrait(self.canvas,m['id'],40,(x+20,242,74,108))
             self.text(m['name'],x+115,250,34);self.text(m['style']+' / '+money(m['wage'])+' per week',x+115,296,24,GREEN)
@@ -143,12 +145,16 @@ class CareerScreens(ClauseScreens):
             self.button('Renew contract',(1190,248,190,42),lambda:self.confirm('Renew manager contract','Keep the current salary, autonomy and notice terms through the next season. This extends guaranteed employment; no signing fee is charged.',lambda:self.command('manager_renew')))
             self.text('Relationship '+str(v['trust'])+'/100',1190,313,22,MUTED)
         else:self.wrap('Appoint a manager to run selection, training and tactics. Candidates below have fixed quoted salary demands in this build.',x,205,1050,27,TEXT)
-        for i,candidate in enumerate(MANAGERS):
+        for i,candidate in enumerate(v['manager_candidates']):
             y=401+i*122;self.panel(x,y,1400-x,108)
             portrait(self.canvas,candidate['id'],40,(x+20,y+20,48,65))
             self.text(candidate['name'],x+90,y+18,28);self.text(candidate['style']+' approach',x+90,y+59,22,MUTED)
             self.text(money(candidate['wage'])+'/week',x+400,y+24,24,GREEN)
             self.text('Fee '+money(candidate['fee']),x+400,y+62,22,MUTED)
+            from .football_ui import interval
+            report=candidate['assessment']
+            self.text(('CA ' if report and report['exact_current'] else 'Est. CA ')+interval(report.get('overall') if report else None),x+650,y+18,22,GREEN)
+            self.button('Manager profile',(x+650,y+52,165,38),lambda pid=candidate['id']:setattr(self,'manager_person',pid))
             current=m and m['id']==candidate['id']
             def review(c=candidate):
                 if not m:
@@ -157,6 +163,31 @@ class CareerScreens(ClauseScreens):
                     self.confirm('Replace '+m['name']+' with '+c['name'],f"Immediate notice payment {money(cost)} plus signing fee {money(c['fee'])}. New weekly salary {money(c['wage'])} through the agreed season end. Existing player contracts and accrued payroll remain. The working relationship with the new manager starts afresh.",lambda:self.command('manager_replace',id=c['id'],duration=2))
             self.button('Appointed' if current else 'Review '+candidate['name'],(1110,y+34,270,44),review,not current and not v['match'])
         self.text('Open People for departmental recruitment, then Responsibilities to allocate capacity and authority.',x,797,21,MUTED)
+
+    def manager_profile(self,x,p):
+        from .staff import CAPABILITIES
+        from .football_ui import interval
+        v=self.v;r=p['assessment'];exact=bool(r and r['exact_current'])
+        self.button('Back to manager office',(x,195,270,42),lambda:setattr(self,'manager_person',None))
+        self.panel(x,255,1400-x,115);portrait(self.canvas,p['id'],40,(x+18,267,72,88))
+        self.text(p['name'],x+110,274,35)
+        self.text(('Current ability ' if exact else 'Estimated ability ')+interval(r.get('overall') if r else None)+' / Manager',x+110,323,23,GREEN)
+        self.panel(x,387,570,348,'Current capabilities / 1–100' if exact else 'Capability estimates / 1–100')
+        for i,key in enumerate(CAPABILITIES):
+            left=x+20+(i//6)*275;y=430+(i%6)*47
+            self.text(key.replace('_',' ').capitalize(),left,y,21)
+            self.text(interval(r['ranges'].get(key)) if r else 'Not assessed',left,y+20,21,GREEN if r else MUTED)
+        right=x+590;self.panel(right,387,1400-right,348,'Preferred approach')
+        self.text(p['preferences']['style']+' / '+p['preferences']['formation'],right+20,438,26,GREEN)
+        self.wrap('Tactical judgement evaluates the score and numerical balance. Adaptability helps coordinate a change in attacking risk. A working plan can be retained.',right+20,489,1360-right,23,MUTED)
+        self.wrap('Preferences remain distinct from current ratings. Personality and future performance remain uncertain.',right+20,615,1360-right,22,MUTED)
+        caption=r['knowledge'] if r else 'Not assessed'
+        if r and r['knowledge']=='Fully assessed':caption+=' / coverage ends '+dated(v,r['coverage_until'])
+        elif r and not exact:caption+=' / evidence dated '+dated(v,r['day'])
+        self.text(caption,x,751,22,MUTED)
+        owned=v['manager'] and v['manager']['id']==p['id']
+        self.button('Refresh manager assessment' if r else 'Assess manager',(x,794,300,44),lambda:self.command('manager_assess',id=p['id']),not owned and not v['match'])
+        self.text('Review appointments in the manager office.',x+325,810,21,MUTED)
 
     def draw_career(self,x):
         v=self.v;self.panel(x,195,1400-x,190,'Career journal')

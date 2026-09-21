@@ -124,6 +124,8 @@ def process_day(s):
             else:
                 employer=p['club'];clauses.release(s,p['id'],employer);p['club']=None;p['youth']=False
     if s['manager'] and day>s['manager']['contract_end']:
+        from . import managers
+        managers.archive_current(s)
         name=s['manager']['name'];s['manager']=None
         news(s,'Manager contract expired',name+' has left. Appoint a manager before advancing again.')
     for o in career['offers'].values():
@@ -141,11 +143,12 @@ def process_day(s):
 
 
 def apply(s,action,data):
-    from .simulation import require,payroll,posting,make_report,rng_for,table,MANAGERS
+    from .simulation import require,payroll,posting,make_report,rng_for,table
+    from . import managers
     c=s['career'];cfg=s['config'];settings=cfg['career']
     if action=='manager_replace':
         require(s['match'] is None,'Staff changes are unavailable during matchday.')
-        candidate=next((m for m in MANAGERS if m['id']==data.get('id')),None)
+        candidate=managers.candidate(s,data.get('id'))
         require(candidate is not None,'Unknown candidate.')
         require(not s['manager'] or candidate['id']!=s['manager']['id'],'This manager is already appointed. Use Renew contract.')
         wage=data.get('wage',candidate['wage']);duration=data.get('duration',2)
@@ -156,6 +159,7 @@ def apply(s,action,data):
         require(payroll(s)-old+wage+reservations(s)[1]<=s['budget'],'Appointment exceeds the wage limit including reserved offers.')
         if s['manager']:posting(s,f"manager-exit:{s['revision']}",-manager_severance(s),'Manager termination payment')
         posting(s,f"manager-hire:{s['revision']}",-candidate['fee'],'Manager signing fee')
+        managers.archive_current(s)
         s['manager']=dict(deepcopy(candidate),wage=wage,contract_end=contractual_end(s,duration),notice_weeks=settings['manager_notice_weeks'])
         s['trust']=55;news(s,'Manager appointed',candidate['name']+' takes charge. Selection and tactics remain delegated.')
         return 'Manager appointed. Notice and signing costs are recorded in the ledger.'
