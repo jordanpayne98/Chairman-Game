@@ -1,5 +1,19 @@
 # Development checkpoint
 
+## PLAY-020 — Tactical Preparation Update 0.20
+
+Date: 21 September 2026. Continued from verified Update 0.19 / PR #21 head `43baeb8cc3d226070bafa6c897602bfb13a1e098` on `game/manager-preparation`. Read current GDD revision 0.10 manager transitions, training and familiarity requirements. No GDD change, new dependency or predecessor merge.
+
+Implemented: persistent per-player formation/style practice, dated manager briefs, daily attendance and diminishing learning from training and actual match minutes. Manager changes preserve previous preparation and player attributes. Existing coaching staff capability/workload, manager Coaching, facilities, load and recovery constrain training. Matchdays, injuries and recovery needs prevent tactical sessions. New matches freeze chosen-system preparation for starters/bench; one bounded passing-action effect uses actual on-pitch participants and recalculates after changes. Fixture settlement credits exposure once, excluding unused substitutes and forfeits and capping minutes at 90. Staff > Manager > Training report displays evidence, current preparation and attendance with paging. No hidden player traits or potential are exposed.
+
+Compatibility: schema 18 reads 1–17. Unknown historical practice stays unassessed; no instant learning is invented. Old active matches receive no new snapshot, effect or retrospective credit. An actual published 0.19 SQLite minute-27 career resumed to an identical entire world after removing only added preparation metadata; the source save was unchanged.
+
+Verification: 193 local tests passed in 212.400 seconds. Seven preparation-domain/UI checks passed separately after final display and actual passing-input assertions (0.714 seconds). Coverage includes teaching/resource/load differences, absence/recovery, once-per-day processing, replacements and return to prior systems, bounded passing inputs for both attacking and defending sides, substitutions/dismissals, saved-match equivalence, settlement idempotence, forfeits, migration and read-only report paging. Final report rendered and visually inspected, including the corrected footer. Career self-test (national scenarios, two seasons, 254 fixtures) and display smoke passed. Final Windows/Linux CI and packaged executable evidence belongs to the implementation PR.
+
+Scope: owned senior squad tactical preparation, not complete pairwise cohesion/relationships. Broad formation/style memory has no decay; detailed roles, alternative-system scheduling, wider AI training and full calibration remain open. All added coefficients are provisional. Next: extend observable shared-playing/training relationship evidence and cohesion, keeping it distinct from tactical preparation and preventing duplicate match benefits.
+
+Publication authorization: Jordan explicitly approved publishing Update 0.20 to public `jordanpayne98/Chairman-Game` and running the Windows build after automatic review blocked the initial upload. Publish `game/manager-preparation` targeting unmerged `game/manager-selection`; final remote head, Linux/Windows CI and packaged executable evidence belong in the implementation PR. No predecessor merge.
+
 ## PLAY-019 — Manager Selection Update 0.19
 
 Date: 21 September 2026. Continued from published and verified Update 0.18 / PR #20 head `0454a9f8b919e1307d6da0cefef63006f74b9877` on `game/manager-selection`. Workspace access returned; fetched the published recovery branch, preserving the old local branch. Read current GDD revision 0.10 manager identity, capability and tactical Adaptability requirements. No GDD edit, dependency change or predecessor merge.

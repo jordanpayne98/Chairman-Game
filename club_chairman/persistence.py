@@ -10,7 +10,7 @@ import sqlite3
 import tempfile
 from .simulation import validate
 from .career import initialise
-from . import market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, detail, managers
+from . import market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, detail, managers, preparation
 
 
 def user_directory():
@@ -72,6 +72,9 @@ def migrate(state):
     if s.get('schema')==16:
         managers.initialise(s)
         s['schema']=17
+    if s.get('schema')==17:
+        preparation.initialise(s)
+        s['schema']=18
     validate(s)
     return s
 
@@ -83,7 +86,7 @@ def load(path):
         with closing(sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True)) as db:
             if db.execute('PRAGMA integrity_check').fetchone() != ('ok',):raise SaveError('Save integrity check failed.')
             metadata=dict(db.execute('SELECT key, value FROM metadata'))
-            if metadata.get('schema') not in ('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17'):raise SaveError('Unsupported save version. This build reads schemas 1–17.')
+            if metadata.get('schema') not in ('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18'):raise SaveError('Unsupported save version. This build reads schemas 1–18.')
             raw=db.execute("SELECT payload FROM entities WHERE id='world'").fetchone()[0]
             if hashlib.sha256(raw.encode()).hexdigest()!=metadata['checksum']:raise SaveError('Save checksum does not match.')
             s=json.loads(raw)

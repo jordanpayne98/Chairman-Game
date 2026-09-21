@@ -134,6 +134,7 @@ class CareerScreens(ClauseScreens):
             self.button('Withdraw',(1225,779,175,44),lambda:self.confirm('Withdraw this discussion?','No contract will be signed. Reserved cash and wage capacity will be released. The transcript will be retained.',lambda:self.offer_action('withdraw_offer',o)),not self.v['match'])
 
     def staff_screen(self,x):
+        if getattr(self,'training_report',False):self.draw_training_report(x);return
         v=self.v;m=v['manager'];cost=v['severance']
         selected=getattr(self,'manager_person',None)
         person=next((p for p in v['manager_candidates'] if p['id']==selected),None)
@@ -144,6 +145,7 @@ class CareerScreens(ClauseScreens):
             self.text('Contract to '+dated(v,m['contract_end'])+' / Notice exposure '+money(cost),x+115,340,22,MUTED)
             self.button('Renew contract',(1190,248,190,42),lambda:self.confirm('Renew manager contract','Keep the current salary, autonomy and notice terms through the next season. This extends guaranteed employment; no signing fee is charged.',lambda:self.command('manager_renew')))
             self.text('Relationship '+str(v['trust'])+'/100',1190,313,22,MUTED)
+            self.button('Training report',(x+650,248,200,42),lambda:self.open_training_report())
         else:self.wrap('Appoint a manager to run selection, training and tactics. Candidates below have fixed quoted salary demands in this build.',x,205,1050,27,TEXT)
         for i,candidate in enumerate(v['manager_candidates']):
             y=401+i*122;self.panel(x,y,1400-x,108)
@@ -163,6 +165,30 @@ class CareerScreens(ClauseScreens):
                     self.confirm('Replace '+m['name']+' with '+c['name'],f"Immediate notice payment {money(cost)} plus signing fee {money(c['fee'])}. New weekly salary {money(c['wage'])} through the agreed season end. Existing player contracts and accrued payroll remain. The working relationship with the new manager starts afresh.",lambda:self.command('manager_replace',id=c['id'],duration=2))
             self.button('Appointed' if current else 'Review '+candidate['name'],(1110,y+34,270,44),review,not current and not v['match'])
         self.text('Open People for departmental recruitment, then Responsibilities to allocate capacity and authority.',x,797,21,MUTED)
+
+    def open_training_report(self):
+        self.training_report=True;self.page=0
+
+    def draw_training_report(self,x):
+        v=self.v;data=v['preparation'];current=data['current'];report=data['report']
+        self.button('Back to manager office',(x,195,270,42),lambda:setattr(self,'training_report',False))
+        self.panel(x,255,1400-x,135,'Tactical preparation')
+        self.text(current['system'] if current else 'No manager appointed',x+20,300,29,GREEN)
+        self.text('Brief dated '+dated(v,data['since']) if current else 'Previous learning is retained.',x+20,345,22,MUTED)
+        self.text('Preparation through recorded practice',x+600,305,22,MUTED)
+        self.text('Unrecorded preparation has no match bonus.',x+600,344,20,MUTED)
+        for label,left in [('PLAYER',x+20),('PREPARATION',x+350),('TRAINING / PLAY',x+550),('LATEST SESSION',x+820)]:
+            self.text(label,left,416,20,MUTED)
+        latest={r['player']:r for r in report['rows']} if report and current and report['system']==current['system'] else {}
+        for i,p in enumerate(data['rows'][self.page*6:self.page*6+6]):
+            y=455+i*45;row=latest.get(p['id'])
+            self.text(p['name'],x+20,y,23)
+            self.text('Not assessed' if p['value'] is None else str(p['value'])+'/100',x+350,y,22,GREEN)
+            self.text(str(p['sessions'])+(' session / ' if p['sessions']==1 else ' sessions / ')+str(p['minutes'])+' min',x+550,y,22)
+            self.text(row['status'] if row else 'Awaiting session',x+820,y,22,MUTED)
+        self.pager(x,735,len(data['rows']),6)
+        if report:self.text('Last session: '+dated(v,report['day'])+' / '+report['system'],x,782,21,MUTED)
+        self.wrap('Learning survives manager changes. Practice and match minutes improve passing coordination; injuries and recovery limit progress.',x,817,1160,19,MUTED)
 
     def manager_profile(self,x,p):
         from .staff import CAPABILITIES

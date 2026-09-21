@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, feeders, detail, managers
+from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, feeders, detail, managers, preparation
 from .football import finished as match_finished
 
 
@@ -93,7 +93,8 @@ def new_career(seed=42,scenario='compact'):
     shortlists.initialise(world)
     detail.initialise(world)
     managers.initialise(world)
-    world['schema']=17
+    preparation.initialise(world)
+    world['schema']=18
     for p in world['players']:
         if p['club']:p['contract_end']=career.contractual_end(world,3)
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
@@ -210,6 +211,7 @@ def apply(s, action, payload):
         require(payroll(s) + m['wage'] + career.reservations(s)[1] <= s['budget'], 'Increase the weekly wage budget first.')
         require(career.free_cash(s,m['fee']), 'Insufficient available cash.')
         s['manager'] = dict(deepcopy(m),contract_end=career.contractual_end(s,3),notice_weeks=cfg['career']['manager_notice_weeks'])
+        preparation.appoint(s)
         posting(s, f"hire:{m['id']}:{s['revision']}", -m['fee'], 'Manager signing fee')
         news(s, 'Manager appointed', f"{m['name']} takes charge. Weekly salary: £{m['wage']//100:,}. Selection and tactics are delegated to the manager.")
         return 'Manager appointed. Football decisions are delegated.'
@@ -273,6 +275,7 @@ def apply(s, action, payload):
         career.process_day(s)
         staff.process_day(s)
         people.process_day(s)
+        preparation.process_day(s)
         club_ai.process_day(s)
         registration.sync(s,previous_clubs)
         market.accrue_accounts(s)
@@ -410,7 +413,9 @@ def record_result(s,m):
     f=next(f for f in s['fixtures'] if f['id']==m['fixture'])
     if f['result'] is not None:return
     clauses.record_match(s,m)
-    if m.get('engine')==2:football.settle_players(s,m)
+    if m.get('engine')==2:
+        football.settle_players(s,m)
+        preparation.settle(s,m)
     f['result']=football.public_match(m) if m.get('engine')==2 else deepcopy({k:m[k] for k in ('score','events','shots','on_target','xg','possession','lineups')})
     for side,cid in enumerate([m['home'],m['away']]):
         c=next(c for c in s['clubs'] if c['id']==cid);gf,ga=m['score'][side],m['score'][1-side]
@@ -465,13 +470,14 @@ def close_season(s):
 
 
 def validate(s):
-    require(s.get('schema')==17,'Unsupported save schema. This build supports schema 17.')
+    require(s.get('schema')==18,'Unsupported save schema. This build supports schema 18.')
     leagues.validate(s)
     feeders.validate(s)
     detail.validate(s)
     nations.validate(s)
     competitions.validate(s)
     managers.validate(s)
+    preparation.validate(s)
     staff.validate(s);delegation.validate(s);club_ai.validate(s)
     people.validate(s);registration.validate(s)
     clauses.validate(s)
@@ -526,7 +532,7 @@ def view(s):
                 public_players={p['id']:{k:p[k] for k in ('name','role')} for p in s['players']},
                 season=s['career']['season'],season_start=s['career']['start'],window_end=career.window_end(s),
                 career=deepcopy(s['career']),reserved_cash=career.reservations(s)[0],reserved_wages=career.reservations(s)[1],
-                severance=career.manager_severance(s),career_settings=deepcopy(s['config']['career']),project_specs=deepcopy(s['config']['projects']))
+                preparation=preparation.view(s),severance=career.manager_severance(s),career_settings=deepcopy(s['config']['career']),project_specs=deepcopy(s['config']['projects']))
     snapshot['detail']=detail.snapshot(s)
     snapshot['calendar']=deepcopy(s.get('calendar'))
     snapshot['nation']=deepcopy(s['config'].get('nation'))

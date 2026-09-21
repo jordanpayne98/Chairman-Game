@@ -1,4 +1,4 @@
-# Club Chairman — Manager Selection Update (0.19)
+# Club Chairman — Tactical Preparation Update (0.20)
 
 A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic in the compact Northshire world or an England, Wales or Brazil national development scenario, with continuing league seasons and domestic cups. This is a playable development version; the approved full AA game is still being built.
 
@@ -15,13 +15,23 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1–0.18 / schema 1–16 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 17. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; external reports remain partial until a new assignment completes. Hired players gain exact current ratings through club access. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1–0.19 / schema 1–17 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 18. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; external reports remain partial until a new assignment completes. Hired players gain exact current ratings through club access. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
 Ctrl+K opens global search for known players, clubs, departments and help topics. Settings > Interface size cycles through 100/125/150/175% zoom. Mouse wheel pans vertically at larger sizes; Shift+wheel pans horizontally, and keyboard focus follows controls into view. Ctrl+0 restores 100%. This is whole-interface zoom; full responsive text reflow is still pending.
 
-## New in 0.19
+## New in 0.20
+
+**Staff > Manager > Training report** shows recorded preparation for the manager's preferred formation and style, training sessions, match minutes and the latest attendance. Players without recorded evidence show “Not assessed”. The manager sets the tactical brief; the owner retains existing staffing, facilities and individual training-load controls.
+
+Preparation grows gradually on eligible training days and through actual match minutes, with diminishing returns. Coaching capability, departmental workload, facilities, light loads and player recovery affect learning. Injured players and players needing recovery miss tactical sessions; fixture days are reserved for matches. Intense load does not grant an extra tactical-learning multiplier. Appointments, renewals and repeated clicks grant no learning. Previous systems remain learned through manager changes and player departures.
+
+New matches snapshot preparation for the chosen starting system. A small, bounded passing-coordination effect uses only the players currently on the pitch, recalculating after substitutions and dismissals. Match exposure is credited once after settlement, capped at 90 minutes. Old active matches retain their original state and outcome; no training history is invented on migration.
+
+This first pathway covers the owned senior squad's tactical practice. It does not implement pairwise relationships, full squad cohesion, tactical roles, alternative-system scheduling, memory decay or AI-manager training. The unchanged AI baseline and preparation coefficients remain provisional calibration. Player attributes, ability and morale are separate from this record.
+
+## Included from 0.19
 
 Managers now make starting selections using persistent formation, rotation and youth preferences. Four broad shapes are available: 4-4-2, 4-3-3, 4-5-1 and 3-5-2. If the preferred shape lacks eligible positional cover, tactical judgement and Adaptability can support a better-covered alternative. A suitable preferred shape is retained. Injuries, suspensions, registration and age rules remain binding.
 

@@ -1,7 +1,7 @@
 """Saved possession engine: rules, manager changes and one auditable event stream."""
 from copy import deepcopy
 import math
-from . import people, registration, managers as manager_model, manager_selection
+from . import people, registration, managers as manager_model, manager_selection, preparation
 
 DEFAULTS=dict(actions_per_minute=1, foul_rate=.18, yellow_rate=.19, red_rate=.003,
               injury_rate=.003, penalty_rate=.045, condition_cost=.19,
@@ -64,6 +64,7 @@ def start(s,f):
         own=0 if f['home']=='c0' else 1
         m['manager_plan']=manager_model.plan(s)
         m['risk'][own]=m['manager_plan']['baseline']
+    preparation.snapshot(s,m)
     for pid in a+b:ensure_stats(m,pid)
     under=[len(ids)<s['config']['competition']['minimum_players'] for ids in (a,b)]
     if any(under):
@@ -220,6 +221,7 @@ def action(s,m,rng):
     advantage=(len(teams[side])-len(teams[other]))*3+(m['risk'][other]-1)*15
     if (m['home'] if side==0 else m['away'])=='c0' and s['manager'] and 'manager_plan' not in m:
         advantage+=(s['manager']['skill']-62)*.12
+    advantage+=preparation.edge(m,side)-preparation.edge(m,other)
     if rng.random()<probability(attack+edge+advantage+10,defence,cfg['action_scale']):
         m['completed_passes'][side]+=1;m['stats'][attacker['id']]['completed']+=1;m['zone']=min(2,m['zone']+1)
         if m['zone']==2:event(m,'progression',attacker['name']+' finds space in the attacking third.',side=side,player=attacker['id'])

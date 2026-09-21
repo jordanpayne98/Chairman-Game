@@ -131,3 +131,12 @@ Still open: expanded manager market, richer reference/interview workloads, full 
 Implemented owned-club starting formations responsive to eligible positional shortages, persistent rotation/youth selection preferences, current-readiness safeguards, configurable bounded scoring and a dated starting-selection report with actual natural-position counts. Reports survive substitutions, completed-match archiving and save/load. Schema 17 adds preferences/configuration only; old active matches preserve their outcomes.
 
 Still open: granular tactical positions and roles, mid-match formation changes, expanded manager market and full personality/preference dimensions, squad familiarity/training transitions, opponent manager identities and realism calibration. Current preferred-shape defaults and selection coefficients are provisional. No manager or owner can bypass registration rules through this feature; academy players still require promotion.
+
+
+## Tactical preparation milestone 0.20
+
+Owned senior players now retain formation/style practice across manager transitions. Daily training uses available coaching, facilities, load and recovery; match minutes add bounded exposure once. A dated training report displays current preparation, evidence and attendance. New match snapshots supply one bounded passing-coordination pathway based on actual on-pitch players. Schema 18 migrates 1–17 without changing active matches, skills or existing preparation.
+
+Verification includes training constraints, real coaching/resource differences, replacement and return to prior systems, on-pitch recalculation, saved-match equivalence, duplicate settlement/forfeit exclusion, unknown-history migration and read-only UI navigation. An actual published 0.19 minute-27 SQLite career resumes to an identical entire world after removing only the new preparation metadata. Source bytes are unchanged. Local regression, rendered report inspection, career/display and final Windows package evidence are recorded in the checkpoint and implementation PR.
+
+Scope: tactical practice only; relationship/pairwise cohesion, alternative-system schedules, full AI manager identities/training and calibration remain open. No complete-cohesion claim, dependency change or predecessor merge.
