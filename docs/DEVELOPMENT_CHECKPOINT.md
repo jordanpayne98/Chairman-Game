@@ -1,5 +1,23 @@
 # Development checkpoint
 
+## PLAY-018 — Manager Adaptability Update 0.18
+
+Date: 21 September 2026. Based on verified Update 0.17 / PR #19 head `1b591458c91200a953355c700603109f743fd608`. GDD revision 0.10 chapter 14 was read during implementation, including the manager capability, exact-current-rating and tactical Adaptability requirements. No GDD edit, dependency change or predecessor merge.
+
+Implemented: persistent manager candidates with all eleven capabilities; manager CA includes positive Adaptability weight; exact employee/completed-assessment coverage with expiry, stale snapshots and unknown protection; manager office/profile controls; identity retention across replacement and contract expiry. New match plans snapshot preferences/capabilities separately from observed decisions. Tactical judgement evaluates score/numerical disadvantage; Adaptability coordinates an attacking-risk instruction. Actual changes are logged, unchanged plans are retained and accepted owner intervention takes priority. Encouragement and refused requests do not disable subsequent manager choices. New matches remove the legacy generic manager passing advantage without replacing it with a CA bonus.
+
+Compatibility: schema 16 reads 1–15. Migration adds manager metadata only, preserving active match state/RNG and old tactical policy. During original implementation, an actual published 0.17 SQLite minute-27 career resumed to an identical entire world after removing added metadata; source bytes unchanged. New matches retain deterministic saved-plan resumption.
+
+Previous local verification: 178 tests passed in 231.211 seconds. The final bench-message correction separately passed all seven manager/domain/UI checks and the career self-test. Display smoke passed. Full/stale/employee profiles and manager office were rendered and visually inspected during implementation.
+
+Recovery and publication: Jordan explicitly approved publishing Update 0.18 source, tests and notes to public `jordanpayne98/Chairman-Game` and running its Windows build. The workspace then became inaccessible before upload. This branch reconstructs the recorded implementation from the conversation's exact code and edits, using verified 0.17 as its base. It is not a recovered local checkout; fresh Windows/Linux regression and packaged checks are required. Final evidence belongs to the implementation PR, targeting `game/staff-current-ability`.
+
+Review follow-up: manager departure now retains a dated snapshot of the club's latest observed capabilities. Replacement or contract expiry ends live access without erasing knowledge, and future hidden changes do not alter the stored evidence. A new regression exercises both departure routes, stale evidence and non-disclosure. Initial recovered head passed 178 tests on both platforms and packaged checks; the final corrected head requires fresh CI, recorded in PR #20.
+
+Scope: first owned-club manager attacking-instruction pathway, not complete tactical intelligence. AI opponents retain their prior policy. Full formation/role adaptation, wider identities/personality, youth/rotation/recruitment tendencies, training transition/familiarity, development/potential and contextual standing remain open. Manager weights, legacy-relative skill distribution, immediate no-cost assessments and tactical coefficients are provisional. Next: expand manager choices through approved preference/selection and training pathways, retaining observable reasons and bounded effects.
+
+Verified predecessor: Update 0.17 passed 171 tests on Windows and Linux, career/display checks on both platforms and packaged executable checks. Workflow `35635871534`, artifact `10656706437`, final head `1b591458c91200a953355c700603109f743fd608`.
+
 ## PLAY-017 — Departmental Staff Ability Update 0.17
 
 Date: 21 September 2026. Continued from verified Update 0.16 / PR #18 head `be4dc4a24b32b9abeeb07b62d895c40eedf5f5ed` on `game/staff-current-ability`. Read current GDD revision 0.10 chapter 14 and the exact-current-rating requirements. Attached revision 0.2 remains stale. No GDD edit, dependency change or predecessor merge.

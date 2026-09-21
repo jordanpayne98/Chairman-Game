@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, feeders, detail
+from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, feeders, detail, managers
 from .football import finished as match_finished
 
 
@@ -92,7 +92,8 @@ def new_career(seed=42,scenario='compact'):
     competitions.start_season(world)
     shortlists.initialise(world)
     detail.initialise(world)
-    world['schema']=15
+    managers.initialise(world)
+    world['schema']=16
     for p in world['players']:
         if p['club']:p['contract_end']=career.contractual_end(world,3)
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
@@ -132,9 +133,7 @@ def calendar_date(s, day=None):
     return (date.fromisoformat(s['config']['start_date']) + timedelta(days=s['day'] if day is None else day)).strftime('%d %b %Y')
 
 
-MANAGERS = [dict(id='m0', name='Alex Rowan', style='Balanced', skill=58, wage=140000, fee=150000, autonomy=0.2),
-            dict(id='m1', name='Morgan Vale', style='Attacking', skill=70, wage=240000, fee=300000, autonomy=0.6),
-            dict(id='m2', name='Casey Holt', style='Cautious', skill=64, wage=190000, fee=200000, autonomy=0.4)]
+MANAGERS = managers.CANDIDATES
 
 
 def require(condition, message):
@@ -166,6 +165,8 @@ def execute(state, command):
 
 def apply(s, action, payload):
     cfg = s['config']
+    result=managers.apply(s,action,payload)
+    if result is not None:return result
     result=staff.apply(s,action,payload)
     if result is not None:return result
     result=delegation.apply(s,action,payload)
@@ -204,7 +205,7 @@ def apply(s, action, payload):
     if action == 'hire':
         require(not s['season_done'] and s['match'] is None, 'Appointments are unavailable during a match or after season end.')
         require(s['manager'] is None, 'A manager is already appointed for this preview season.')
-        m = next((x for x in MANAGERS if x['id'] == payload.get('id')), None)
+        m = managers.candidate(s,payload.get('id'))
         require(m is not None, 'Unknown candidate.')
         require(payroll(s) + m['wage'] + career.reservations(s)[1] <= s['budget'], 'Increase the weekly wage budget first.')
         require(career.free_cash(s,m['fee']), 'Insufficient available cash.')
@@ -335,6 +336,7 @@ def apply(s, action, payload):
             accept=rng.random() < max(.15,min(.85,.65-s['manager']['autonomy']*.3+(s['trust']-50)/200))
             if accept:
                 m['risk'][own]=1.3
+                if 'manager_plan' in m:m['owner_instruction']='attack'
                 response='Manager: We will push higher. That will leave space behind us.'
             else:
                 response='Manager: I disagree. We are sticking to our approach.'
@@ -463,12 +465,13 @@ def close_season(s):
 
 
 def validate(s):
-    require(s.get('schema')==15,'Unsupported save schema. This build supports schema 15.')
+    require(s.get('schema')==16,'Unsupported save schema. This build supports schema 16.')
     leagues.validate(s)
     feeders.validate(s)
     detail.validate(s)
     nations.validate(s)
     competitions.validate(s)
+    managers.validate(s)
     staff.validate(s);delegation.validate(s);club_ai.validate(s)
     people.validate(s);registration.validate(s)
     clauses.validate(s)
@@ -514,7 +517,7 @@ def view(s):
         players.append(row)
     m=None if s['match'] is None else football.public_match(s['match'])
     snapshot = dict(revision=s['revision'],date=calendar_date(s),day=s['day'],start_date=s['config']['start_date'],cash=s['cash'],owner_cash=s['owner_cash'],budget=s['budget'],
-                payroll=payroll(s),tickets=s['tickets'],manager=deepcopy(s['manager']),trust=s['trust'],morale=s['morale'],supporters=s['supporters'],
+                payroll=payroll(s),tickets=s['tickets'],manager=managers.view(s,s['manager']) if s['manager'] else None,manager_candidates=[managers.view(s,p) for p in s['managers']['people']],trust=s['trust'],morale=s['morale'],supporters=s['supporters'],
                 players=players,table=deepcopy(table(s)),clubs=deepcopy(s['clubs']),fixtures=deepcopy(s['fixtures']),
                 ledger=deepcopy(s['ledger']),inbox=deepcopy(s['inbox']),decision=deepcopy(s['decision']),match=m,
                 season_done=s['season_done'],seed=s['seed'],transfer_spend=s['transfer_spend'],planning=deepcopy(s['planning']),

@@ -117,3 +117,10 @@ Implements revision 0.10 player visibility: hired/fully scouted exact current ra
 ## Departmental staff ability milestone 0.17
 
 Implemented exact current departmental capabilities and role-specific CA for hired/fully assessed staff, eleven displayed capabilities, interview completion/expiry states, authorised coverage recommendations and schema 15 migration. Partial or stale evidence stays bounded to recorded information. The separate manager system still requires integration with the catalogue, positive Adaptability role weighting and observable tactical effects. Staff potential/development, importance/rank, personality depth and richer assessment workloads remain open. Departmental weights, initial Adaptability distribution and 28-day coverage are provisional tuning.
+
+
+## Manager integration milestone 0.18
+
+Implemented persistent candidate capabilities, exact/stale/club-access manager profiles, positively weighted Adaptability in manager CA, retained identities across appointment/expiry and a first observable tactical instruction pathway. New match plans separate preferred risk from actual risk; judgement evaluates context and Adaptability coordinates bounded changes. The prior generic manager passing bonus applies only to legacy matches. Schema 16 adds manager metadata without changing active-match state.
+
+Still open: expanded manager market, richer reference/interview workloads, full identity dimensions and personality, formation/role adaptation, youth/rotation/recruitment tendencies, training transitions/familiarity, staff development/potential and contextual standing. AI opponent managers retain their prior policy. Coefficients and skill generation require calibration; this does not close the complete manager design.

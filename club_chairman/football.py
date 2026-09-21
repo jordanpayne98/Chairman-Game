@@ -1,7 +1,7 @@
 """Saved possession engine: rules, manager changes and one auditable event stream."""
 from copy import deepcopy
 import math
-from . import people, registration
+from . import people, registration, managers as manager_model
 
 DEFAULTS=dict(actions_per_minute=1, foul_rate=.18, yellow_rate=.19, red_rate=.003,
               injury_rate=.003, penalty_rate=.045, condition_cost=.19,
@@ -57,7 +57,8 @@ def start(s,f):
            new_bans={},rng=rng_for(s['seed'],'football:'+f['id']).getstate())
     if s['manager'] and 'c0' in (f['home'],f['away']):
         own=0 if f['home']=='c0' else 1
-        m['risk'][own]=1.12 if s['manager']['style']=='Attacking' else .92 if s['manager']['style']=='Cautious' else 1
+        m['manager_plan']=manager_model.plan(s)
+        m['risk'][own]=m['manager_plan']['baseline']
     for pid in a+b:ensure_stats(m,pid)
     under=[len(ids)<s['config']['competition']['minimum_players'] for ids in (a,b)]
     if any(under):
@@ -117,7 +118,13 @@ def managers(s,m,rng,halftime=False):
         if not m['on_pitch'][side]:continue
         # One window per scheduled change; no automatic override of an accepted
         # owner request for the same team.
-        if m['minute']>=65:
+        own=(m['home'] if side==0 else m['away'])=='c0'
+        if own and 'manager_plan' in m:
+            change=manager_model.adjustment(m,side) if not m.get('owner_instruction') else None
+            if change:
+                desired,reason=change;m['risk'][side]=desired
+                event(m,'tactic','Manager '+reason+'; adjusts attacking risk.',side=side,risk=desired,reason=reason,manager=m['manager_plan']['manager'])
+        elif m['minute']>=65:
             desired=1.22 if m['score'][side]<m['score'][1-side] else .9 if m['score'][side]>m['score'][1-side] else 1
             own=(m['home'] if side==0 else m['away'])=='c0'
             if not (own and m['intervened']) and desired!=m['risk'][side]:
@@ -203,7 +210,7 @@ def action(s,m,rng):
     edge=cfg['home_advantage'] if side==0 else 0
     # Numerical advantage, condition and tactical risk affect the next action.
     advantage=(len(teams[side])-len(teams[other]))*3+(m['risk'][other]-1)*15
-    if (m['home'] if side==0 else m['away'])=='c0' and s['manager']:
+    if (m['home'] if side==0 else m['away'])=='c0' and s['manager'] and 'manager_plan' not in m:
         advantage+=(s['manager']['skill']-62)*.12
     if rng.random()<probability(attack+edge+advantage+10,defence,cfg['action_scale']):
         m['completed_passes'][side]+=1;m['stats'][attacker['id']]['completed']+=1;m['zone']=min(2,m['zone']+1)
@@ -305,4 +312,4 @@ def settle_players(s,m):
 
 
 def public_match(m):
-    return {k:deepcopy(v) for k,v in m.items() if k not in ('rng','served_bans','new_bans')}
+    return {k:deepcopy(v) for k,v in m.items() if k not in ('rng','served_bans','new_bans','manager_plan')}
