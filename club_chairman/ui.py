@@ -294,7 +294,7 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
             title=TITLES.get(self.screen,self.screen)
             if self.profile:title=next((p['name'] for p in self.v['players'] if p['id']==self.profile),title)
             self.heading(title,x,104,40)
-            self.clipped_text(DESCRIPTIONS.get(self.screen,'NORTHBRIDGE ATHLETIC  /  '+self.screen.upper()) if not self.profile else self.screen.upper()+'  /  PLAYER PROFILE  /  ESTIMATES, NOT CERTAINTIES',x,151,1135,18,MUTED)
+            self.clipped_text(DESCRIPTIONS.get(self.screen,'NORTHBRIDGE ATHLETIC  /  '+self.screen.upper()) if not self.profile else self.screen.upper()+'  /  PLAYER PROFILE  /  CURRENT ABILITY AND SCOUTING EVIDENCE',x,151,1135,18,MUTED)
             self.button('< Back',(1160,100,112,38),self.go_back,bool(self.history))
             self.button('Forward >',(1283,100,117,38),self.go_forward,bool(self.forward))
             getattr(self,'draw_'+self.screen.lower())(x)
@@ -371,16 +371,16 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
             self.text(p['name'],x+15,y+8,25)
             self.text(f"{p['role']}  /  Age {p['age']}  /  "+('Retired' if p['retired'] else 'Your club' if recruitment and p['club']=='c0' else f"{p['goals']} goals"),x+15,y+32,18,MUTED)
             self.right_text(money(p['wage']),x+515,y+18,23)
-            report=p['report'];info=report['confidence'] if report else 'Due '+dated(self.v,p['scout_due'])[:6] if p['scout_due'] else 'Not assessed'
+            report=p['report'];info=report['knowledge'] if report else 'Due '+dated(self.v,p['scout_due'])[:6] if p['scout_due'] else 'Not assessed'
             if report and self.sort.lower() in ATTRIBUTES:
-                lo,hi=report['ranges'][self.sort.lower()];info=f'{lo}–{hi} (estimate)'
+                lo,hi=report['ranges'][self.sort.lower()];info=f'{lo} (exact)' if report.get('exact_current') else f'{lo}–{hi} (estimate)'
             if not recruitment:info=p['availability'] or f"Available / {p['condition']:.0f}%"
             self.text(info[:31],x+555,y+18,21,RED if not recruitment and p['availability'] else GREEN if report else MUTED)
             self.button('Saved' if p['id'] in self.v['planning']['shortlist'] else '+ List',(1100,y+5,82,40),lambda pid=p['id']:self.toggle_plan('shortlist',pid))
             self.button('Pinned' if p['id'] in self.v['planning']['comparison'] else '+ Pin',(1192,y+5,82,40),lambda pid=p['id']:self.toggle_plan('comparison',pid))
             self.button('Profile',(1285,y+5,105,40),lambda pid=p['id']:self.open_profile(pid))
         self.pager(x,780,len(rows),7)
-        self.text('Reports are estimates. Sorting uses range midpoints, never hidden ratings.',x,751,20,MUTED)
+        self.text('Current ratings: exact when known; otherwise estimates. Potential stays uncertain.',x,751,20,MUTED)
         self.button('Save visible page',(x+460,780,225,42),self.save_shortlist_page,any(p['id'] not in self.v['planning']['shortlist'] for p in rows[self.page*7:self.page*7+7]))
         self.clipped_text('List: '+self.shortlist_name(),x+705,793,1400-x-710,20,MUTED)
         if not rows:self.wrap('No players match these filters. Use Reset filters, or turn off Shortlist only.',x+20,380,900,27)
@@ -400,7 +400,7 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
 
     def draw_comparison(self,x):
         players=self.comparison_players()
-        self.text('PIN UP TO FOUR  /  estimates and costs on the same basis',x,202,23,GREEN)
+        self.text('PIN UP TO FOUR  /  authorised ratings and costs',x,202,23,GREEN)
         self.button('Recruitment',(1190,190,210,42),lambda:self.nav('Recruitment'))
         if not players:
             self.wrap('Pin players in Recruitment or Squad to compare their reports, wages and total costs. Pins remain when you change filters or sign a player.',x+20,295,950,30,TEXT);return
@@ -411,9 +411,10 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
             self.text(p['role']+' / '+str(p['age']),left+15,325,23,GREEN)
             self.text('Free agent' if p['club'] is None else self.club(p['club']),left+15,357,21,MUTED)
             for j,key in enumerate(ATTRIBUTES):
-                value='Unknown' if not p['report'] else '–'.join(map(str,p['report']['ranges'][key]))
+                from .football_ui import interval
+                value=interval(p['report']['ranges'][key]) if p['report'] else 'Unknown'
                 self.text(key.capitalize(),left+15,398+j*33,20,MUTED);self.text(value,left+width-93,398+j*33,23)
-            r=p['report'];self.text(r['confidence']+' / '+dated(self.v,r['day']) if r else 'No report',left+15,535,19,MUTED)
+            r=p['report'];self.clipped_text(r['knowledge']+' / '+dated(self.v,r['day']) if r else 'No report',left+15,535,width-30,19,MUTED)
             self.text(r['source'] if r else 'Source: unavailable',left+15,560,19,MUTED)
             self.text(money(p['wage'])+' / week',left+15,591,24,GREEN)
             t=signing_terms(self.v,[p]);self.text('Total '+money(t['total']) if p['club']!='c0' and not p.get('loan') else 'On loan' if p.get('loan') else 'At your club',left+15,622,22)
@@ -526,7 +527,7 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
             'Career adds continuing compact seasons, negotiated free-agent and renewal terms, manager replacement, academy trials/development and facility projects. Transfers adds club purchases, sales and loans. The full world and ownership systems remain in development.',
             'Shortcuts: Ctrl+S saves; Ctrl+F searches players; Alt+Left/Right navigates history; Space pauses live matches; F1 opens Help. Tab / Shift+Tab moves focus, Enter activates. Esc closes overlays or goes back.',
             'F2 explains the focused control. Settings offers optional sound and reduced motion. Contracts requires proposal, conditional acceptance, medical and final completion. Renew existing players before expiry; merely opening an offer cannot keep them registered.',
-            'Recruitment: Lists creates, selects, renames and deletes named shortlists. Saved targets include signed or retired players. Undo reverses the last planning edit before another action. Pin up to four players. Compare uses scouted ranges. Finances > Plan projects pinned acquisition costs. Commercial offers dated sponsorships; Transfers lists loan returns and instalments. Forecasts are estimates and never sign players. League > Open match report reopens completed fixtures.'
+            'Recruitment: Lists creates, selects, renames and deletes named shortlists. Saved targets include signed or retired players. Undo reverses the last planning edit before another action. Pin up to four players. Compare uses exact known ratings or partial estimates. Finances > Plan projects pinned acquisition costs. Commercial offers dated sponsorships; Transfers lists loan returns and instalments. Forecasts are estimates and never sign players. League > Open match report reopens completed fixtures.'
         ]
         y=250
         for p in paragraphs:y=self.wrap(p,x+25,y,1350-x,21)+12

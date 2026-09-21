@@ -17,6 +17,27 @@ class DepthInterfaceTests(unittest.TestCase):
     click=test_qol_ui.QolInterfaceTests.click
     key=test_qol_ui.QolInterfaceTests.key
 
+    def test_exact_full_and_stale_profile_labels_and_comparison(self):
+        from club_chairman import people
+        from club_chairman.football_ui import interval
+        a=self.app;seen=[];original=a.text
+        def capture(text,*args,**kwargs):
+            seen.append(text);return original(text,*args,**kwargs)
+        a.text=capture
+        p=a.state['players'][144]
+        for day,expected in ((0,'FULLY SCOUTED'),(28,'STALE')):
+            if day==0:a.state['reports'][p['id']]=people.report(a.state,p,'Analyst',9,complete=True)
+            a.state['day']=day;a.v=view(a.state);a.nav('Recruitment');a.open_profile(p['id'])
+            before=json.dumps(a.state,sort_keys=True);seen.clear();a.render()
+            self.assertIn(expected,seen)
+            self.assertIn('CURRENT ABILITY' if day==0 else 'EST. ABILITY',seen)
+            self.assertIn('EST. POTENTIAL',seen)
+            self.assertEqual(before,json.dumps(a.state,sort_keys=True))
+        a.state['planning']['comparison']=['p2',p['id'],'p145','p146']
+        a.v=view(a.state);a.nav('Comparison');before=json.dumps(a.state,sort_keys=True);a.render()
+        self.assertEqual(before,json.dumps(a.state,sort_keys=True))
+        self.assertEqual(interval([61,61]),'61');self.assertEqual(interval([55,65]),'55–65')
+
     def test_profile_groups_plans_and_registration_confirmation(self):
         a=self.app;a.nav('Squad');a.open_profile('p2')
         self.click('Goalkeeping');self.assertEqual(a.profile_tab,'Goalkeeping')

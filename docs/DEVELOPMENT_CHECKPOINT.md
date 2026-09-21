@@ -1,5 +1,19 @@
 # Development checkpoint
 
+## PLAY-016 — Current Ability Update 0.16
+
+Date: 21 September 2026. Continued from published PR #17 head `3ebac9e208390be943d9b77307d36141a2d4cccf` on `game/current-ability`. Attached GDD revision 0.2 was stale; read the available current revision 0.10 output, especially chapters 9, 11 and 34. Prioritised its approved exact player ratings ahead of further background simulation reduction. No GDD change or scope reduction.
+
+Implemented: exact current attributes and absolute position-weighted CA for hired players and explicitly completed scouting assignments; uncertain potential remains separate. Current knowledge is Club access, Fully scouted, Partial or Stale. Existing paid scouting completes full coverage; provisional 28-day expiry is configurable and displayed. Expired external evidence widens from its stored snapshot without reading hidden current values. Club access follows actual employment. Profiles, comparisons and recruitment sorting share one authorised read model; legacy external reports remain partial.
+
+Compatibility: schema 14 reads schemas 1–13, adding coverage configuration only. An actual published 0.15 minute-27 save resumed to identical players, clubs, fixtures, cash, ledger, match state, reports, market and clauses after JSON canonicalisation; original SQLite bytes remained unchanged. Existing report snapshots are not rewritten by reads. No match or finance formula changed.
+
+Verification: six new domain checks cover rounding/current development, completed paid scouting and exact expiry boundaries, partial/unknown/hidden-field non-disclosure, sorting, source-preserving migration/roundtrip and invalid coverage. A new real Pygame test covers full/stale profile labels and four-player comparison. Updated previous non-disclosure tests to retain protection for external unknowns while allowing hired-player access. Hired/full/stale profiles and mixed comparisons were rendered and visually inspected. Career self-test and display smoke passed. Final local regression passed: 162 tests in 217.252 seconds on Linux/Python 3.12.14 with Pygame 2.6.1. Windows CI/package verification did not run because publication was blocked.
+
+Remaining: staff exact-current ratings and the eleven-capability catalogue, richer evidence gathering, report-history browsing, contextual squad importance, reputation/personalities, economic/match calibration and the wider world. Coverage duration and assignment completeness are provisional implementation tuning; detailed scouting workloads are not claimed. Supporting-club training/match reduction remains open. Next coherent task: staff current-rating access and approved capability catalogue, then contextual recruitment.
+
+Publication: Jordan explicitly approved publishing Update 0.16 source, tests and development notes to public `jordanpayne98/Chairman-Game` and running the Windows build on 21 September 2026. This resolves the earlier automatic-review block. Target `game/background-reviews` without merging predecessors. Continue from `game/current-ability`; the implementation PR records final remote CI/package evidence and the verified download.
+
 ## PLAY-015 — Background Reviews Update 0.15
 
 Date: 21 September 2026. Continued from PR #16 / published feeder-pools head `083895b821dfbd91b9c7f82f6adf3ac9e8602e59` in `game/background-reviews`. Checked the attached revision 0.2 and current living revision 0.3 requirements for supporting detail, promotion upgrades and persistent identities. No GDD changes, predecessor merges or dependency changes.

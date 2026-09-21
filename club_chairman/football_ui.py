@@ -5,7 +5,7 @@ from .planning import dated
 from .presentation import portrait, crest
 
 
-def interval(pair):return f'{pair[0]}–{pair[1]}' if pair else '—'
+def interval(pair):return str(pair[0]) if pair and pair[0]==pair[1] else f'{pair[0]}–{pair[1]}' if pair else '—'
 
 
 class FootballScreens:
@@ -24,9 +24,10 @@ class FootballScreens:
         self.text(f"{p['foot']} foot / {p['height']} cm",x+118,307,21,MUTED)
         self.clipped_text('Free agent' if not p['club'] else self.club(p['club']),x+118,343,345,20,MUTED)
         width=(1400-x-525)/3
-        metrics=[('EST. OVERALL',interval(report.get('overall') if report else None),'Role: '+p['role']+' / 1–100'),
+        exact=bool(report and report.get('exact_current'))
+        metrics=[('CURRENT ABILITY' if exact else 'EST. ABILITY',interval(report.get('overall') if report else None),'Role: '+p['role']+' / 1–100'),
                  ('EST. POTENTIAL',interval(report.get('potential') if report else None),'Development is uncertain'),
-                 ('CONFIDENCE',report['confidence'] if report else 'Unknown',dated(self.v,report['day']) if report else 'Request scouting')]
+                 ('KNOWLEDGE',report['knowledge'] if report else 'Unknown','Current ratings exact' if exact else 'Request scouting' if not report else dated(self.v,report['day']))]
         for i,(label,value,caption) in enumerate(metrics):
             left=x+495+i*(width+15);self.panel(left,250,width,124)
             self.text(label,left+15,267,16,MUTED)
@@ -52,14 +53,14 @@ class FootballScreens:
                     import pygame
                     from .theme import BORDER
                     pygame.draw.line(self.canvas,BORDER,(left+15,y+21),(left+columns-15,y+21))
-            self.section(right,441,290,313,"Scout’s assessment")
-            self.text(report['confidence'].upper()+' EVIDENCE' if report else 'NOT ASSESSED',right+20,509,17,GREEN)
-            evidence=('Estimated overall '+interval(report.get('overall'))+' for '+p['role']+'. Potential '+interval(report.get('potential'))+' is a development outlook, not a guaranteed outcome.') if report else 'Commission a report before judging this player. Unknown attributes stay unknown.'
+            self.section(right,441,290,313,"Player knowledge")
+            self.text(report['knowledge'].upper() if report else 'NOT ASSESSED',right+20,509,17,GREEN)
+            evidence=(('Current ability ' if exact else 'Estimated ability ')+interval(report.get('overall'))+' for '+p['role']+'. Potential '+interval(report.get('potential'))+' is a development outlook, not a guaranteed outcome.') if report else 'Commission a report before judging this player. Unknown attributes stay unknown.'
             self.wrap(evidence,right+20,550,248,21,TEXT)
             if report:
                 self.clipped_text(report['source'],right+20,660,248,19,MUTED)
-                self.text('Observed '+dated(self.v,report['day']),right+20,690,18,MUTED)
-                self.text('Ageing evidence' if report.get('stale') else 'Latest recorded assessment',right+20,719,17,MUTED)
+                self.text(('Coverage ends '+dated(self.v,report['coverage_until'])) if report['knowledge']=='Fully scouted' else 'Forecast dated '+dated(self.v,report['day']),right+20,690,18,MUTED)
+                self.text('Potential: '+report['confidence'].lower()+' confidence',right+20,719,17,MUTED)
             else:self.text('No medical assessment available',right+20,703,17,MUTED)
             self.text(f"PUBLIC RECORD  /  {p['appearances']} appearances · {p['goals']} goals this season",x,764,19,MUTED)
         elif active=='Development':
@@ -101,7 +102,7 @@ class FootballScreens:
             self.button('Review loan',(x+460,794,195,44),lambda:self.outgoing_open(p['id'],'loan'),not self.v['match'] and not p.get('loan') and not p['youth'])
         else:
             due=p['scout_due'];terms=self.v['terms']
-            self.button('Request scouting',(x,794,210,44),lambda:self.confirm('Commission scouting',f"Spend {money(terms['scout_fee'])} to assess {p['name']}? Report due {dated(self.v,self.v['day']+terms['scout_days'])}. Existing estimates are retained until delivery.",lambda:self.command('scout',id=p['id'])),not due and (not report or report['day']<self.v['day']) and not self.v['match'] and not self.v['season_done'])
+            self.button('Request scouting',(x,794,210,44),lambda:self.confirm('Commission scouting',f"Spend {money(terms['scout_fee'])} to assess {p['name']}? Report due {dated(self.v,self.v['day']+terms['scout_days'])}. Current ratings become exact on completion; potential stays uncertain.",lambda:self.command('scout',id=p['id'])),not due and (not report or report['day']<self.v['day']) and not self.v['match'] and not self.v['season_done'])
             if p['club'] is None:self.button('Negotiate contract',(x+225,794,220,44),lambda:self.contract_open(p['id']),not self.v['match'] and not p['retired'] and self.v['day']<=self.v['window_end'])
             else:
                 self.button('Club enquiry',(x+225,794,195,44),lambda:self.market_open('club_enquire',p['id']),not self.v['match'] and not p.get('loan'))

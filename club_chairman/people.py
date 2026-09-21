@@ -33,7 +33,7 @@ WEIGHTS = {
 }
 DEFAULTS = dict(recovery_base=4.0, recovery_fitness_factor=.05, weekly_growth=.30,
                 intense_load=1.25, light_load=.6, decline_age=30, report_age_days=28,
-                potential_review_days=91, potential_annual_limit=3)
+                potential_review_days=91, potential_annual_limit=3, full_coverage_days=28)
 HIDDEN = ('professionalism', 'adaptability', 'consistency', 'ambition', 'injury_susceptibility')
 
 
@@ -79,7 +79,7 @@ def initialise(s):
     for p in s['players']: enrich(s, p)
 
 
-def report(s, p, source, radius):
+def report(s, p, source, radius, complete=False):
     from .simulation import rng_for
     rng = rng_for(s['seed'], f"report:{p['id']}:{s['day']}")
     ranges = {}
@@ -99,21 +99,44 @@ def report(s, p, source, radius):
         uncertainty = radius + (9 if p['age'] < 21 else 4)
         result['potential'] = [max(1,min(100,estimate-uncertainty)), max(1,min(100,estimate+uncertainty))]
         result['role'] = p['role']
+    result['knowledge'] = 'Fully scouted' if complete else 'Partial'
+    if complete:
+        result.update(exact_current(s, p))
+        result['coverage_until'] = s['day'] + s['config']['people']['full_coverage_days']
     return result
 
 
+def exact_current(s, p):
+    """Only visible football ratings, rounded half up; never potential/personality."""
+    ranges = {k: [int(p['attrs'][k]+.5)]*2 for k in (*ATTRIBUTES, 'goalkeeping')}
+    rating = overall(p, s['config']['people']['weights'])
+    return dict(ranges=ranges, overall=[rating, rating])
+
+
 def observed_report(s, p):
-    """Widen stored evidence with time, using public age only. No truth refresh."""
+    """Project field-specific permissions without changing dated report snapshots."""
     r = deepcopy(s['reports'].get(p['id']))
-    if not r: return None
+    owned = p['club'] == 'c0'
+    if not r:
+        if not owned: return None
+        r = dict(day=s['day'], source='Club access', confidence='Unknown', ranges={})
     months = max(0, s['day']-r['day']) // s['config']['people']['report_age_days']
+    full = r.get('knowledge') == 'Fully scouted'
+    covered = full and s['day'] < r['coverage_until']
     width = min(20, months*(2 if p['age'] < 24 else 1))
+    if full and not covered: width = max(1, width)
     if width:
         for key, pair in r['ranges'].items(): r['ranges'][key] = [max(1,pair[0]-width), min(100,pair[1]+width)]
         for key in ('overall','potential'):
             if key in r: r[key] = [max(1,r[key][0]-width), min(100,r[key][1]+width)]
         r['confidence'] = 'Low'
-    r['stale'] = bool(months)
+    r['forecast_stale'] = bool(months)
+    r['stale'] = not owned and not covered and (full or bool(months))
+    r['exact_current'] = owned or covered
+    r['knowledge'] = 'Club access' if owned else 'Fully scouted' if covered else 'Stale' if r['stale'] else 'Partial'
+    if r['exact_current']:
+        r.update(exact_current(s, p))
+        r['rating_day'] = s['day']
     return r
 
 
@@ -190,6 +213,11 @@ def validate(s):
     from .simulation import require
     for role, weights in s['config']['people']['weights'].items():
         require(role in WEIGHTS and all(k in ATTRIBUTES and v>=0 for k,v in weights.items()) and abs(sum(weights.values())-1)<1e-8,'Invalid position weights.')
+    require(type(s['config']['people']['full_coverage_days']) is int and s['config']['people']['full_coverage_days']>0,'Invalid full scouting coverage interval.')
+    for r in s['reports'].values():
+        require(r.get('knowledge','Partial') in ('Partial','Fully scouted'),'Invalid scouting knowledge state.')
+        if r.get('knowledge')=='Fully scouted':
+            require(type(r.get('coverage_until')) is int and r['coverage_until']>r['day'],'Invalid full scouting coverage date.')
     for p in s['players']:
         require(all(k in p['attrs'] and math.isfinite(p['attrs'][k]) and 1<=p['attrs'][k]<=100 for k in ATTRIBUTES),'Invalid football attributes.')
         require(overall(p,s['config']['people']['weights'])<=p['potential']<=100,'Potential must cover current overall.')

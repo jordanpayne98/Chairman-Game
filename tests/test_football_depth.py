@@ -51,6 +51,7 @@ class FootballDepthTests(unittest.TestCase):
         self.assertTrue(row['report']['stale'])
         self.assertGreater(row['report']['ranges']['passing'][1],self.s['reports'][p['id']]['ranges']['passing'][1])
         for person in self.s['players']:
+            if person['club']=='c0':continue
             person['potential']=100;person['hidden']={k:100 for k in people.HIDDEN}
             for key in people.ATTRIBUTES:person['attrs'][key]=99
         self.assertEqual(older,view(self.s))
