@@ -38,6 +38,12 @@ def archive_current(s):
         p=candidate(s,s['manager']['id'])
         p['capabilities']=deepcopy(s['manager']['capabilities'])
         p['preferences']=deepcopy(s['manager']['preferences'])
+        context,person=assessment_context(s,s['manager'])
+        # Leaving ends live club access, but never erases observed capabilities.
+        # Retain dated evidence without granting access to future hidden changes.
+        s['managers']['assessments'][p['id']]=dict(day=s['day'],
+            source='Club observations at departure',knowledge='Partial',
+            **staff.current_ratings(context,person))
 
 
 def assessment_context(s,p):

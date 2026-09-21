@@ -30,6 +30,27 @@ class ManagerAbilityTests(unittest.TestCase):
         self.act('hire',id='m0');self.assertEqual(self.row()['assessment']['knowledge'],'Club access')
         self.assertNotIn('capabilities',self.row());self.assertNotIn('skill',self.row())
 
+    def test_departure_preserves_dated_knowledge_without_future_live_access(self):
+        from club_chairman import career
+        for expiry in (False,True):
+            self.s=new_career(42);self.act('budget',value=4000000);self.act('hire',id='m0')
+            self.s['manager']['capabilities']['adaptability']=93
+            known=deepcopy(self.row()['assessment']['ranges']);self.s['day']=1
+            if expiry:
+                self.s['manager']['contract_end']=0
+                career.process_day(self.s)
+                self.assertIsNone(self.s['manager'])
+            else:self.act('manager_replace',id='m1')
+            report=self.row()['assessment']
+            self.assertEqual(report['ranges'],known);self.assertEqual(report['day'],1)
+            self.assertFalse(report['exact_current'])
+            before=deepcopy(self.row())
+            managers.candidate(self.s,'m0')['capabilities']['adaptability']=1
+            self.assertEqual(before,self.row())
+            self.s['day']=29
+            self.assertEqual(self.row()['assessment']['knowledge'],'Stale')
+            self.assertEqual(self.s['managers']['assessments']['m0']['ranges'],known)
+
     def test_role_weights_and_appointment_identity(self):
         self.act('budget',value=4000000);self.act('hire',id='m0')
         self.s['manager']['capabilities']['adaptability']=93
