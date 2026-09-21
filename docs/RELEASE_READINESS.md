@@ -112,3 +112,8 @@ Q06 now has up to twenty named player shortlists, independent memberships, persi
 ## Current ability milestone 0.16
 
 Implements revision 0.10 player visibility: hired/fully scouted exact current ratings, dated uncertain potential, explicit full/partial/stale knowledge, shared profile/comparison/sorting permissions and schema 14 compatibility. Existing paid scouting completes coverage; richer assignments and calibration of the provisional 28-day coverage period remain open. Staff exact ratings and the eleven-capability catalogue, contextual importance/reputation, personality and economics calibration are not delivered by this milestone. Reduced supporting-club football/training and wider world expansion remain on the backlog.
+
+
+## Departmental staff ability milestone 0.17
+
+Implemented exact current departmental capabilities and role-specific CA for hired/fully assessed staff, eleven displayed capabilities, interview completion/expiry states, authorised coverage recommendations and schema 15 migration. Partial or stale evidence stays bounded to recorded information. The separate manager system still requires integration with the catalogue, positive Adaptability role weighting and observable tactical effects. Staff potential/development, importance/rank, personality depth and richer assessment workloads remain open. Departmental weights, initial Adaptability distribution and 28-day coverage are provisional tuning.

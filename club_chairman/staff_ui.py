@@ -4,6 +4,7 @@ from .staff import ROLES,CAPABILITIES
 from .delegation import DEPARTMENTS,MODES,cover_plan
 from .planning import dated
 from .presentation import portrait
+from .football_ui import interval
 
 
 class StaffScreens:
@@ -34,7 +35,7 @@ class StaffScreens:
         self.button(self.staff_scope,(x,195,225,42),lambda:(setattr(self,'staff_scope',scopes[(scopes.index(self.staff_scope)+1)%len(scopes)]),setattr(self,'page',0)))
         roles=('All roles',*ROLES)
         self.button(self.staff_role,(x+240,195,235,42),lambda:(setattr(self,'staff_role',roles[(roles.index(self.staff_role)+1)%len(roles)]),setattr(self,'page',0)))
-        self.text('Interviews improve evidence. Appointments reserve future payroll.',x,253,22,MUTED)
+        self.text('Completed assessments reveal current ability. Hiring reserves future payroll.',x,253,22,MUTED)
         def in_scope(p):
             return {'All':True,'Employed here':p['club']=='c0','Shortlist':p['id'] in self.v['staff']['shortlist'],'Candidates':p['club']!='c0'}[self.staff_scope]
         rows=[p for p in people if in_scope(p) and (self.staff_role=='All roles' or p['role']==self.staff_role)]
@@ -45,6 +46,8 @@ class StaffScreens:
             self.text(money(p['wage'] if p['club']=='c0' else p['expected_wage'])+'/week',x+420,y+17,24,GREEN)
             caption='Joining '+dated(self.v,p['pending']['start']) if p['pending'] else 'Your club' if p['club']=='c0' else self.club(p['club']) if p['club'] else 'Available candidate'
             self.text(caption,x+420,y+50,19,MUTED)
+            report=p['assessment']
+            self.clipped_text(('CA ' if report.get('exact_current') else 'Est. CA ')+interval(report.get('overall')) if report else 'Not assessed',x+720,y+21,190,22,GREEN)
             self.button('Open staff profile',(1170,y+19,210,42),lambda p=p:(setattr(self,'staff_person',p['id']),setattr(self,'staff_draft',None),setattr(self,'page',0)))
         if not rows:self.text('No people match these filters.',x+20,340,25,MUTED)
         self.pager(x,788,len(rows),5)
@@ -58,13 +61,14 @@ class StaffScreens:
         self.text(p['name'],x+110,274,35);self.text(ROLES[p['role']][0],x+110,319,24,GREEN)
         caption='Joining '+dated(v,pending['start']) if pending else 'Contract to '+dated(v,p['end']) if own else 'Employed by '+self.club(p['club']) if p['club'] else 'Available for appointment'
         self.text(caption,950,282,22,MUTED);self.text('Capacity '+str(p['availability'])+'%',950,320,22,MUTED)
-        self.panel(x,387,570,348,'Capability estimates / 1–100')
-        report=p['assessment']
+        report=p['assessment'];exact=bool(report and report['exact_current'])
+        self.text(('Current ability ' if exact else 'Estimated ability ')+interval(report.get('overall') if report else None)+' / '+p['role'],x+110,348,17,MUTED)
+        self.panel(x,387,570,348,'Current capabilities / 1–100' if exact else 'Capability estimates / 1–100')
         for i,key in enumerate(CAPABILITIES):
-            left=x+20+(i//5)*275;y=430+(i%5)*55
+            left=x+20+(i//6)*275;y=430+(i%6)*47
             self.text(key.replace('_',' ').capitalize(),left,y,21)
-            pair=report['ranges'][key] if report else None
-            self.text(f'{pair[0]}–{pair[1]}' if pair else 'Not assessed',left,y+23,22,GREEN if pair else MUTED)
+            pair=report['ranges'].get(key) if report else None
+            self.text(interval(pair) if pair else 'Not assessed',left,y+20,21,GREEN if pair else MUTED)
         right=x+590;self.panel(right,387,1400-right,348,'Employment review')
         editable=o and o['status'] in ('interviewed','counter','agreed')
         if self.staff_draft is None:self.staff_draft=dict(wage=o['wage'] if o else p['expected_wage'],duration=o['duration'] if o else 2,autonomy=o['autonomy'] if o else 'Advisory')
@@ -81,8 +85,11 @@ class StaffScreens:
         self.button(d['autonomy'],(right+20,578,310,40),lambda:self.staff_draft.update(autonomy='Approval required' if self.staff_draft['autonomy']=='Advisory' else 'Advisory'),editable)
         self.text('Compensation '+money(p['compensation'])+' / '+str(p['notice_weeks'])+' weeks notice',right+20,640,21,MUTED)
         self.wrap('Protected approval terms prevent autonomous commitments. Salary starts on joining; authority requires assignment.',right+20,676,1360-right,20,MUTED)
-        caption=(o['transcript'][-1] if o else 'Contact the candidate, review references, then interview and agree terms.')
-        self.wrap(caption[:172],x,749,1400-x,21,TEXT)
+        caption=report['knowledge'] if report else 'Not assessed'
+        if report and report['knowledge']=='Fully assessed':caption+=' / coverage ends '+dated(v,report['coverage_until'])
+        elif report and not exact:caption+=' / evidence dated '+dated(v,report['day'])
+        self.text(caption+'. Personality and future performance remain uncertain.',x,749,19,MUTED)
+        self.clipped_text(o['transcript'][-1] if o else 'Contact, interview, then agree terms.',x,774,1400-x,17,TEXT)
         if own or pending:
             if own:self.button('Review staff renewal',(x,798,240,42),lambda:self.confirm('Renew '+p['name'],'Extend at the existing salary, notice and approval terms for three compact seasons. Current contract: '+dated(v,p['end'])+'.',lambda:self.command('staff_renew',id=p['id'],duration=3)))
             self.button('Review staff dismissal',(x+260,798,260,42),lambda:self.confirm('End '+p['name']+' agreement','Pay notice of '+money(p['notice_cost'])+'. Uncovered responsibilities return to you and unsigned delegated actions are cancelled. Existing signed contracts remain binding.',lambda:self.command('staff_dismiss',id=p['id'])))

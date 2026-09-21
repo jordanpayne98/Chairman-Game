@@ -1,4 +1,4 @@
-# Club Chairman — Current Ability Update (0.16)
+# Club Chairman — Staff Ability Update (0.17)
 
 A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic in the compact Northshire world or an England, Wales or Brazil national development scenario, with continuing league seasons and domestic cups. This is a playable development version; the approved full AA game is still being built.
 
@@ -15,13 +15,21 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1–0.15 / schema 1–13 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 14. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; external reports remain partial until a new assignment completes. Hired players gain exact current ratings through club access. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1–0.16 / schema 1–14 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 15. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; external reports remain partial until a new assignment completes. Hired players gain exact current ratings through club access. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
 Ctrl+K opens global search for known players, clubs, departments and help topics. Settings > Interface size cycles through 100/125/150/175% zoom. Mouse wheel pans vertically at larger sizes; Shift+wheel pans horizontally, and keyboard focus follows controls into view. Ctrl+0 restores 100%. This is whole-interface zoom; full responsive text reflow is still pending.
 
-## New in 0.16
+## New in 0.17
+
+**Staff > People** now shows role-specific current ability and the eleven approved departmental capabilities, including Adaptability. An employee's current ratings are exact; completing the existing interview gives a candidate the explicit **Fully assessed** state. Initial references remain partial, and expired external coverage becomes **Stale**. Current ratings follow underlying skills; reputation, workload and salary do not redefine ability. Hiring still uses the existing salary, compensation, joining-date and authority workflow.
+
+Candidate assessment coverage lasts a provisional, configurable 28 days. The profile shows the expiry; employment grants continuing club access. Legacy interviews remain partial until renewed through the contact/interview workflow. Existing saves gain Adaptability through a separate stable identity stream, retaining all ten old skills, personalities, employment and finances. Coverage suggestions now use exact current employee skills through the same authorised read model.
+
+Role weights initially split equally between each department's two existing core capabilities; these are provisional calibration data. Adaptability is recorded and displayed for departmental staff but does not add an automatic work or match bonus. The separate three-candidate Manager system, manager ability/Adaptability effects, staff development/potential, contextual importance and deeper personality behaviour remain unfinished. This milestone does not claim those systems complete.
+
+## Included from 0.16
 
 Player profiles show **exact current ability and all 37 current attributes** for players at your club and fully scouted targets. Numbers follow actual development and use consistent whole-number rounding; potential remains a dated uncertain forecast. Recruitment sorting and comparisons use the same authorised information.
 
