@@ -1,5 +1,19 @@
 # Development checkpoint
 
+## PLAY-014 — Feeder Pools Update 0.14
+
+Date: 21 September 2026. Continued from PR #15 / published named-shortlists head `e2e0a75e3ed8c8b7ce41c8374a5dff172c617d0e` in `game/feeder-pools`. Consulted the current living GDD revision 0.3 for the primary/feeder boundary, persistent entrants, owned-club detail and cup scope. No design-document edits, predecessor merges or dependency changes.
+
+Implemented: eight persistent supporting clubs in each new England/Wales/Brazil scenario, fourteen-round calendars, three English or two Welsh/Brazilian exchanges with the lowest primary tier, full player/staff/account/contract continuity, and primary-only cup membership. Pools reuse detailed simulation; the owner's club remains playable after relegation and can return. Competitions links the pool table/rules, Career archives movements, and new-career review explains the added clubs. Pool sizes, explicit fictional identities and finances are provisional development content.
+
+Compatibility: schema 12 reads schemas 1–11. Existing saves retain their structure without feeder insertion, including after rollover. A save created by the published 0.13 code was loaded with byte-for-byte source preservation and all prior state fields unchanged. Compact careers retain their format.
+
+Verification: seven new domain/interface tests cover deterministic populations/calendars, club/person/debt continuity, relegation and return promotion, primary-cup eligibility, real match save/resume, idempotent prizes, invalid definitions/membership, legacy SQLite migration, archives and keyboard/175% zoom. A real Welsh season completed all 343 matches and rolled 32 retained clubs into the next preseason after save/load. Screens inspected; a pool-navigation/report-button overlap was corrected. Full regression and packaged Windows/Linux evidence are recorded in the implementation PR; an existing six-club cup test fixture was updated to declare matching primary membership.
+
+Remaining: other national pools, reduced-detail simulation and its detail transitions, connected 636-club world/calendar, USA playoffs, continental/international qualification and complete authored populations/economics. Existing background squad replenishment remains scaffolding. Next: reduced-detail supporting-club state with validated transitions, retaining detailed owned clubs, before wider connected-world expansion.
+
+Publication: use standing authorization for a PR targeting `game/named-shortlists`, preserving open predecessors. Continue from the latest `game/feeder-pools` head and consult the PR for final CI/package evidence.
+
 ## PLAY-013 — Recruitment Lists Update 0.13
 
 Date: 20 September 2026. Continued from PR #14 / published national-calendars head `180b68cafc0b70c35147fb895a5707a5a66910e3` in an isolated `game/named-shortlists` worktree. Inspected attached revision 0.2 and reconciled it against the current living revision 0.3, especially chapter 37 Q05/Q06 and chapter 38 UQ06. No GDD edits, predecessor merges or stack changes. This is a bounded recruitment QoL addition alongside the still-open world milestone.

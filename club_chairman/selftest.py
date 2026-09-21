@@ -10,7 +10,9 @@ def national_check():
     # The executable must include and use the new nation data, calendars and saves.
     for id,total in (('wales',24),('brazil',54),('england',100)):
         national=new_career(71,id);validate(national)
-        if len(national['clubs'])!=total:raise RuntimeError('Missing national scenario clubs')
+        if len(national['clubs'])!=total+8:raise RuntimeError('Missing national scenario clubs')
+        if len(national['leagues']['divisions'][-1]['members'])!=8:raise RuntimeError('Missing feeder pool')
+        if len(national['competitions']['cup']['entrants'])!=total:raise RuntimeError('Invalid primary cup membership')
         if national['calendar']['cup_days'][-1]!=national['calendar']['end']:raise RuntimeError('Unreserved national final')
         with tempfile.TemporaryDirectory() as root:
             path=Path(root)/'national.sqlite3';save(national,path)

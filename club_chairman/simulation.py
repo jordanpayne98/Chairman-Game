@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists
+from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, feeders
 from .football import finished as match_finished
 
 
@@ -91,12 +91,12 @@ def new_career(seed=42,scenario='compact'):
     if scenario!='compact':nations.configure(world,scenario)
     competitions.start_season(world)
     shortlists.initialise(world)
-    world['schema']=11
+    world['schema']=12
     for p in world['players']:
         if p['club']:p['contract_end']=career.contractual_end(world,3)
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
     if world['calendar']:
-        news(world,'National development scenario',f"{world['config']['nation']['name']}: one active national pyramid. Club identities, squads and finances are provisional content; feeder pools and continental competitions are pending.")
+        news(world,'National development scenario',f"{world['config']['nation']['name']}: one active national pyramid. Club identities, squads and finances are provisional content; an eight-club feeder pool exchanges clubs with the lowest primary tier. Continental competitions are pending.")
     news(world, 'Welcome to Northbridge', 'Appoint a manager, review your wage budget, and request scouting before the first match. Review your divisions and domestic cup under Competitions.')
     return world
 
@@ -462,8 +462,9 @@ def close_season(s):
 
 
 def validate(s):
-    require(s.get('schema')==11,'Unsupported save schema. This build supports schema 11.')
+    require(s.get('schema')==12,'Unsupported save schema. This build supports schema 12.')
     leagues.validate(s)
+    feeders.validate(s)
     nations.validate(s)
     competitions.validate(s)
     staff.validate(s);delegation.validate(s);club_ai.validate(s)

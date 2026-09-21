@@ -29,6 +29,7 @@ class CompetitionTests(unittest.TestCase):
         self.assertEqual(cup['dates'],[22,43,64,85]);competitions.validate(self.s)
         # Six entrants: two real byes, two opening ties, then four semi-finalists.
         s=deepcopy(self.s);s['clubs']=s['clubs'][:6];s['fixtures']=[]
+        s['leagues']['divisions']=[dict(s['leagues']['divisions'][0],members=[c['id'] for c in s['clubs']])]
         competitions.start_season(s);r=s['competitions']['cup']['rounds'][0]
         self.assertEqual(len(r['byes']),2);self.assertEqual(len(r['fixtures']),2)
         for f in s['fixtures']:f['result']={'winner':f['home']}
@@ -102,7 +103,7 @@ class CompetitionTests(unittest.TestCase):
         old['day']=5;old['match']=start_match(old,old['fixtures'][0])
         for _ in range(27):football.step(old,old['match'])
         before=deepcopy(old);new=migrate(old)
-        self.assertEqual(old,before);self.assertEqual(new['schema'],11)
+        self.assertEqual(old,before);self.assertEqual(new['schema'],12)
         self.assertIsNone(new['competitions']['cup'])
         for key in ('fixtures','match','players','cash','ledger','career','reports'):self.assertEqual(new[key],old[key],key)
         validate(new)
