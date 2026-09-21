@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "content_status": "Provisional development pools; full-detail simulation",
+  "initial_ability": [35, 55],
+  "prize_percent": 70,
+  "pools": {
+    "england": {
+      "name": "England Regional Pool",
+      "clubs": [
+        {"city": "Bristol", "name": "Bristol Dockside"},
+        {"city": "York", "name": "York Minster"},
+        {"city": "Cambridge", "name": "Cambridge Fenland"},
+        {"city": "Plymouth", "name": "Plymouth Harbour"},
+        {"city": "Reading", "name": "Reading Riverside"},
+        {"city": "Derby", "name": "Derby Foundry"},
+        {"city": "Norwich", "name": "Norwich Cathedral"},
+        {"city": "Peterborough", "name": "Peterborough Fenway"}
+      ]
+    },
+    "wales": {
+      "name": "Wales Regional Pool",
+      "clubs": [
+        {"city": "Cardiff", "name": "Cardiff Riverside"},
+        {"city": "Swansea", "name": "Swansea Bay"},
+        {"city": "Newport", "name": "Newport Docklands"},
+        {"city": "Bangor", "name": "Bangor Menai"},
+        {"city": "Wrexham", "name": "Wrexham Border"},
+        {"city": "Aberystwyth", "name": "Aberystwyth Coast"},
+        {"city": "Llanelli", "name": "Llanelli Union"},
+        {"city": "Carmarthen", "name": "Carmarthen Vale"}
+      ]
+    },
+    "brazil": {
+      "name": "Brazil Regional Pool",
+      "clubs": [
+        {"city": "São Paulo", "name": "São Paulo Aurora"},
+        {"city": "Rio de Janeiro", "name": "Rio de Janeiro Baía"},
+        {"city": "Salvador", "name": "Salvador Atlântico"},
+        {"city": "Recife", "name": "Recife Porto"},
+        {"city": "Fortaleza", "name": "Fortaleza Litoral"},
+        {"city": "Curitiba", "name": "Curitiba Pinheiros"},
+        {"city": "Manaus", "name": "Manaus Rio Negro"},
+        {"city": "Porto Alegre", "name": "Porto Alegre Horizonte"}
+      ]
+    }
+  }
+}

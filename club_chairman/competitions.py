@@ -20,7 +20,8 @@ def initialise(s, legacy=False):
 def start_season(s):
     """Draw only the next known round; all possible dates are reserved up front."""
     from .simulation import require
-    cfg=s['config']['cup'];members=sorted(c['id'] for c in s['clubs'])
+    from .leagues import primary_members
+    cfg=s['config']['cup'];members=sorted(primary_members(s))
     require(len(members)>=2,'A cup needs at least two entrants.')
     count=(len(members)-1).bit_length()
     require(s.get('calendar') or len(cfg['round_days'])>=count,'The cup calendar has too few round dates.')
@@ -109,7 +110,9 @@ def validate(s):
             require(slot not in slots,'A club has overlapping fixtures.');slots.add(slot)
     if cup is None:return
     require(cup['season']==s['career']['season'],'Cup season does not match the career.')
-    require(set(cup['entrants'])==known and len(cup['entrants'])==len(known),'Cup entrant membership is invalid.')
+    from .leagues import primary_members
+    eligible=set(primary_members(s))
+    require(set(cup['entrants'])==eligible and len(cup['entrants'])==len(eligible),'Cup entrant membership is invalid.')
     require(type(cup['prize']) is int and cup['prize']>=0,'Invalid cup prize.')
     by_id={f['id']:f for f in s['fixtures']};previous=set(cup['entrants']);listed=[]
     require(1<=len(cup['rounds'])<=len(cup['dates']),'Invalid cup round count.')

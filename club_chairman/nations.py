@@ -105,7 +105,7 @@ def add_year(origin,day):
 
 def configure(s,id):
     """Called only for a new career; never reshapes a loaded world."""
-    from . import career, leagues, market, staff
+    from . import career, leagues, market, staff, feeders
     from .simulation import rng_for
     n=scenario(id);s['config']['nation']=n
     s['config']['start_date']=date(2026,n['start_month'],1).isoformat();prepare(s,2026)
@@ -131,6 +131,7 @@ def configure(s,id):
     s['leagues'].update(divisions=ds,exchange=n['exchange'],legacy=False)
     s['config']['cup'].update(id=id+'-cup',name=n['name']+' Cup',minimum_rest_days=n['minimum_rest_days'])
     s['config']['competition']['name']=n['name']+' domestic registration'
+    feeders.initialise(s)
     leagues.prepare_order(s);leagues.schedule(s)
 
 
@@ -144,11 +145,12 @@ def validate(s):
     n=s['config']['nation'];expected=plan(n,cal['year'],s['config']['start_date'])
     require(cal['year']==date.fromisoformat(s['config']['start_date']).year+s['career']['season']-1,'National calendar year does not match the career season.')
     require(cal==expected and s['career']['start']==cal['start'],'Saved national calendar does not reconcile with its rules.')
+    from . import leagues
     ds=s['leagues']['divisions']
-    require([len(d['members']) for d in ds]==n['division_sizes'] and s['leagues']['exchange']==n['exchange'],'National membership/rules differ from the selected format.')
+    require([len(d['members']) for d in ds if not d.get('supporting')]==n['division_sizes'] and s['leagues']['exchange']==n['exchange'],'National membership/rules differ from the selected format.')
     require(all(c.get('nation')==n['id'] for c in s['clubs']),'Club national identity is inconsistent.')
     for d in ds:
-        for day in cal['league_days']:
+        for day in leagues.round_days(s,d):
             fs=[f for f in s['fixtures'] if f.get('division')==d['id'] and f['day']==day]
             require(len(fs)==len(d['members'])//2,'National league date has missing fixtures.')
     require(all(f['day'] in cal['cup_days' if f.get('knockout') else 'league_days'] for f in s['fixtures']),'Fixture violates reserved national dates.')

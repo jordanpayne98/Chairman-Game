@@ -54,6 +54,9 @@ def migrate(state):
     if s.get('schema')==10:
         shortlists.initialise(s)
         s['schema']=11
+    if s.get('schema')==11:
+        # Existing competition graphs are immutable; no clubs are added on load.
+        s['schema']=12
     validate(s)
     return s
 
@@ -65,7 +68,7 @@ def load(path):
         with closing(sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True)) as db:
             if db.execute('PRAGMA integrity_check').fetchone() != ('ok',):raise SaveError('Save integrity check failed.')
             metadata=dict(db.execute('SELECT key, value FROM metadata'))
-            if metadata.get('schema') not in ('1','2','3','4','5','6','7','8','9','10','11'):raise SaveError('Unsupported save version. This build reads schemas 1–11.')
+            if metadata.get('schema') not in ('1','2','3','4','5','6','7','8','9','10','11','12'):raise SaveError('Unsupported save version. This build reads schemas 1–12.')
             raw=db.execute("SELECT payload FROM entities WHERE id='world'").fetchone()[0]
             if hashlib.sha256(raw.encode()).hexdigest()!=metadata['checksum']:raise SaveError('Save checksum does not match.')
             s=json.loads(raw)

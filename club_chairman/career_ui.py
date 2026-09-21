@@ -163,7 +163,8 @@ class CareerScreens(ClauseScreens):
         self.text('Northbridge Athletic / Season '+str(v['season']),x+20,245,36,GREEN)
         self.text('Current campaign ends '+dated(v,v['season_end']),x+20,293,24)
         division=next(d for d in v['leagues']['divisions'] if d['id']==v['leagues']['own_division'])
-        self.wrap(f"{len(division['members'])} clubs in your division, {2*(len(division['members'])-1)} league matches plus the domestic cup. Wages, medicals and construction continue day by day through preseason.",x+20,333,1080,21)
+        cup_text='; regional pool members do not enter the primary cup' if division.get('supporting') else ' plus the domestic cup'
+        self.wrap(f"{len(division['members'])} clubs in your division, {2*(len(division['members'])-1)} league matches{cup_text}. Wages, medicals and construction continue day by day through preseason.",x+20,333,1080,21)
         self.button('Prepare next season',(x,408,240,44),lambda:self.confirm('Prepare the next campaign', 'Archive this season’s table, cup winner and match reports, apply confirmed promotion/relegation, reset seasonal statistics and generate the next fixtures. Days will not skip: preseason wages and contract expiries process through Continue. Unfinished offers expire. Review renewals first; expired players become free agents.',lambda:self.command('next_season')),v['season_done'] and not v['match'])
         change=next((m for m in v['leagues']['movements'] if m['club']=='c0'),None)
         if change:self.text(change['kind']+' at next season preparation',x+570,424,21,GREEN)
@@ -294,6 +295,7 @@ class CareerScreens(ClauseScreens):
         }
         if label in staff_hints:return staff_hints[label]
         hints={
+            'Regional pool':'View persistent feeder clubs and their recorded results. Top clubs exchange with the lowest primary tier at season preparation. Squads, accounts and history are retained.',
             'Create list':'Create and select a private list with the typed name. Names must be unique, 1–32 characters; up to twenty lists are supported.',
             'Rename':'Apply the typed name to the selected list. Its saved players are retained.',
             'Delete selected':'Review deletion of the selected list only. Keep at least one list. Immediate Undo restores its name and members.',

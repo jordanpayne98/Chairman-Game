@@ -25,7 +25,7 @@ class NationalInterfaceTests(unittest.TestCase):
         a=self.a;self.click('Scenario: Compact');self.click('Scenario: England');self.click('Scenario: Wales')
         self.assertEqual(a.new_scenario,'brazil');self.assertIsNone(a.state)
         self.click('New career');self.assertIsNone(a.state);self.click('Confirm')
-        self.assertEqual(a.state['calendar']['nation'],'brazil');self.assertEqual(len(a.state['clubs']),54)
+        self.assertEqual(a.state['calendar']['nation'],'brazil');self.assertEqual(len(a.state['clubs']),62)
         self.assertEqual(a.state['config']['start_date'],'2026-02-01')
         self.assertTrue(a.store.entries())
 

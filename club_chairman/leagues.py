@@ -1,7 +1,7 @@
 """Division membership, league schedules and atomic season movement.
 
 The two eight-club Northshire divisions are development content. Wider national
-pyramids, feeder replacements and continental qualification remain separate work.
+pyramids include persistent supporting pools. Continental qualification remains separate.
 """
 from copy import deepcopy
 
@@ -53,6 +53,19 @@ def expand_world(s):
     data['legacy']=False
 
 
+def primary_members(s):
+    return [cid for d in s['leagues']['divisions'] if not d.get('supporting') for cid in d['members']]
+
+
+def round_days(s,division):
+    rounds=2*(len(division['members'])-1)
+    if not s.get('calendar'):return [s['career']['start']+5+r*7 for r in range(rounds)]
+    days=s['calendar']['league_days']
+    from .simulation import require
+    require(rounds<=len(days),'Calendar has too few league dates for this division.')
+    return [days[round(r*(len(days)-1)/(rounds-1))] for r in range(rounds)]
+
+
 def division_for(s,cid='c0'):
     return next(d for d in s['leagues']['divisions'] if cid in d['members'])
 
@@ -87,7 +100,7 @@ def schedule(s):
     """Generate one double round robin per division with stable fixture IDs."""
     s['fixtures']=[];season=s['career']['season'];start=s['career']['start']
     for d in s['leagues']['divisions']:
-        ring=list(d['members']);n=len(ring);pairings=[]
+        ring=list(d['members']);n=len(ring);pairings=[];days=round_days(s,d)
         for r in range(n-1):
             pairings.append([(ring[-1-j],ring[j]) if r%2 else (ring[j],ring[-1-j]) for j in range(n//2)])
             ring=[ring[0],ring[-1]]+ring[1:-1]
@@ -95,7 +108,7 @@ def schedule(s):
             for j,(a,b) in enumerate(pairings[r%(n-1)]):
                 if r>=n-1:a,b=b,a
                 prefix='' if season==1 and d['tier']==1 else f"s{season}-" if d['tier']==1 else f"s{season}-{d['id']}-"
-                s['fixtures'].append(dict(id=f'{prefix}f{r}-{j}',day=s['calendar']['league_days'][r] if s.get('calendar') else start+5+r*7,home=a,away=b,result=None,
+                s['fixtures'].append(dict(id=f'{prefix}f{r}-{j}',day=days[r],home=a,away=b,result=None,
                     division=d['id'],competition_name=d['name']))
     s['fixtures'].sort(key=lambda f:(f['day'],f['id']))
 

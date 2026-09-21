@@ -1,4 +1,4 @@
-# Club Chairman — Recruitment Lists Update (0.13)
+# Club Chairman — Feeder Pools Update (0.14)
 
 A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic in the compact Northshire world or an England, Wales or Brazil national development scenario, with continuing league seasons and domestic cups. This is a playable development version; the approved full AA game is still being built.
 
@@ -15,13 +15,21 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1–0.12 / schema 1–10 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 11. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1–0.13 / schema 1–11 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 12. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
 Ctrl+K opens global search for known players, clubs, departments and help topics. Settings > Interface size cycles through 100/125/150/175% zoom. Mouse wheel pans vertically at larger sizes; Shift+wheel pans horizontally, and keyboard focus follows controls into view. Ctrl+0 restores 100%. This is whole-interface zoom; full responsive text reflow is still pending.
 
-## New in 0.13
+## New in 0.14
+
+**Start a new England, Wales or Brazil career** to include an eight-club regional feeder pool below the primary pyramid. Competitions > Regional pool opens its table and rules. Each pool club plays fourteen home-and-away matches spread through the national calendar. Three clubs exchange with England’s lowest primary tier; two exchange in Wales and Brazil.
+
+Pool clubs retain their identities, players, staff, contracts, accounts and history when promoted. Relegated clubs continue playing in the pool; an owned club remains playable and can earn promotion back. Primary cups include primary-division members only, with eligibility updated when preparing the next season. Season history records the pool table and movements alongside the primary divisions.
+
+Existing saves retain their original league structure, including at rollover; loading never inserts clubs or rewrites the source file. Compact careers remain unchanged. New national totals are 108 clubs in England, 32 in Wales and 62 in Brazil. These pools use the existing detailed simulation. Reduced-detail simulation, the remaining countries and the connected world remain future work. Pool size, fictional club identities, initial squads and prizes are provisional development content in `data/feeders.json`.
+
+## Included from 0.13
 
 **Recruitment > Lists** creates, selects, renames and deletes named target lists. A player can belong to several lists. The selected list controls the table’s Saved/+ List buttons, Shortlist only filter and the profile’s Add/Remove shortlist action. Its name is visible in the table and profile. Up to twenty lists with unique names of 1–32 characters are supported; keep at least one list.
 
@@ -31,24 +39,24 @@ Shortlist only includes saved targets after signing, transfers or retirement; se
 
 Older careers retain all saved targets in a list named Shortlist. Lists, memberships and the selected list persist in schema 11 saves. Loading does not rewrite the original save. Input validation preserves an unfinished name; closing a name draft asks before discarding it. Tab and Enter work with the list controls, including at the existing zoom settings.
 
-This implements named recruitment lists (GDD Q06), visible-page shortlist additions (part of Q05), and immediate Undo (UQ06). Tags, reminders, expiry rules, broader entity-following, general multi-selection and task templates remain unfinished. World/feeder expansion remains the next competition dependency; this update does not add continental entrants or fictional qualification allocations.
+This implements named recruitment lists (GDD Q06), visible-page shortlist additions (part of Q05), and immediate Undo (UQ06). Tags, reminders, expiry rules, broader entity-following, general multi-selection and task templates remain unfinished. Continental entrants and qualification remain unfinished.
 
-## New in 0.12
+## Included from 0.12
 
 On the main menu, click **Scenario** to cycle through Compact, England, Wales and Brazil, then choose **New career** and review the selection. National scenarios currently simulate one country at a time; other countries are not running in the background. Existing saves keep their world, calendar, contracts and results. The compact scenario remains available.
 
-| Scenario | Divisions | Clubs | League matches per club | Calendar |
+| Scenario | Primary divisions | Primary clubs | Primary league matches per club | Calendar |
 | --- | --- | --- | --- | --- |
 | Compact | 2 × 8 | 16 | 14 | Short development seasons |
 | England | 5 × 20 | 100 | 38 | August–May |
 | Wales | 2 × 12 | 24 | 22 | August–May |
 | Brazil | 3 × 18 | 54 | 34 | February–November |
 
-All active clubs enter their country's knockout cup. England exchanges three clubs between adjacent tiers; Wales and Brazil exchange two. Larger league tables and archives paginate, retaining promotion/relegation markers, match reports and recorded tie-breaks. The lowest playable tiers currently have no feeder exchanges.
+All primary-division clubs enter their country's knockout cup. England exchanges three clubs between adjacent tiers; Wales and Brazil exchange two. Larger league tables and archives paginate, retaining promotion/relegation markers, match reports and recorded tie-breaks. New national careers now also exchange clubs with the regional pools described above.
 
 National careers reserve league and cup dates together with a minimum three-day recovery gap. Optional blackout ranges are supported; impossible configurations produce an explanation and preserve the current career. No international windows are enabled yet. Annual season anchors, leap years, contract duration, new extension options, academy admission previews and financial planning now share calendar dates. Preparing next season does not jump time: summer wages, deadlines and construction still process day by day. New national contracts use season-end dates; previous signed terms are never recalculated on load.
 
-`data/nations.json` records all 14 approved formats (38 divisions / 636 senior clubs), with explicit incomplete content families. Only the three national scenarios above are enabled. USA's closed system and top-eight playoff are recorded as requirements, not silently replaced with promotion/relegation. National scenarios use provisional city-based club identities, 18-player squads, existing staff/player name pools, GBP finances and simplified registration windows. Northbridge remains the owned development club. Full authored history, country-specific population/finance/eligibility content, reserve/youth squads, feeders, other active countries and international/continental competitions remain required.
+`data/nations.json` records all 14 approved formats (38 divisions / 636 senior clubs), with explicit incomplete content families. Only the three national scenarios above are enabled. USA's closed system and top-eight playoff are recorded as requirements, not silently replaced with promotion/relegation. National scenarios use provisional city-based club identities, 18-player squads, existing staff/player name pools, GBP finances and simplified registration windows. Northbridge remains the owned development club. Full authored history, country-specific population/finance/eligibility content, reserve/youth squads, remaining feeder content, other active countries and international/continental competitions remain required.
 
 Weekly AI review avoids repeated squad-cover, cash, payroll and equivalent registration calculations. Decisions retain the same rules and observations. Large national careers still need performance work: this is not a claim that the full-world performance gate has passed.
 
@@ -60,7 +68,7 @@ Tables resolve equal points by goal difference, goals scored, head-to-head point
 
 Older saves finish their existing season with the original fixtures and tie-breaks. The second division is added at the next season boundary, without retrospective relegation or changing old results. Season history retains both division tables, confirmed movement and cup records; old archives remain readable.
 
-This is a playable competition milestone. The 636-club world, national league sizes, lower feeder replacements, continental qualification and international calendars remain future work. The two compact divisions and prize values are development content.
+This is a playable competition milestone. The connected 636-club world, continental qualification and international calendars remain future work. The two compact divisions and prize values are development content.
 
 ## Included from 0.10
 

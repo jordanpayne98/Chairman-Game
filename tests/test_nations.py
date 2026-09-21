@@ -46,14 +46,14 @@ class NationalTests(unittest.TestCase):
     def test_national_membership_fixture_counts_and_squads(self):
         for id,count,size,exchange in (('england',100,20,3),('wales',24,12,2),('brazil',54,18,2)):
             s=new_career(42,id);validate(s)
-            self.assertEqual(len(s['clubs']),count);self.assertEqual(len(s['players']),count*18+12)
+            self.assertEqual(len(s['clubs']),count+8);self.assertEqual(len(s['players']),(count+8)*18+12)
             if id=='brazil':self.assertEqual(s['clubs'][1]['city'],'São Paulo')
             self.assertEqual(s['leagues']['exchange'],exchange)
-            self.assertEqual(sum(not f.get('knockout') for f in s['fixtures']),count*(size-1))
+            self.assertEqual(sum(not f.get('knockout') for f in s['fixtures']),count*(size-1)+56)
             self.assertEqual(s['players'][144]['id'],'p144');self.assertIsNone(s['players'][144]['club'])
             self.assertEqual(len(s['competitions']['cup']['entrants']),count)
             self.assertEqual(s['players'][0]['contract_end'],career.contractual_end(s,3))
-            self.assertEqual(len(s['staff']['people']),27+(count-1)*3)
+            self.assertEqual(len(s['staff']['people']),27+(count+7)*3)
 
     def test_calendars_both_season_types_leap_years_and_conflict_diagnostics(self):
         for id in ('england','wales','brazil'):
@@ -90,7 +90,7 @@ class NationalTests(unittest.TestCase):
         self.assertEqual(s['calendar']['year'],2027);self.assertEqual(s['calendar']['end'],669)
         self.assertEqual(s['career']['history'][0]['calendar'],before['calendar'])
         self.assertEqual(s['cash'],before['cash']);self.assertEqual(s['ledger'],before['ledger'])
-        self.assertEqual([len(d['members']) for d in s['leagues']['divisions']],[12,12])
+        self.assertEqual([len(d['members']) for d in s['leagues']['divisions']],[12,12,8])
         self.assertEqual(s['players'][0]['contract_end'],before['players'][0]['contract_end'])
         self.assertEqual(len({f['id'] for f in s['fixtures']} & {f['id'] for f in before['fixtures']}),0)
         with tempfile.TemporaryDirectory() as root:
