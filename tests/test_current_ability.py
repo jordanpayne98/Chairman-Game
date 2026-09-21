@@ -1,3 +1,4 @@
+from contextlib import closing
 from copy import deepcopy
 import hashlib
 import json
@@ -94,10 +95,10 @@ class CurrentAbilityTests(unittest.TestCase):
             old=deepcopy(self.s);old['schema']=13;old['config']['people'].pop('full_coverage_days')
             for r in old['reports'].values():r.pop('knowledge',None);r.pop('coverage_until',None)
             path=Path(root)/'old.sqlite3';raw=json.dumps(old)
-            with sqlite3.connect(path) as db:
+            with closing(sqlite3.connect(path)) as db:
                 db.executescript('CREATE TABLE metadata(key TEXT,value TEXT); CREATE TABLE entities(id TEXT,payload TEXT);')
                 db.executemany('INSERT INTO metadata VALUES (?,?)',[('schema','13'),('checksum',hashlib.sha256(raw.encode()).hexdigest())])
-                db.execute('INSERT INTO entities VALUES (?,?)',('world',raw))
+                db.execute('INSERT INTO entities VALUES (?,?)',('world',raw));db.commit()
             original=path.read_bytes();loaded=load(path);self.assertEqual(path.read_bytes(),original)
             self.assertEqual(loaded['reports'],old['reports'])
             self.assertEqual(next(x for x in view(loaded)['players'] if x['id']==p['id'])['report']['knowledge'],'Partial')
