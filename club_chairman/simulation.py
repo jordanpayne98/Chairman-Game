@@ -92,7 +92,7 @@ def new_career(seed=42,scenario='compact'):
     competitions.start_season(world)
     shortlists.initialise(world)
     detail.initialise(world)
-    world['schema']=14
+    world['schema']=15
     for p in world['players']:
         if p['club']:p['contract_end']=career.contractual_end(world,3)
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
@@ -463,7 +463,7 @@ def close_season(s):
 
 
 def validate(s):
-    require(s.get('schema')==14,'Unsupported save schema. This build supports schema 14.')
+    require(s.get('schema')==15,'Unsupported save schema. This build supports schema 15.')
     leagues.validate(s)
     feeders.validate(s)
     detail.validate(s)

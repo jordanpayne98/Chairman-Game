@@ -1,9 +1,10 @@
 """Staff employment, assessed capabilities and dated departmental coverage."""
 from copy import deepcopy
+import math
 
 CAPABILITIES=('tactical_judgement','coaching','youth_development','ability_assessment',
               'potential_assessment','negotiation','financial_control','commercial_judgement',
-              'operations','people_management')
+              'operations','people_management','adaptability')
 ROLES={
     'Executive':('Chief executive','people_management','financial_control'),
     'Football director':('Director of football','negotiation','ability_assessment'),
@@ -16,7 +17,7 @@ ROLES={
     'Medical':('Medical services lead','operations','people_management'),
 }
 DEFAULTS=dict(notice_weeks=4,start_delay=2,poach_notice=7,interview_days=1,
-              offer_days=7,report_radius=12,interview_radius=6)
+              offer_days=7,report_radius=12,interview_radius=6,full_coverage_days=28)
 CLOSED=('active','withdrawn','rejected','expired','ended')
 
 
@@ -24,7 +25,10 @@ def initialise(s):
     from .simulation import rng_for
     cfg=s['config'].setdefault('staff',{})
     for key,value in DEFAULTS.items():cfg.setdefault(key,value)
-    if 'staff' in s:return
+    cfg.setdefault('weights',{role:{key:.5 for key in spec[1:]} for role,spec in ROLES.items()})
+    if 'staff' in s:
+        for p in s['staff']['people']:enrich(s,p)
+        return
     data=dict(people=[],offers={},assessments={},shortlist=[],history=[])
     first=('Ellis','Morgan','Taylor','Robin','Casey','Harper','Alex','Sam','Drew')
     last=('Bennett','Ward','Mason','Reed','Clarke','Morgan','Hayes','Brooks','Shaw')
@@ -33,7 +37,7 @@ def initialise(s):
     for i,role in enumerate(ROLES):
         for j in range(3):
             pid=f'staff:{i}:{j}';rng=rng_for(s['seed'],pid)
-            skills={k:rng.randint(30,65) for k in CAPABILITIES}
+            skills={k:rng.randint(30,65) for k in CAPABILITIES[:-1]}
             for key in ROLES[role][1:]:skills[key]=rng.randint(50,82)
             level=sum(skills[k] for k in ROLES[role][1:])//2
             p=dict(id=pid,name=first[(i+j)%9]+' '+last[(i*2+j)%9],role=role,club=None,
@@ -41,6 +45,7 @@ def initialise(s):
                    start=None,end=None,notice_weeks=cfg['notice_weeks'],availability=100,
                    reputation=level,autonomy='Advisory',pending=None,workload=0,
                    morale=60,objectives=[],history=[],risk=rng.choice(('Cautious','Balanced','Ambitious')))
+            enrich(s,p)
             data['people'].append(p)
     s['staff']=data
     add_club_staff(s,s['clubs'][1:])
@@ -54,12 +59,53 @@ def add_club_staff(s,clubs):
         i=next(i for i,candidate in enumerate(s['clubs'][1:]) if candidate['id']==c['id'])
         for role in ('Executive','Football director','Coaching'):
             pid=f"staff:{c['id']}:{role}";rng=rng_for(s['seed'],pid)
-            skills={k:rng.randint(42,75) for k in CAPABILITIES}
+            skills={k:rng.randint(42,75) for k in CAPABILITIES[:-1]}
             s['staff']['people'].append(dict(id=pid,name=first[i%9]+' '+last[(i+3)%9],role=role,club=c['id'],
                 capabilities=skills,expected_wage=60000,wage=60000,start=s['day'],end=s['day']+330,
                 notice_weeks=4,availability=100,reputation=60,autonomy='Advisory',pending=None,
                 workload=0,morale=60,objectives=[],history=[],risk=rng.choice(('Cautious','Balanced','Ambitious'))))
+            enrich(s,s['staff']['people'][-1])
 
+
+
+def enrich(s,p):
+    """Independent identity stream preserves the ten legacy skills and behaviour."""
+    from .simulation import rng_for
+    if 'adaptability' not in p['capabilities']:
+        p['capabilities']['adaptability']=rng_for(s['seed'],'staff-adaptability:'+p['id']).randint(25,85)
+
+
+def rating(s,p):
+    weights=s['config']['staff']['weights'][p['role']]
+    return int(math.fsum(p['capabilities'][key]*weight for key,weight in weights.items())+.5)
+
+
+def current_ratings(s,p):
+    return dict(ranges={key:[int(p['capabilities'][key]+.5)]*2 for key in CAPABILITIES},
+                overall=[rating(s,p)]*2,role=p['role'])
+
+
+def observed_assessment(s,p):
+    """Current access is separate from the stored interview snapshot."""
+    r=deepcopy(s['staff']['assessments'].get(p['id']))
+    own=p['club']=='c0'
+    if not r:
+        if not own:return None
+        r=dict(day=s['day'],source='Club access',ranges={})
+    full=r.get('knowledge')=='Fully assessed'
+    covered=full and s['day']<r['coverage_until']
+    months=max(0,s['day']-r['day'])//s['config']['staff']['full_coverage_days']
+    stale=not own and not covered and (full or bool(months))
+    if stale:
+        width=min(20,max(1,months))
+        r['ranges']={key:[max(1,a-width),min(100,b+width)] for key,(a,b) in r['ranges'].items()}
+    weights=s['config']['staff']['weights'][p['role']]
+    if all(key in r['ranges'] for key in weights):
+        r['overall']=[int(math.fsum(r['ranges'][key][i]*w for key,w in weights.items())+.5) for i in (0,1)]
+    r.update(role=p['role'],exact_current=own or covered,stale=stale,
+             knowledge='Club access' if own else 'Fully assessed' if covered else 'Stale' if stale else 'Partial')
+    if own or covered:r.update(current_ratings(s,p),rating_day=s['day'])
+    return r
 
 
 def person(s,pid):
@@ -80,7 +126,7 @@ def reservations(s):
     return sum(p['pending']['wage'] for p in s['staff']['people'] if p['pending'] and p['pending']['club']=='c0')
 
 
-def assess(s,p,radius):
+def assess(s,p,radius,complete=False):
     from .simulation import rng_for
     rng=rng_for(s['seed'],f"staff-report:{p['id']}:{radius}")
     ranges={}
@@ -89,7 +135,10 @@ def assess(s,p,radius):
         estimate=max(1,min(100,value+rng.randint(-5,5)))
         ranges[key]=[max(1,estimate-radius),min(100,estimate+radius)]
     s['staff']['assessments'][p['id']]=dict(day=s['day'],ranges=ranges,
-        source='Working observations' if p['club']=='c0' else 'Interview and references' if radius<=6 else 'Initial references')
+        source='Working observations' if p['club']=='c0' else 'Interview and references' if radius<=6 else 'Initial references',
+        knowledge='Fully assessed' if complete else 'Partial')
+    if complete:
+        s['staff']['assessments'][p['id']].update(current_ratings(s,p),coverage_until=s['day']+s['config']['staff']['full_coverage_days'])
 
 
 def severance(s,p):
@@ -170,9 +219,9 @@ def apply(s,action,data):
     if action=='staff_withdraw':o['status']='withdrawn';return 'Unsigned staff discussion withdrawn.'
     if action=='staff_interview':
         require(o['status']=='contact' and day>=o['interview_due'],'Wait for the interview date.')
-        assess(s,p,cfg['interview_radius']);o['status']='interviewed'
+        assess(s,p,cfg['interview_radius'],complete=True);o['status']='interviewed'
         o['transcript'].append('Interview complete. Candidate expects '+('a protected advisory role.' if p['risk']=='Cautious' else 'clear objectives and available resources.'))
-        return 'Interview and references updated the assessment.'
+        return 'Assessment complete: current capabilities and role ability are exact. Fit and future performance remain uncertain.'
     if action=='staff_propose':
         require(o['status'] in ('interviewed','counter','agreed'),'Complete the interview before proposing terms.')
         wage=data.get('wage');duration=data.get('duration');autonomy=data.get('autonomy','Advisory')
@@ -204,7 +253,7 @@ def snapshot(s):
     d=s['staff'];people=[]
     for p in d['people']:
         row={k:deepcopy(v) for k,v in p.items() if k not in ('capabilities','risk')}
-        row['assessment']=deepcopy(d['assessments'].get(p['id']));row['notice_cost']=severance(s,p) if p['club']=='c0' or p['pending'] else 0
+        row['assessment']=observed_assessment(s,p);row['notice_cost']=severance(s,p) if p['club']=='c0' or p['pending'] else 0
         row['compensation']=p['wage']*p['notice_weeks'] if p['club'] not in (None,'c0') else 0
         people.append(row)
     return dict(people=people,offers=deepcopy(d['offers']),shortlist=list(d['shortlist']),history=deepcopy(d['history']))
@@ -212,10 +261,18 @@ def snapshot(s):
 
 def validate(s):
     from .simulation import require
+    cfg=s['config']['staff'];weights=cfg['weights']
+    require(type(cfg['full_coverage_days']) is int and cfg['full_coverage_days']>0,'Invalid staff assessment coverage.')
+    require(set(weights)==set(ROLES),'Invalid staff rating roles.')
+    for role,table in weights.items():
+        require(bool(table) and all(key in CAPABILITIES and type(w) in (int,float) and math.isfinite(w) and w>=0 for key,w in table.items()) and abs(sum(table.values())-1)<1e-8,'Invalid staff role weights.')
+    for r in s['staff']['assessments'].values():
+        require(r.get('knowledge','Partial') in ('Partial','Fully assessed'),'Invalid staff knowledge state.')
+        if r.get('knowledge')=='Fully assessed':require(type(r.get('coverage_until')) is int and r['coverage_until']>r['day'],'Invalid staff assessment coverage date.')
     known={c['id'] for c in s['clubs']};ids=set()
     for p in s['staff']['people']:
         require(p['id'] not in ids and p['role'] in ROLES,'Invalid staff identity or role.');ids.add(p['id'])
         require(p['club'] is None or p['club'] in known,'Unknown staff employer.')
         require(type(p['wage']) is int and p['wage']>=0 and 0<p['availability']<=100,'Invalid staff contract.')
-        require(set(p['capabilities'])==set(CAPABILITIES) and all(1<=v<=100 for v in p['capabilities'].values()),'Invalid staff capabilities.')
+        require(set(p['capabilities'])==set(CAPABILITIES) and all(type(v) in (int,float) and math.isfinite(v) and 1<=v<=100 for v in p['capabilities'].values()),'Invalid staff capabilities.')
         if p['pending']:require(p['pending']['start']<p['pending']['end'] and p['pending']['wage']>0,'Invalid pending staff appointment.')

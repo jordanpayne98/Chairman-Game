@@ -1,5 +1,21 @@
 # Development checkpoint
 
+## PLAY-017 — Departmental Staff Ability Update 0.17
+
+Date: 21 September 2026. Continued from verified Update 0.16 / PR #18 head `be4dc4a24b32b9abeeb07b62d895c40eedf5f5ed` on `game/staff-current-ability`. Read current GDD revision 0.10 chapter 14 and the exact-current-rating requirements. Attached revision 0.2 remains stale. No GDD edit, dependency change or predecessor merge.
+
+Implemented: eleven departmental capabilities including independently generated persistent Adaptability; absolute current ability from configurable role weights; exact current ratings for employees and explicitly completed interviews; partial/fully assessed/stale/club-access labels and visible expiry. Staff list/profile and department coverage suggestions use the authorised view. Dated assessment snapshots remain frozen. Unknown legacy fields stay unknown. Hiring, joining, payroll and delegation remain connected through existing commands.
+
+Compatibility: schema 15 reads 1–14. Only staff configuration and the missing capability are added; ten original skills, risk preferences, wages, records and match RNG survive. An actual 0.16 SQLite career with hired staff at match minute 27 resumed to an identical entire world after removing only added metadata/capability; source bytes unchanged.
+
+Verification: six new domain tests cover the catalogue, absolute/role ability and live access, partial/full/stale/renewed assessments, joining-date access, hidden-data protection, source-preserving migration/roundtrip, invalid weights and useful coverage suggestions. One new interface test covers eleven capability labels, exact/stale states and missing legacy evidence. Existing staffing/UI tests remain. Partial/full/stale/employee profiles rendered and visually inspected; local full regression passed: 170 tests in 219.921 seconds. Career self-test and display smoke passed. Final Windows/Linux and packaged build evidence belongs to the implementation PR.
+
+Scope: departmental staff only. Adaptability is stored/displayed but is not a new departmental performance bonus. The separate Manager system, its CA and Adaptability effects, staff development/potential and contextual hierarchy remain open. Initial .5/.5 departmental weights and 28-day assessment coverage are provisional. Next: bring managers into the approved capability/knowledge model, then connect Adaptability to observable manager choices without altering legacy mid-match outcomes.
+
+Publication approval: Jordan explicitly approved publication and continued development on 21 September 2026, resolving the earlier automatic-review block. Publish source, tests and implementation notes to public `jordanpayne98/Chairman-Game` on `game/staff-current-ability`, targeting `game/current-ability` without merging predecessors. The implementation PR will record remote Windows/Linux verification and the packaged download.
+
+Review follow-up: use the same authorised live assessment for coverage preview and confirmation. A regression with deliberately misleading old reports verifies that the confirmed delegates exactly match the approved plan. Final CI/package evidence is recorded in PR #19.
+
 ## PLAY-016 — Current Ability Update 0.16
 
 Date: 21 September 2026. Continued from published PR #17 head `3ebac9e208390be943d9b77307d36141a2d4cccf` on `game/current-ability`. Attached GDD revision 0.2 was stale; read the available current revision 0.10 output, especially chapters 9, 11 and 34. Prioritised its approved exact player ratings ahead of further background simulation reduction. No GDD change or scope reduction.

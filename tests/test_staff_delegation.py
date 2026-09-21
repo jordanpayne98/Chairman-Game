@@ -41,7 +41,9 @@ class StaffDelegationTests(unittest.TestCase):
         current=self.s['staff']['assessments'][pid]
         self.assertLess(sum(b-a for a,b in current['ranges'].values()),sum(b-a for a,b in initial['ranges'].values()))
         before=view(self.s)
-        for p in self.s['staff']['people']:p['capabilities']={k:1 for k in staff.CAPABILITIES};p['risk']='Ambitious'
+        for p in self.s['staff']['people']:
+            if p['id']!=pid:p['capabilities']={k:1 for k in staff.CAPABILITIES}
+            p['risk']='Ambitious'
         self.assertEqual(before,view(self.s))
         with self.assertRaises(ValueError):self.act('staff_interview',id=pid)
 

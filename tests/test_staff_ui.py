@@ -18,6 +18,26 @@ class StaffInterfaceTests(unittest.TestCase):
         domain.hire_staff(('staff:0:0','staff:1:0','staff:7:0'))
         self.app.state=domain.s;self.app.v=view(domain.s);self.app.nav('Staff')
 
+    def test_current_staff_profile_shows_eleven_capabilities_and_knowledge(self):
+        from club_chairman import staff
+        a=self.app;a.nav('Staff');a.staff_tab='People';a.staff_person='staff:0:0'
+        p=staff.person(a.state,a.staff_person)
+        seen=[];original=a.text
+        def capture(value,*args,**kwargs):seen.append(value);return original(value,*args,**kwargs)
+        a.text=capture
+        for day,knowledge in ((0,'Fully assessed'),(28,'Stale')):
+            if day==0:staff.assess(a.state,p,6,complete=True)
+            a.state['day']=day;a.v=view(a.state);seen.clear();before=json.dumps(a.state,sort_keys=True);a.render()
+            self.assertIn('Adaptability',seen)
+            self.assertTrue(any(value.startswith(knowledge) for value in seen))
+            self.assertTrue(any(value.startswith('Current ability' if day==0 else 'Estimated ability') for value in seen))
+            self.assertEqual(before,json.dumps(a.state,sort_keys=True))
+        p.update(club='c0',start=0,end=300);a.v=view(a.state);seen.clear();a.render()
+        self.assertTrue(any(value.startswith('Club access') for value in seen))
+        # Old partial assessments do not contain the newly introduced capability.
+        p['club']=None;a.state['staff']['assessments'][p['id']]=dict(day=28,source='Legacy',ranges={'coaching':[40,50]})
+        a.v=view(a.state);seen.clear();a.render();self.assertIn('Not assessed',seen)
+
     def test_contact_interview_terms_and_appointment_use_rendered_controls(self):
         a=self.app;a.command('budget',value=4000000);a.command('hire',id='m0');a.nav('Staff')
         self.click('People');self.click('Open staff profile',0);pid=a.staff_person
