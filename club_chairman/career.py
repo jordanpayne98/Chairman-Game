@@ -124,9 +124,10 @@ def process_day(s):
             else:
                 employer=p['club'];clauses.release(s,p['id'],employer);p['club']=None;p['youth']=False
     if s['manager'] and day>s['manager']['contract_end']:
-        from . import managers
+        from . import managers, preparation
         managers.archive_current(s)
         name=s['manager']['name'];s['manager']=None
+        preparation.appoint(s)
         news(s,'Manager contract expired',name+' has left. Appoint a manager before advancing again.')
     for o in career['offers'].values():
         p=person(s,o['player'])
@@ -144,7 +145,7 @@ def process_day(s):
 
 def apply(s,action,data):
     from .simulation import require,payroll,posting,make_report,rng_for,table
-    from . import managers
+    from . import managers, preparation
     c=s['career'];cfg=s['config'];settings=cfg['career']
     if action=='manager_replace':
         require(s['match'] is None,'Staff changes are unavailable during matchday.')
@@ -161,6 +162,7 @@ def apply(s,action,data):
         posting(s,f"manager-hire:{s['revision']}",-candidate['fee'],'Manager signing fee')
         managers.archive_current(s)
         s['manager']=dict(deepcopy(candidate),wage=wage,contract_end=contractual_end(s,duration),notice_weeks=settings['manager_notice_weeks'])
+        preparation.appoint(s)
         s['trust']=55;news(s,'Manager appointed',candidate['name']+' takes charge. Selection and tactics remain delegated.')
         return 'Manager appointed. Notice and signing costs are recorded in the ledger.'
     if action=='manager_renew':
