@@ -124,3 +124,10 @@ Implemented exact current departmental capabilities and role-specific CA for hir
 Implemented persistent candidate capabilities, exact/stale/club-access manager profiles, positively weighted Adaptability in manager CA, retained identities across appointment/expiry and a first observable tactical instruction pathway. New match plans separate preferred risk from actual risk; judgement evaluates context and Adaptability coordinates bounded changes. The prior generic manager passing bonus applies only to legacy matches. Schema 16 adds manager metadata without changing active-match state.
 
 Still open: expanded manager market, richer reference/interview workloads, full identity dimensions and personality, formation/role adaptation, youth/rotation/recruitment tendencies, training transitions/familiarity, staff development/potential and contextual standing. AI opponent managers retain their prior policy. Coefficients and skill generation require calibration; this does not close the complete manager design.
+
+
+## Starting selection milestone 0.19
+
+Implemented owned-club starting formations responsive to eligible positional shortages, persistent rotation/youth selection preferences, current-readiness safeguards, configurable bounded scoring and a dated starting-selection report with actual natural-position counts. Reports survive substitutions, completed-match archiving and save/load. Schema 17 adds preferences/configuration only; old active matches preserve their outcomes.
+
+Still open: granular tactical positions and roles, mid-match formation changes, expanded manager market and full personality/preference dimensions, squad familiarity/training transitions, opponent manager identities and realism calibration. Current preferred-shape defaults and selection coefficients are provisional. No manager or owner can bypass registration rules through this feature; academy players still require promotion.

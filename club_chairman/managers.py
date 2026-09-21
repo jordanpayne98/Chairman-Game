@@ -1,7 +1,7 @@
 """Persistent manager candidates, assessed ability and bounded tactical adjustment."""
 from copy import deepcopy
 import math
-from . import staff
+from . import staff, manager_selection
 
 CANDIDATES = [dict(id='m0', name='Alex Rowan', style='Balanced', skill=58, wage=140000, fee=150000, autonomy=.2),
               dict(id='m1', name='Morgan Vale', style='Attacking', skill=70, wage=240000, fee=300000, autonomy=.6),
@@ -16,13 +16,18 @@ def enrich(s,p):
     from .simulation import rng_for
     rng=rng_for(s['seed'],'manager-capabilities:'+p['id'])
     p.setdefault('capabilities',{key:max(1,min(100,p['skill']+rng.randint(-18,18))) for key in staff.CAPABILITIES})
-    p.setdefault('preferences',dict(style=p['style'],formation='4-4-2',
+    p.setdefault('preferences',dict(style=p['style'],formation={'Attacking':'4-3-3','Cautious':'4-5-1'}.get(p['style'],'4-4-2'),
                                     risk=1.12 if p['style']=='Attacking' else .92 if p['style']=='Cautious' else 1.))
+    choices=rng_for(s['seed'],'manager-selection:'+p['id'])
+    p['preferences'].setdefault('rotation',choices.choice(manager_selection.ROTATION))
+    p['preferences'].setdefault('youth',choices.choice(manager_selection.YOUTH))
 
 
 def initialise(s):
     cfg=s['config'].setdefault('managers',{})
     cfg.setdefault('weights',deepcopy(WEIGHTS))
+    selection=cfg.setdefault('selection',{})
+    for key,value in manager_selection.DEFAULTS.items():selection.setdefault(key,value)
     for key,value in DEFAULTS.items():cfg.setdefault(key,value)
     data=s.setdefault('managers',dict(people=deepcopy(CANDIDATES),assessments={}))
     for p in data['people']:enrich(s,p)
@@ -110,8 +115,15 @@ def validate(s):
     require(type(cfg['judgement_threshold']) is int and 1<=cfg['judgement_threshold']<=100,'Invalid manager judgement threshold.')
     for key in ('chase_risk','protect_risk','short_handed_risk','change_threshold'):
         require(type(cfg[key]) in (int,float) and math.isfinite(cfg[key]) and 0<cfg[key]<=2,'Invalid manager tactical setting.')
+    selection=cfg['selection']
+    for key,default in manager_selection.DEFAULTS.items():
+        value=selection[key]
+        require(type(value) in (int,float) and math.isfinite(value) and value>=0,'Invalid manager selection setting.')
+    require(1<=selection['adaptation_threshold']<=100 and 14<=selection['youth_age']<=23 and selection['continuity_days']<=60,'Invalid manager selection boundaries.')
+    require(selection['youth_bonus']<=10 and selection['continuity_bonus']<=10 and selection['readiness_gap']<=10 and selection['fresh_fatigue_penalty']<=1,'Unbounded manager selection preference.')
     people=s['managers']['people']+([s['manager']] if s['manager'] else [])
     require(len({p['id'] for p in s['managers']['people']})==len(s['managers']['people']),'Duplicate manager identity.')
     for p in people:
         require(set(p['capabilities'])==set(staff.CAPABILITIES) and all(type(v) in (int,float) and math.isfinite(v) and 1<=v<=100 for v in p['capabilities'].values()),'Invalid manager capability.')
+        require(p['preferences']['formation'] in manager_selection.FORMATIONS and p['preferences']['rotation'] in manager_selection.ROTATION and p['preferences']['youth'] in manager_selection.YOUTH,'Invalid manager selection preference.')
         require(type(p['preferences']['risk']) in (int,float) and .5<=p['preferences']['risk']<=1.5,'Invalid manager risk preference.')

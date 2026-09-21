@@ -1,7 +1,7 @@
 """Saved possession engine: rules, manager changes and one auditable event stream."""
 from copy import deepcopy
 import math
-from . import people, registration, managers as manager_model
+from . import people, registration, managers as manager_model, manager_selection
 
 DEFAULTS=dict(actions_per_minute=1, foul_rate=.18, yellow_rate=.19, red_rate=.003,
               injury_rate=.003, penalty_rate=.045, condition_cost=.19,
@@ -26,7 +26,10 @@ def strength(p,keys):
     return value*(.78+.22*p['condition']/100)*(1-p['fatigue']/1000)*(.94+.06*p['sharpness']/100)*(.97+.06*p['morale']/100)
 
 
-def select(s,cid,opponent):
+def select(s,cid,opponent,with_plan=False):
+    if cid=='c0' and s['manager']:
+        selected=manager_selection.choose(s,cid,opponent)
+        return selected if with_plan else selected[:2]
     pool=[p for p in s['players'] if not registration.reason(s,p,cid,opponent)]
     def score(p):
         return people.overall(p,s['config']['people']['weights'])*(.45+.55*p['condition']/100)-p['fatigue']*.12
@@ -38,12 +41,13 @@ def select(s,cid,opponent):
     rest=sorted((p for p in pool if p['id'] not in ids),key=lambda p:(p['role']=='GK',-score(p),p['id']))
     chosen.extend(rest[:max(0,11-len(chosen))]);ids={p['id'] for p in chosen}
     bench=sorted((p for p in pool if p['id'] not in ids),key=lambda p:(p['role']!='GK',-score(p),p['id']))[:s['config']['competition']['bench_limit']]
-    return [p['id'] for p in chosen],[p['id'] for p in bench]
+    selected=([p['id'] for p in chosen],[p['id'] for p in bench])
+    return (*selected,None) if with_plan else selected
 
 
 def start(s,f):
     from .simulation import rng_for
-    a,ab=select(s,f['home'],f['away']);b,bb=select(s,f['away'],f['home'])
+    a,ab,ap=select(s,f['home'],f['away'],True);b,bb,bp=select(s,f['away'],f['home'],True)
     m=dict(engine=2,fixture=f['id'],home=f['home'],away=f['away'],minute=0,clock='0',
            score=[0,0],shots=[0,0],on_target=[0,0],xg=[0.,0.],possession=[0,0],
            fouls=[0,0],corners=[0,0],yellow_cards=[0,0],red_cards=[0,0],
@@ -55,6 +59,7 @@ def start(s,f):
            possession_side=0,zone=0,ball=None,pending_injuries=[],
            served_bans=[p['id'] for p in s['players'] if p['club'] in (f['home'],f['away']) and p['discipline']['ban']>0],
            new_bans={},rng=rng_for(s['seed'],'football:'+f['id']).getstate())
+    if ap or bp:m['selection_plans']=[ap,bp]
     if s['manager'] and 'c0' in (f['home'],f['away']):
         own=0 if f['home']=='c0' else 1
         m['manager_plan']=manager_model.plan(s)
@@ -75,7 +80,10 @@ def start(s,f):
             event(m,'administrative_draw','Both clubs cannot field seven eligible players. A seeded administrative draw advances '+m['winner']+'.')
         event(m,'abandonment','Fixture awarded under the minimum-player rule. No player appearance or performance bonus is earned.')
         m['participants']=[[],[]]
-    else:event(m,'kickoff','Kick-off. Managers have selected eligible teams and their substitutes.')
+    else:
+        event(m,'kickoff','Kick-off. Managers have selected eligible teams and their substitutes.')
+        for side,selection in enumerate(m.get('selection_plans',[None,None])):
+            if selection:event(m,'selection','Manager selects '+selection['formation']+'. '+selection['reason'],side=side)
     return m
 
 

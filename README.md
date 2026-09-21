@@ -1,4 +1,4 @@
-# Club Chairman — Manager Adaptability Update (0.18)
+# Club Chairman — Manager Selection Update (0.19)
 
 A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic in the compact Northshire world or an England, Wales or Brazil national development scenario, with continuing league seasons and domestic cups. This is a playable development version; the approved full AA game is still being built.
 
@@ -15,13 +15,23 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1–0.17 / schema 1–15 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 16. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; external reports remain partial until a new assignment completes. Hired players gain exact current ratings through club access. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1–0.18 / schema 1–16 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 17. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; external reports remain partial until a new assignment completes. Hired players gain exact current ratings through club access. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
 Ctrl+K opens global search for known players, clubs, departments and help topics. Settings > Interface size cycles through 100/125/150/175% zoom. Mouse wheel pans vertically at larger sizes; Shift+wheel pans horizontally, and keyboard focus follows controls into view. Ctrl+0 restores 100%. This is whole-interface zoom; full responsive text reflow is still pending.
 
-## New in 0.18
+## New in 0.19
+
+Managers now make starting selections using persistent formation, rotation and youth preferences. Four broad shapes are available: 4-4-2, 4-3-3, 4-5-1 and 3-5-2. If the preferred shape lacks eligible positional cover, tactical judgement and Adaptability can support a better-covered alternative. A suitable preferred shape is retained. Injuries, suspensions, registration and age rules remain binding.
+
+Fresh legs places extra weight on fatigue; Continuity favours recent starters within a bounded window. Develop prospects gives a small opportunity preference to young players close to the best eligible current ability in their position, scaled by youth-development capability. Potential is not used as a selection shortcut. Managers remain responsible for their teams; these preferences are visible in **Staff > Manager > Manager profile**.
+
+**Matchday > Selection** explains the starting plan, selected positional counts and individual selection factors, including the bench. Its dated record remains unchanged by substitutions, later appointments or player development and is retained in completed match reports. Older matches clearly state when no selection record exists.
+
+Existing saves preserve their preferred formations and active matches. New careers start with style-related preferred shapes; rotation/youth preferences use an independent deterministic identity stream. This milestone covers broad starting shapes and selection. Detailed tactical roles, mid-match formation switches, full personality and training-familiarity transitions remain open. Preferences and coefficients are provisional tuning, not guaranteed improvements or extra match bonuses.
+
+## Included from 0.18
 
 **Staff > Manager > Manager profile** shows all eleven manager capabilities and absolute role-weighted current ability. Assess a candidate to gain current coverage; expired coverage becomes stale. Your appointed manager always has current club access. Candidate identities, capabilities and preferences survive appointments, replacement, contract expiry and save/load. Salary and style remain distinct from ability.
 

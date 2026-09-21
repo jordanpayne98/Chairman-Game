@@ -179,8 +179,10 @@ class CareerScreens(ClauseScreens):
             self.text(interval(r['ranges'].get(key)) if r else 'Not assessed',left,y+20,21,GREEN if r else MUTED)
         right=x+590;self.panel(right,387,1400-right,348,'Preferred approach')
         self.text(p['preferences']['style']+' / '+p['preferences']['formation'],right+20,438,26,GREEN)
-        self.wrap('Tactical judgement evaluates the score and numerical balance. Adaptability helps coordinate a change in attacking risk. A working plan can be retained.',right+20,489,1360-right,23,MUTED)
-        self.wrap('Preferences remain distinct from current ratings. Personality and future performance remain uncertain.',right+20,615,1360-right,22,MUTED)
+        self.text('Rotation: '+p['preferences']['rotation'],right+20,484,22,MUTED)
+        self.text('Youth: '+p['preferences']['youth'],right+20,517,22,MUTED)
+        self.wrap('The manager selects the team. Tactical judgement and Adaptability can change the starting shape when eligible positional cover is limited.',right+20,562,1360-right,22,MUTED)
+        self.wrap('Preferences remain distinct from current ratings. Personality and future performance remain uncertain.',right+20,663,1360-right,20,MUTED)
         caption=r['knowledge'] if r else 'Not assessed'
         if r and r['knowledge']=='Fully assessed':caption+=' / coverage ends '+dated(v,r['coverage_until'])
         elif r and not exact:caption+=' / evidence dated '+dated(v,r['day'])
