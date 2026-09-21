@@ -4,7 +4,7 @@ from copy import deepcopy
 import hashlib,json,sqlite3,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
-from club_chairman import feeders,leagues,competitions,career,market
+from club_chairman import feeders,leagues,competitions,career,market,detail
 from club_chairman.persistence import save,load,migrate
 from club_chairman.simulation import new_career,execute,Command,validate,close_season,start_match,view
 
@@ -16,6 +16,7 @@ def act(s,action,**payload):
 def place_owner(s,division_id):
     source=leagues.division_for(s);target=next(d for d in s['leagues']['divisions'] if d['id']==division_id)
     other=target['members'][0];source['members'][source['members'].index('c0')]=other;target['members'][0]='c0'
+    detail.synchronise(s)
     leagues.prepare_order(s);leagues.schedule(s);competitions.start_season(s);validate(s)
     return s
 
@@ -120,7 +121,7 @@ class FeederTests(unittest.TestCase):
         # Use the same constructor with expansion suppressed to represent 0.13.
         with patch('club_chairman.feeders.initialise'):
             old=new_career(19,'wales')
-        old['schema']=11;raw=json.dumps(old)
+        old['schema']=11;old.pop('detail');old['config'].pop('detail');raw=json.dumps(old)
         with tempfile.TemporaryDirectory() as root:
             path=Path(root)/'old.sqlite3'
             with closing(sqlite3.connect(path)) as db:
@@ -128,8 +129,8 @@ class FeederTests(unittest.TestCase):
                 db.executemany('INSERT INTO metadata VALUES (?,?)',[('schema','11'),('checksum',hashlib.sha256(raw.encode()).hexdigest())])
                 db.execute('INSERT INTO entities VALUES (?,?)',('world',raw));db.commit()
             original=path.read_bytes();new=load(path)
-            self.assertEqual(path.read_bytes(),original);self.assertEqual(new['schema'],12)
+            self.assertEqual(path.read_bytes(),original);self.assertEqual(new['schema'],13)
             self.assertEqual(len(new['clubs']),24);self.assertNotIn('feeder',new['config'])
-            restored=deepcopy(new);restored['schema']=11;self.assertEqual(restored,old)
+            restored=deepcopy(new);restored['schema']=11;restored.pop('detail');restored['config'].pop('detail');self.assertEqual(restored,old)
             self.assertEqual(migrate(new),new)
             new=finish(new);new=act(new,'next_season');self.assertEqual(len(new['clubs']),24)

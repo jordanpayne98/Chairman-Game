@@ -34,7 +34,7 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
     def __init__(self,save_root=None):
         pygame.display.init();pygame.font.init()
         self.window=pygame.display.set_mode((1280,800),pygame.RESIZABLE)
-        pygame.display.set_caption('Club Chairman — Feeder Pools 0.14')
+        pygame.display.set_caption('Club Chairman — Background Reviews 0.15')
         self.canvas=pygame.Surface((WIDTH,HEIGHT))
         self.fonts={};self.inbox_selection=None;self.inbox_reader_page=0;self.inbox_reader_key=None;self._nav_style=None;self._inbox_style=None
         self.state=None;self.v=None;self.screen='Home';self.buttons=[];self.focus=0;self.running=True

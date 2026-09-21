@@ -295,7 +295,7 @@ class CareerScreens(ClauseScreens):
         }
         if label in staff_hints:return staff_hints[label]
         hints={
-            'Regional pool':'View persistent feeder clubs and their recorded results. Top clubs exchange with the lowest primary tier at season preparation. Squads, accounts and history are retained.',
+            'Regional pool':'View persistent feeder clubs and their recorded results. Top clubs exchange with the lowest primary tier at season preparation. Reduced clubs use less frequent routine AI reviews; urgent reviews remain weekly. Matches, squads, accounts and history are retained. Owned clubs always stay detailed.',
             'Create list':'Create and select a private list with the typed name. Names must be unique, 1–32 characters; up to twenty lists are supported.',
             'Rename':'Apply the typed name to the selected list. Its saved players are retained.',
             'Delete selected':'Review deletion of the selected list only. Keep at least one list. Immediate Undo restores its name and members.',

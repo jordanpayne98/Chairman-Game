@@ -1,4 +1,4 @@
-# Club Chairman — Feeder Pools Update (0.14)
+# Club Chairman — Background Reviews Update (0.15)
 
 A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic in the compact Northshire world or an England, Wales or Brazil national development scenario, with continuing league seasons and domestic cups. This is a playable development version; the approved full AA game is still being built.
 
@@ -15,19 +15,29 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1–0.13 / schema 1–11 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 12. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1–0.14 / schema 1–12 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 13. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; missing attributes stay unknown until reassessed. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
 Ctrl+K opens global search for known players, clubs, departments and help topics. Settings > Interface size cycles through 100/125/150/175% zoom. Mouse wheel pans vertically at larger sizes; Shift+wheel pans horizontally, and keyboard focus follows controls into view. Ctrl+0 restores 100%. This is whole-interface zoom; full responsive text reflow is still pending.
 
-## New in 0.14
+## New in 0.15
+
+Supporting pool clubs now use **reduced routine AI reviews**. Outside preseason/registration and urgent cases, they review every 28 days. Primary clubs and your owned club retain detailed weekly reviews. Missing squad or departmental cover, a severe availability crisis, approaching player/staff expiry or transfer bills trigger the existing weekly review. Pending deals, expiries, payments and wages still process daily.
+
+**Competitions** shows the number of reduced and detailed clubs in each division. Promotion restores detailed reviews before next season’s fixtures are generated. Relegated rivals switch to reduced reviews; your owned club stays detailed even in the pool. Detail transitions and the completed season’s levels are saved with career history, without deleting or regenerating anyone.
+
+Existing saves retain their current season’s review behaviour; the new policy starts when you prepare the next season. Saves without feeder pools retain detailed reviews for every club. Loading preserves the original source file, matches, people, signed obligations and evidence.
+
+This is the first background-detail stage: it reduces routine decision work only. Football matches, daily recovery and player development still use their existing detailed simulation. Whole-country detail selection, reduced training/match simulation, the connected world and wider content remain unfinished. The 28-day routine period is provisional tuning in `data/detail.json`, not a full-world performance guarantee.
+
+## Included from 0.14
 
 **Start a new England, Wales or Brazil career** to include an eight-club regional feeder pool below the primary pyramid. Competitions > Regional pool opens its table and rules. Each pool club plays fourteen home-and-away matches spread through the national calendar. Three clubs exchange with England’s lowest primary tier; two exchange in Wales and Brazil.
 
 Pool clubs retain their identities, players, staff, contracts, accounts and history when promoted. Relegated clubs continue playing in the pool; an owned club remains playable and can earn promotion back. Primary cups include primary-division members only, with eligibility updated when preparing the next season. Season history records the pool table and movements alongside the primary divisions.
 
-Existing saves retain their original league structure, including at rollover; loading never inserts clubs or rewrites the source file. Compact careers remain unchanged. New national totals are 108 clubs in England, 32 in Wales and 62 in Brazil. These pools use the existing detailed simulation. Reduced-detail simulation, the remaining countries and the connected world remain future work. Pool size, fictional club identities, initial squads and prizes are provisional development content in `data/feeders.json`.
+Existing saves retain their original league structure, including at rollover; loading never inserts clubs or rewrites the source file. Compact careers remain unchanged. New national totals are 108 clubs in England, 32 in Wales and 62 in Brazil. These pools retain detailed football and player data; reduced routine reviews are described above. Wider reduced-detail simulation, the remaining countries and the connected world remain future work. Pool size, fictional club identities, initial squads and prizes are provisional development content in `data/feeders.json`.
 
 ## Included from 0.13
 
