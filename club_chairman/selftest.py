@@ -10,6 +10,7 @@ def national_check():
     # The executable must include and use the new nation data, calendars and saves.
     for id,total in (('wales',24),('brazil',54),('england',100)):
         national=new_career(71,id);validate(national)
+        if national['detail']['levels']['c0']!='detailed' or sum(v=='reduced' for v in national['detail']['levels'].values())!=8:raise RuntimeError('Invalid supporting club detail')
         if len(national['clubs'])!=total+8:raise RuntimeError('Missing national scenario clubs')
         if len(national['leagues']['divisions'][-1]['members'])!=8:raise RuntimeError('Missing feeder pool')
         if len(national['competitions']['cup']['entrants'])!=total:raise RuntimeError('Invalid primary cup membership')

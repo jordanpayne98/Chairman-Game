@@ -1,0 +1,5 @@
+{
+  "routine_days": 28,
+  "urgent_days": 28,
+  "minimum_cover": {"GK": 2, "DEF": 6, "MID": 6, "FWD": 4}
+}

@@ -1,5 +1,19 @@
 # Development checkpoint
 
+## PLAY-015 — Background Reviews Update 0.15
+
+Date: 21 September 2026. Continued from PR #16 / published feeder-pools head `083895b821dfbd91b9c7f82f6adf3ac9e8602e59` in `game/background-reviews`. Checked the attached revision 0.2 and current living revision 0.3 requirements for supporting detail, promotion upgrades and persistent identities. No GDD changes, predecessor merges or dependency changes.
+
+Implemented: saved detailed/reduced review levels for every club; routine supporting-club AI review every 28 days with weekly urgency for recruitment windows, vacancies, expiry, bills and severe availability problems. Primary and owned clubs stay detailed. Dated payments, contract expiry and pending-deal completion still run daily. Promotion/relegation updates detail before schedules; archives retain prior levels and transitions. Competitions displays the division’s review counts and the pool tooltip explains the owner exception.
+
+Compatibility: schema 13 reads schemas 1–12 and preserves existing-season behaviour until next-season preparation. Actual published 0.14 SQLite loaded with all prior fields and source bytes preserved. Worlds without pools remain detailed. Existing players, staff, obligations, observations and match RNG are retained.
+
+Verification: six new domain tests cover reduced work counts (three versus twelve routine reviews over a quiet 84 days), urgent renewals/cover/bills, daily payment/expiry/medical cancellation, pre-schedule transitions, owner exception, history/roundtrip, mid-match migration and invalid state. One new UI test verifies visible counts and read-only rendering; existing feeder tests pass. The new competition screen was visually inspected against the approved Executive reference and display smoke passed. A real Welsh season completed all 343 matches, saved/loaded, and retained all 32 clubs at rollover; sampled review counts were 13 for a supporting club versus 43 for a primary club. Full regression and final platform/package evidence are recorded in the implementation PR.
+
+Scope: this first background-detail stage reduces AI review frequency only. Football, recovery and training still run in full detail. No incomplete-record expansion, acquisition, selectable country detail, connected world, USA playoffs or continental/international qualification is claimed. Next: supporting-club training/match work reduction with truthful event summaries and preserved obligations, then wider world content. Routine cadence is provisional tuning, not an approved performance benchmark.
+
+Publication: standing authorization covers a PR targeting `game/feeder-pools`, leaving predecessor PRs unmerged. Continue from the latest `game/background-reviews` head and consult its PR for final CI and Windows download evidence.
+
 ## PLAY-014 — Feeder Pools Update 0.14
 
 Date: 21 September 2026. Continued from PR #15 / published named-shortlists head `e2e0a75e3ed8c8b7ce41c8374a5dff172c617d0e` in `game/feeder-pools`. Consulted the current living GDD revision 0.3 for the primary/feeder boundary, persistent entrants, owned-club detail and cup scope. No design-document edits, predecessor merges or dependency changes.

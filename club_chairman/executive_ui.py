@@ -144,7 +144,7 @@ class ExecutiveScreens:
         self.panel(914,560,422,214)
         self.text('THE OWNERSHIP GAME',938,587,16,GREEN)
         self.wrap('Appoint the people.\nMake the big decisions.\nLeave a lasting club.',938,627,370,29,TEXT)
-        self.text('FEEDER POOLS 0.14',104,820,16,FAINT)
+        self.text('BACKGROUND REVIEWS 0.15',104,820,16,FAINT)
         self.text('Single-country scenarios / Development build',914,820,16,FAINT)
 
     def executive_overview(self,x):
@@ -357,6 +357,9 @@ class ExecutiveScreens:
             self.button('Season review',(1160,700,240,42),lambda:self.nav('Career'))
         else:
             self.text('Membership is fixed for this season. Results determine next season’s division.',x+15,714,20,MUTED)
+        levels=self.v['detail']['levels'];reduced=sum(levels[c['id']]=='reduced' for c in rows)
+        info=f"Club reviews: {reduced} reduced / {len(rows)-reduced} detailed. Routine reduced reviews every {self.v['detail']['routine_days']} days; urgent reviews weekly."
+        self.clipped_text(info,x+15,749,1100,16,MUTED)
         self.pager(x,781,len(rows),8)
         self.button('Your division',(x+465,781,170,42),lambda:(setattr(self,'league_id',data['own_division']),setattr(self,'page',0)))
         self.button('Fixtures & reports',(x+650,781,230,42),lambda:self.nav('Fixtures'))

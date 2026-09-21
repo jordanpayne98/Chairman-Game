@@ -4,7 +4,7 @@ Domain functions operate only on the caller's uncommitted state copy. Simulation
 imports are local to keep the existing match engine separate from career policy.
 """
 from copy import deepcopy
-from . import market, clauses, people, registration, staff, club_ai, leagues, nations
+from . import market, clauses, people, registration, staff, club_ai, leagues, nations, detail
 
 CAREER_DEFAULTS = dict(season_gap=14, offer_lifetime=7,
                       medical_days=2, manager_notice_weeks=4, academy_trial_fee=200000,
@@ -315,6 +315,7 @@ def apply(s,action,data):
         from . import competitions
         c['history'][-1]['competitions']=deepcopy(s['competitions'])
         c['history'][-1]['leagues']=leagues.snapshot(s)
+        c['history'][-1]['detail']=detail.snapshot(s)
         if s.get('calendar'):c['history'][-1]['calendar']=deepcopy(s['calendar'])
         for o in c['offers'].values():
             if o['status'] not in ('completed','withdrawn','expired','rejected'):
@@ -322,6 +323,7 @@ def apply(s,action,data):
         old_end=season_end(s);c['season']+=1;c['start']=old_end+settings['season_gap'];s['season_done']=False
         if s.get('calendar'):nations.prepare(s,s['calendar']['year']+1)
         leagues.rollover(s)
+        detail.synchronise(s)
         for club in s['clubs']:
             for key in ('played','won','drawn','lost','gf','ga','points'):club[key]=0
             club['form']=[]

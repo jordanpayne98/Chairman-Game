@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, feeders
+from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, feeders, detail
 from .football import finished as match_finished
 
 
@@ -91,7 +91,8 @@ def new_career(seed=42,scenario='compact'):
     if scenario!='compact':nations.configure(world,scenario)
     competitions.start_season(world)
     shortlists.initialise(world)
-    world['schema']=12
+    detail.initialise(world)
+    world['schema']=13
     for p in world['players']:
         if p['club']:p['contract_end']=career.contractual_end(world,3)
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
@@ -462,9 +463,10 @@ def close_season(s):
 
 
 def validate(s):
-    require(s.get('schema')==12,'Unsupported save schema. This build supports schema 12.')
+    require(s.get('schema')==13,'Unsupported save schema. This build supports schema 13.')
     leagues.validate(s)
     feeders.validate(s)
+    detail.validate(s)
     nations.validate(s)
     competitions.validate(s)
     staff.validate(s);delegation.validate(s);club_ai.validate(s)
@@ -522,6 +524,7 @@ def view(s):
                 season=s['career']['season'],season_start=s['career']['start'],window_end=career.window_end(s),
                 career=deepcopy(s['career']),reserved_cash=career.reservations(s)[0],reserved_wages=career.reservations(s)[1],
                 severance=career.manager_severance(s),career_settings=deepcopy(s['config']['career']),project_specs=deepcopy(s['config']['projects']))
+    snapshot['detail']=detail.snapshot(s)
     snapshot['calendar']=deepcopy(s.get('calendar'))
     snapshot['nation']=deepcopy(s['config'].get('nation'))
     snapshot['contract_ends']={str(n):career.contractual_end(s,n) for n in (1,2,3)}

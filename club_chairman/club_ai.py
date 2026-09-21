@@ -1,6 +1,6 @@
 """Compact-club decisions constrained by observed ability and real accounts."""
 from copy import deepcopy
-from . import market,registration,staff,people,clauses
+from . import market,registration,staff,people,clauses,detail
 
 DEFAULTS=dict(review_days=7,medical_days=2,target_squad=19,max_squad=20,
               reserve_weeks=3,payroll_income_percent=90,upgrade_margin=5)
@@ -86,8 +86,10 @@ def process_day(s):
                 and cover[p['club']][0]-1>=market_cfg['minimum_squad']
                 and cover[p['club']][1]-int(p['role']=='GK')>=market_cfg['minimum_goalkeepers']}
     for club in s['clubs'][1:]:
-        cid=club['id'];s['club_ai']['last_review'][cid]=day;b=budgets(s,cid)
+        cid=club['id']
         squad=[p for p in s['players'] if p['club']==cid and not p['retired'] and not p['youth']]
+        if not detail.review_due(s,cid,squad):continue
+        s['club_ai']['last_review'][cid]=day;b=budgets(s,cid)
         for role in ('Executive','Football director','Coaching'):
             if any(p['club']==cid and p['role']==role for p in s['staff']['people']):continue
             candidates=[p for p in s['staff']['people'] if p['club'] is None and not p['pending'] and p['role']==role and (p['id'] not in s['staff']['offers'] or s['staff']['offers'][p['id']]['status'] in staff.CLOSED)]

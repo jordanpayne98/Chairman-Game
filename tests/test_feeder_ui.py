@@ -55,3 +55,11 @@ class FeederInterfaceTests(unittest.TestCase):
             r=a.buttons[a.focus%len(a.buttons)][0]
             self.assertGreaterEqual(r.left*a.scale+a.offset[0],0)
             self.assertLessEqual(r.right*a.scale+a.offset[0],a.window.get_width())
+
+    def test_review_detail_counts_explain_owned_pool_exception_without_mutation(self):
+        a=self.a;a.state=place_owner(a.state,'wales-regional');a.v=view(a.state);a.nav('League')
+        before=deepcopy(a.state);texts=[];original=a.clipped_text
+        def capture(text,*args,**kwargs):texts.append(text);return original(text,*args,**kwargs)
+        a.clipped_text=capture;a.render();a.clipped_text=original
+        self.assertTrue(any('7 reduced / 1 detailed' in t and '28 days' in t for t in texts))
+        self.assertEqual(a.state,before)
