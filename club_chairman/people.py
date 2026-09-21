@@ -108,7 +108,7 @@ def report(s, p, source, radius, complete=False):
 
 def exact_current(s, p):
     """Only visible football ratings, rounded half up; never potential/personality."""
-    ranges = {k: [int(p['attrs'][k]+.5)]*2 for k in (*ATTRIBUTES, 'goalkeeping')}
+    ranges = {k: [int(p['attrs'][k]+.5)]*2 for k in ATTRIBUTES}
     rating = overall(p, s['config']['people']['weights'])
     return dict(ranges=ranges, overall=[rating, rating])
 
@@ -137,6 +137,7 @@ def observed_report(s, p):
     if r['exact_current']:
         r.update(exact_current(s, p))
         r['rating_day'] = s['day']
+    r['ranges'].pop('goalkeeping', None)
     return r
 
 

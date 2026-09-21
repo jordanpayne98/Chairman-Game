@@ -33,6 +33,8 @@ class DepthInterfaceTests(unittest.TestCase):
             self.assertIn('CURRENT ABILITY' if day==0 else 'EST. ABILITY',seen)
             self.assertIn('EST. POTENTIAL',seen)
             self.assertEqual(before,json.dumps(a.state,sort_keys=True))
+        a.restore_position({'sort':'Goalkeeping'});self.assertEqual(a.sort,'Reflexes')
+        a.state['reports']['p145']=dict(day=0,source='Legacy',confidence='Low',ranges={'goalkeeping':[40,60]})
         a.state['planning']['comparison']=['p2',p['id'],'p145','p146']
         a.v=view(a.state);a.nav('Comparison');before=json.dumps(a.state,sort_keys=True);a.render()
         self.assertEqual(before,json.dumps(a.state,sort_keys=True))

@@ -111,3 +111,16 @@ class CurrentAbilityTests(unittest.TestCase):
         self.s['config']['people']['full_coverage_days']=28
         self.s['reports']['p144']=dict(day=0,knowledge='Fully scouted',coverage_until=0)
         with self.assertRaisesRegex(ValueError,'coverage'):validate(self.s)
+
+    def test_legacy_goalkeeping_stays_private_and_reflexes_sort_tracks_current(self):
+        p=self.s['players'][144];p['attrs']['reflexes']=72.5
+        self.s['reports'][p['id']]=people.report(self.s,p,'Assignment',9,complete=True)
+        before=self.row(p);self.assertNotIn('goalkeeping',before['report']['ranges'])
+        self.assertEqual(set(before['report']['ranges']),set(people.ATTRIBUTES))
+        p['attrs']['goalkeeping']=1;self.assertEqual(before,self.row(p))
+        for label in ('Reflexes','Goalkeeping'):
+            rows=player_rows(view(self.s),True,sort=label,descending=True)
+            self.assertEqual(rows[0]['id'],p['id']);self.assertEqual(rows[0]['report']['ranges']['reflexes'],[73,73])
+        self.s['reports']['p145']=dict(day=0,source='Legacy',confidence='Low',ranges={'goalkeeping':[50,60]})
+        rows=player_rows(view(self.s),True,sort='Reflexes')
+        legacy=next(r for r in rows if r['id']=='p145');self.assertEqual(legacy['report']['ranges'],{})

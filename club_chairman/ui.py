@@ -133,6 +133,7 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
     def restore_position(self,position):
         for key,value in position.items():
             if key in self.position():setattr(self,key,value)
+        if self.sort=='Goalkeeping':self.sort='Reflexes'
         self.typing=False;self.focus=0;self.play=False;self.batch=False;self.focus_reveal=True
 
     def remember(self):
@@ -165,6 +166,7 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
             default=dict(screen=screen,page=0,profile=None,search='',role='All',sort='Name',descending=False,
                          only_shortlist=False,tab='Forecast',match_report=None,profile_ids=[],offer_id=None,offer_draft=None,offer_tab='Terms',offer_archive=None,history_season=self.history_season,market_scope='Free agents',market_id=None,market_draft=None,market_tab='Deals',outgoing_player=None,outgoing_kind='sale',sponsor_right=None,sponsor_draft=None)
             self.restore_position(self.views.get(screen,default))
+        if self.sort=='Goalkeeping':self.sort='Reflexes'
         self.typing=False;self.focus=0;self.play=False;self.batch=False;self.focus_reveal=True
         self.save_preferences()
 
@@ -372,7 +374,7 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
             self.text(f"{p['role']}  /  Age {p['age']}  /  "+('Retired' if p['retired'] else 'Your club' if recruitment and p['club']=='c0' else f"{p['goals']} goals"),x+15,y+32,18,MUTED)
             self.right_text(money(p['wage']),x+515,y+18,23)
             report=p['report'];info=report['knowledge'] if report else 'Due '+dated(self.v,p['scout_due'])[:6] if p['scout_due'] else 'Not assessed'
-            if report and self.sort.lower() in ATTRIBUTES:
+            if report and self.sort.lower() in report['ranges'] and self.sort.lower() in ATTRIBUTES:
                 lo,hi=report['ranges'][self.sort.lower()];info=f'{lo} (exact)' if report.get('exact_current') else f'{lo}–{hi} (estimate)'
             if not recruitment:info=p['availability'] or f"Available / {p['condition']:.0f}%"
             self.text(info[:31],x+555,y+18,21,RED if not recruitment and p['availability'] else GREEN if report else MUTED)
@@ -412,7 +414,7 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
             self.text('Free agent' if p['club'] is None else self.club(p['club']),left+15,357,21,MUTED)
             for j,key in enumerate(ATTRIBUTES):
                 from .football_ui import interval
-                value=interval(p['report']['ranges'][key]) if p['report'] else 'Unknown'
+                value=interval(p['report']['ranges'].get(key)) if p['report'] else 'Unknown'
                 self.text(key.capitalize(),left+15,398+j*33,20,MUTED);self.text(value,left+width-93,398+j*33,23)
             r=p['report'];self.clipped_text(r['knowledge']+' / '+dated(self.v,r['day']) if r else 'No report',left+15,535,width-30,19,MUTED)
             self.text(r['source'] if r else 'Source: unavailable',left+15,560,19,MUTED)
