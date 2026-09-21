@@ -264,7 +264,8 @@ def cover_plan(v):
         if not options:continue
         cap=DEPARTMENTS[key][1]
         def score(p):
-            report=p.get('assessment') or v['staff'].get('assessments',{}).get(p['id'])
+            from .staff import observed_assessment
+            report=p['assessment'] if 'assessment' in p else observed_assessment(v,p)
             return sum(report['ranges'][cap])/2 if report else 50
         p=max(options,key=lambda p:(score(p),-used[p['id']],p['id']))
         result[key]=p['id'];used[p['id']]+=rule['allocation']

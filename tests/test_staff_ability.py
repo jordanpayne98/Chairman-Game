@@ -86,6 +86,17 @@ class StaffAbilityTests(unittest.TestCase):
         for p in restored['staff']['people']:p['capabilities'].pop('adaptability')
         self.assertEqual(restored,old)
 
+    def test_confirmed_coverage_matches_live_preview_despite_old_reports(self):
+        for pid,actual,old in (('staff:0:0',95,10),('staff:1:0',20,90)):
+            p=staff.person(self.s,pid);p.update(club='c0',start=0,end=300)
+            p['capabilities']={key:actual for key in staff.CAPABILITIES}
+            self.s['staff']['assessments'][pid]=dict(day=0,source='Old references',ranges={key:[old,old] for key in staff.CAPABILITIES})
+        preview=delegation.cover_plan(view(self.s))
+        self.assertEqual(preview['recruitment'],'staff:0:0')
+        self.assertEqual(preview,delegation.cover_plan(self.s))
+        self.act('delegation_cover')
+        self.assertEqual(preview,{key:r['delegate'] for key,r in self.s['delegation']['responsibilities'].items() if r['delegate']})
+
     def test_role_weights_validate_and_hidden_changes_cannot_change_unknowns(self):
         before=self.row();p=self.p();p['capabilities']={k:100 for k in staff.CAPABILITIES};p['risk']='Cautious'
         self.assertEqual(before,self.row())

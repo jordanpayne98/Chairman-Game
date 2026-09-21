@@ -14,6 +14,8 @@ Scope: departmental staff only. Adaptability is stored/displayed but is not a ne
 
 Publication approval: Jordan explicitly approved publication and continued development on 21 September 2026, resolving the earlier automatic-review block. Publish source, tests and implementation notes to public `jordanpayne98/Chairman-Game` on `game/staff-current-ability`, targeting `game/current-ability` without merging predecessors. The implementation PR will record remote Windows/Linux verification and the packaged download.
 
+Review follow-up: use the same authorised live assessment for coverage preview and confirmation. A regression with deliberately misleading old reports verifies that the confirmed delegates exactly match the approved plan. Final CI/package evidence is recorded in PR #19.
+
 ## PLAY-016 — Current Ability Update 0.16
 
 Date: 21 September 2026. Continued from published PR #17 head `3ebac9e208390be943d9b77307d36141a2d4cccf` on `game/current-ability`. Attached GDD revision 0.2 was stale; read the available current revision 0.10 output, especially chapters 9, 11 and 34. Prioritised its approved exact player ratings ahead of further background simulation reduction. No GDD change or scope reduction.
