@@ -166,10 +166,11 @@ class FootballScreens:
                 detail+='  /  Advances: '+self.club(m['winner'])
                 if any(m.get('kicks',[0,0])):detail+=f"  /  Pens {m['shootout'][0]}–{m['shootout'][1]}"
             self.clipped_text(detail,x+82,305,1040,16,MUTED)
-        self.button('Show commentary' if self.tab in ('Lineups','Statistics') else 'Commentary',(x,340,185,38),lambda:(setattr(self,'tab','Commentary'),setattr(self,'page',0)))
+        self.button('Show commentary' if self.tab in ('Lineups','Statistics','Selection') else 'Commentary',(x,340,185,38),lambda:(setattr(self,'tab','Commentary'),setattr(self,'page',0)))
         self.button('Lineups',(x+200,340,125,38),lambda:(setattr(self,'tab','Lineups'),setattr(self,'page',0)))
         self.button('Statistics',(x+340,340,145,38),lambda:(setattr(self,'tab','Statistics'),setattr(self,'page',0)))
         self.button('All events' if self.key_events_only else 'Key events',(x+500,340,150,38),lambda:(setattr(self,'key_events_only',not self.key_events_only),setattr(self,'page',0)))
+        self.button('Selection',(x+665,340,145,38),lambda:(setattr(self,'tab','Selection'),setattr(self,'page',0)))
         self.panel(x,392,1400-x,351)
         if self.tab=='Lineups':
             for side,ids in enumerate(m.get('participants',m['lineups'])):
@@ -181,6 +182,8 @@ class FootballScreens:
                     detail=f"{stat.get('minutes',0)}m / {stat.get('rating',6):.1f}" if stat else ''
                     self.text((p['role']+'  '+p['name']+marker)[:34],left,406+i*20,20,RED if marker==' RED' else TEXT)
                     self.right_text(detail,left+(1400-x)//2-42,406+i*20,19,MUTED)
+        elif self.tab=='Selection':
+            self.selection_report(x,m)
         elif self.tab=='Statistics':
             total=max(1,sum(m['possession']))
             rows=[('Possession',f"{m['possession'][0]*100/total:.0f}%",f"{m['possession'][1]*100/total:.0f}%")]
@@ -189,7 +192,7 @@ class FootballScreens:
             for i,(label,a,b) in enumerate(rows):
                 y=411+i*32;self.text(a,x+170,y,24,GREEN);self.text(label,x+350,y,23);self.text(b,1210,y,24,GREEN)
         else:
-            kinds=('goal','period','bench','yellow','red','injury','substitution','penalty','shootout','abandonment','administrative_draw','tactic')
+            kinds=('goal','period','bench','yellow','red','injury','substitution','penalty','shootout','abandonment','administrative_draw','tactic','selection')
             events=[e for e in m['events'] if not self.key_events_only or e['kind'] in kinds]
             self.page=min(self.page,max(0,(len(events)-1)//10))
             for i,e in enumerate(events[max(0,len(events)-10-self.page*10):len(events)-self.page*10 if self.page else None]):
@@ -210,3 +213,21 @@ class FootballScreens:
         if finished(m):
             detail=f"Manager review: {m['shots'][0]}–{m['shots'][1]} shots, {m['xg'][0]:.2f}–{m['xg'][1]:.2f} xG."
             self.text(detail,x,817,20,MUTED)
+
+    def selection_report(self,x,m):
+        from .ui import GREEN,MUTED,TEXT
+        plan=next((p for p in m.get('selection_plans',[]) if p),None)
+        if not plan:
+            self.wrap('No starting-selection record is available for this older match.',x+20,418,1100,25,MUTED);return
+        self.text('Starting plan '+plan['formation']+' / preferred '+plan['preferred'],x+20,410,25,GREEN)
+        counts=plan['selected_roles']
+        self.text(f"Selected: {counts['GK']} GK, {counts['DEF']} DEF, {counts['MID']} MID, {counts['FWD']} FWD / "+plan['rotation']+' / '+plan['youth'],x+20,445,21,MUTED)
+        self.wrap(plan['reason'],x+20,478,1110,21,TEXT)
+        ids=plan['starters']+plan['bench'];self.page=min(self.page,max(0,(len(ids)-1)//7))
+        for i,pid in enumerate(ids[self.page*7:self.page*7+7]):
+            player=self.v['public_players'][pid];y=533+i*27
+            label='Starter' if pid in plan['starters'] else 'Bench'
+            self.text(label+' / '+player['role']+' / '+player['name'],x+20,y,21,TEXT)
+            self.text(plan['reasons'][pid],x+590,y,20,MUTED)
+        self.button('Previous selections',(x+700,757,220,38),lambda:setattr(self,'page',self.page-1),self.page>0)
+        self.button('More selections',(x+935,757,220,38),lambda:setattr(self,'page',self.page+1),(self.page+1)*7<len(ids))

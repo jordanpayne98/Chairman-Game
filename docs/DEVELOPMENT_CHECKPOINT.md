@@ -1,5 +1,19 @@
 # Development checkpoint
 
+## PLAY-019 — Manager Selection Update 0.19
+
+Date: 21 September 2026. Continued from published and verified Update 0.18 / PR #20 head `0454a9f8b919e1307d6da0cefef63006f74b9877` on `game/manager-selection`. Workspace access returned; fetched the published recovery branch, preserving the old local branch. Read current GDD revision 0.10 manager identity, capability and tactical Adaptability requirements. No GDD edit, dependency change or predecessor merge.
+
+Implemented: persistent rotation and youth preferences; four broad starting shapes; manager-owned eligible starting/bench selection; bounded fatigue, continuity and ready-prospect scoring; shortage-driven formation alternatives gated by judgement and Adaptability. Suitable preferred shapes are retained. No potential shortcut, owner team-selection control or new generic match bonus. Continuity excludes forfeits. Manager profiles display tendencies; Matchday > Selection records the planned shape, actual natural-position counts, reasons and starting bench. Reports remain frozen through substitutions, later manager changes and archived fixtures. Older matches explicitly lack a retroactive report.
+
+Compatibility: schema 17 reads 1–16. Existing preferred formations, capabilities, assessments and active match state/RNG remain unchanged. New tendencies use an independent identity stream. An actual published 0.18 SQLite minute-27 career resumed to an identical entire world after removing only added preference/configuration fields; original source bytes unchanged. AI opponents retain the previous selection policy.
+
+Verification: all 15 targeted manager/domain/UI checks passed, including six new selection-domain tests and one new rendered-control test. Coverage includes eligibility/shortages, retaining working shapes, preference-driven real selections, readiness safeguards without potential access, non-played forfeits, frozen records, save/resume, source-preserving migration and validation. The actual profile and selection report were rendered and visually inspected. Career self-test (national scenarios, two seasons and 254 fixtures) and display smoke passed. Full local regression passed: 186 tests in 237.854 seconds. The final forfeit-continuity refinement separately passed all 15 targeted manager/domain/UI checks. Final published Windows/Linux CI and packaged evidence belongs to the implementation PR.
+
+Scope: broad starting personnel shapes and preferences. Detailed tactical roles, mid-match formation changes, full manager personality/identity dimensions, training transitions and squad familiarity remain open. Shape defaults and score coefficients are provisional. Next: connect training and familiarity to manager transitions, then extend tactical choices without introducing instantaneous capability or chemistry bonuses.
+
+Publication: intended branch `game/manager-selection`, targeting unmerged `game/manager-adaptability`. No predecessor merge. The user requested the next updates; record any publication approval block explicitly rather than bypassing it.
+
 ## PLAY-018 — Manager Adaptability Update 0.18
 
 Date: 21 September 2026. Based on verified Update 0.17 / PR #19 head `1b591458c91200a953355c700603109f743fd608`. GDD revision 0.10 chapter 14 was read during implementation, including the manager capability, exact-current-rating and tactical Adaptability requirements. No GDD edit, dependency change or predecessor merge.
