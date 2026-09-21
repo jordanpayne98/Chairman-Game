@@ -225,9 +225,10 @@ class CareerScreens(ClauseScreens):
         for i,p in enumerate(rows[self.page*5:self.page*5+5]):
             y=331+i*85;self.panel(x,y,1400-x,74);portrait(self.canvas,p['id'],p['age'],(x+10,y+7,49,59))
             self.text(p['name']+f" / {p['role']} / {p['age']}",x+78,y+13,25)
-            r=p['report'];key={'GK':'goalkeeping','DEF':'tackling','MID':'passing','FWD':'finishing'}[p['role']]
-            interval=r['ranges'][key] if r else None
-            self.text((key.capitalize()+f' {interval[0]}–{interval[1]}' if interval else 'Unknown ability')+' / '+('Enrolled' if p['club'] else 'Trial candidate'),x+78,y+45,21,MUTED)
+            r=p['report'];key={'GK':'reflexes','DEF':'tackling','MID':'passing','FWD':'finishing'}[p['role']]
+            from .football_ui import interval
+            pair=r['ranges'].get(key) if r else None
+            self.text((key.capitalize()+' '+interval(pair) if pair else 'Unknown ability')+' / '+('Enrolled' if p['club'] else 'Trial candidate'),x+78,y+45,21,MUTED)
             if p['club'] is None:
                 end=v['contract_ends']['3']
                 self.button('Review admission',(1165,y+17,220,42),lambda p=p,end=end:self.confirm('Admit '+p['name'],f"Admission fee {money(v['career_settings']['academy_admission_fee'])}. Academy wage {money(p['wage'])} per week until {dated(v,end)}, included in the club wage budget. Future wages approximately {money(p['wage']*max(0,end-v['day'])//7)}. Future ability is uncertain.",lambda:self.command('academy_admit',id=p['id'])))

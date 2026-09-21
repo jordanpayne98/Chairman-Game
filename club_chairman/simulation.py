@@ -92,7 +92,7 @@ def new_career(seed=42,scenario='compact'):
     competitions.start_season(world)
     shortlists.initialise(world)
     detail.initialise(world)
-    world['schema']=13
+    world['schema']=14
     for p in world['players']:
         if p['club']:p['contract_end']=career.contractual_end(world,3)
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
@@ -102,10 +102,10 @@ def new_career(seed=42,scenario='compact'):
     return world
 
 
-def make_report(s, p, source='Recruitment analyst', radius=9):
+def make_report(s, p, source='Recruitment analyst', radius=9, complete=False):
     if source=='Recruitment analyst' and 'staff' in s:
         radius=max(4,round(radius*(1-(staff.capability(s,'c0','ability_assessment')-50)/150)))
-    return people.report(s,p,source,radius)
+    return people.report(s,p,source,radius,complete=complete)
 
 
 def news(s, title, body):
@@ -287,9 +287,9 @@ def apply(s, action, payload):
         for pid, due in list(s['scouting'].items()):
             if due <= tomorrow:
                 p = next(p for p in s['players'] if p['id']==pid)
-                s['reports'][pid] = make_report(s, p)
+                s['reports'][pid] = make_report(s, p, complete=True)
                 del s['scouting'][pid]
-                news(s, 'Scouting report ready', f"{p['name']}: estimates are now available in Recruitment.")
+                news(s, 'Scouting report ready', f"{p['name']}: fully scouted current ratings are available in Recruitment; potential remains an estimate.")
         season_day=tomorrow-s['career']['start']
         if season_day in (3,24,45,66):
             s['decision'] = dict(id=f'decision:{tomorrow}', title='Community open day' if season_day in (3,45) else 'Manager preparation camp',
@@ -463,7 +463,7 @@ def close_season(s):
 
 
 def validate(s):
-    require(s.get('schema')==13,'Unsupported save schema. This build supports schema 13.')
+    require(s.get('schema')==14,'Unsupported save schema. This build supports schema 14.')
     leagues.validate(s)
     feeders.validate(s)
     detail.validate(s)
@@ -496,7 +496,7 @@ def validate(s):
 
 
 def view(s):
-    """Authorised UI snapshot. Latent attributes and random states never leave here."""
+    """Authorised UI snapshot. Hidden traits, true potential and RNG stay private."""
     players=[]
     for p in s['players']:
         row={k:p[k] for k in ('id','name','club','role','age','wage','fee','goals','appearances','contract_end','youth','retired','career_goals','career_appearances')}

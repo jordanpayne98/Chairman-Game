@@ -1,8 +1,8 @@
 """Read-only planning tools. Inputs are authorised snapshots, never world state."""
 from datetime import date, timedelta
 
-ATTRIBUTES = ('passing', 'finishing', 'tackling', 'goalkeeping')
-SORTS = ('Name', 'Wage', 'Age', 'Passing', 'Finishing', 'Tackling', 'Goalkeeping')
+ATTRIBUTES = ('passing', 'finishing', 'tackling', 'reflexes')
+SORTS = ('Name', 'Wage', 'Age', 'Passing', 'Finishing', 'Tackling', 'Reflexes')
 
 
 def dated(v, day):
@@ -15,10 +15,11 @@ def player_rows(v, recruitment, search='', role='All', only_shortlist=False, sor
             and search.casefold() in p['name'].casefold()
             and (role == 'All' or p['role'] == role)
             and (not only_shortlist or p['id'] in v['planning']['shortlist'])]
-    key = sort.lower()
+    key = 'reflexes' if sort == 'Goalkeeping' else sort.lower()
     def value(p):
         if key in ATTRIBUTES:
-            return sum(p['report']['ranges'][key]) / 2 if p['report'] else None
+            pair = p['report']['ranges'].get(key) if p['report'] else None
+            return sum(pair) / 2 if pair else None
         return p.get(key, p['name']).casefold() if key == 'name' else p.get(key, p['name'])
     # Stable identity tie-break; unknown estimates stay last in either direction.
     rows.sort(key=lambda p: (p['name'].casefold(), p['id']))

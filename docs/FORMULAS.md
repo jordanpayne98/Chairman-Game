@@ -103,3 +103,12 @@ Schema 8 adds the competition graph. Schema 1–7 migration leaves the current s
 - `data/detail.json` is copied into career configuration. Validate the routine interval as an integer multiple of the weekly interval and the urgent horizon as at least one interval. Defaults are development tuning. A quiet 84-day fixture produces three reduced finance reviews versus twelve detailed reviews; this measures review count, not runtime performance or full-world readiness.
 - Membership changes update levels before schedule generation. The transition records club, old/new level, day and season; repeated synchronization is idempotent. No people, contracts, accounts, history or scouting reports are replaced. All supporting records already exist at this stage; missing-record expansion and acquisition are not implemented.
 - Schema 13 migration adds only configuration/detail metadata and changes the schema marker. Existing seasons remain fully detailed until their next season preparation. Completed season detail levels are archived with the competition state. Older schema 12 executables cannot read schema 13 saves.
+
+
+## Current ability milestone 0.16
+
+- Owned players and explicitly completed paid scouting assignments permit live current attributes and position-weighted CA. Display rounding is floor(value + 0.5); CA retains the existing unrounded-attribute weighted calculation. Pair-shaped read-model fields use [value, value] for compatibility; the UI prints a single number.
+- Potential remains the stored observer estimate. Knowledge completion is distinct from forecast confidence. Hidden personality, actual potential and simulation RNG remain private.
+- `people.full_coverage_days` defaults to 28 (provisional calibration). Coverage is active for day < report.coverage_until. Expired reports use only frozen evidence with the existing age-dependent widening, at least one point. Hired players retain exact ratings even when their potential forecast is stale; external legacy evidence is never retroactively promoted to full coverage.
+- Reads never rewrite report snapshots. Current values use current-day access; report day continues to date the potential forecast. Existing one-report-per-person storage remains; a browsable archive and richer evidence accumulation remain open.
+- Schema 14 adds only the coverage configuration during migration from 13. No player, finance, match or RNG record changes. Source SQLite bytes remain untouched.

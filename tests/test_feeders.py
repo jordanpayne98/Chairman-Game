@@ -129,7 +129,7 @@ class FeederTests(unittest.TestCase):
                 db.executemany('INSERT INTO metadata VALUES (?,?)',[('schema','11'),('checksum',hashlib.sha256(raw.encode()).hexdigest())])
                 db.execute('INSERT INTO entities VALUES (?,?)',('world',raw));db.commit()
             original=path.read_bytes();new=load(path)
-            self.assertEqual(path.read_bytes(),original);self.assertEqual(new['schema'],13)
+            self.assertEqual(path.read_bytes(),original);self.assertEqual(new['schema'],14)
             self.assertEqual(len(new['clubs']),24);self.assertNotIn('feeder',new['config'])
             restored=deepcopy(new);restored['schema']=11;restored.pop('detail');restored['config'].pop('detail');self.assertEqual(restored,old)
             self.assertEqual(migrate(new),new)
