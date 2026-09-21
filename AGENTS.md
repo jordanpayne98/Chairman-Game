@@ -54,6 +54,8 @@ For each implementation task, identify a clear playable or testable outcome. Con
 
 Run checks appropriate to the actual risk. Prioritise simulation correctness, financial integrity, save/load behaviour and regressions in affected flows. Inspect visual changes when possible. Fix issues introduced by the work and state what could not be tested. Never claim a test passed unless it ran.
 
+Jordan’s approved testing split: run syntax/import checks and focused checks for changed money, contract, save and other material logic. For a substantial update, use one final regression gate (normally the existing Windows/Linux CI matrix) rather than repeatedly running the whole suite locally. Jordan handles gameplay feel and hands-on playtesting. Broad 50-season runs belong at major/full-release milestones; repeat checks only for a concrete remaining risk or required gate.
+
 ## 14. Protect existing work
 
 Preserve unrelated changes and working functionality. Avoid destructive actions without authorization. Use version control and make changes reviewable. Use development branches and pull requests for implementation changes. Do not claim files were saved, committed, uploaded or updated without confirmation that the operation succeeded. Respect access failures; reported repository permissions alone are not proof that the integration can write.

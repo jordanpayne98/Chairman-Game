@@ -21,6 +21,7 @@ def budgets(s,cid):
     wage_limit=income*cfg['payroll_income_percent']//100-s['config']['market']['ai_weekly_overheads']
     reserve=(market.club_payroll(s,cid)+s['config']['market']['ai_weekly_overheads'])*cfg['reserve_weeks']
     bills=sum(b['amount'] for b in s['market']['obligations'] if b['source']==cid and b['status']=='scheduled')
+    bills+=sum(c['amount']-c['paid'] for c in s['clauses'].get('conditional',[]) if c['source']==cid and c['status'] in ('due','arrears'))
     fees,wages=market.extra_reservations(s,cid)
     reserve+=wages*cfg['reserve_weeks']
     return dict(wage_limit=wage_limit,reserve=reserve,bills=bills,

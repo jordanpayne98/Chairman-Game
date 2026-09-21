@@ -4,7 +4,7 @@ Domain functions operate only on the caller's uncommitted state copy. Simulation
 imports are local to keep the existing match engine separate from career policy.
 """
 from copy import deepcopy
-from . import market, clauses, people, registration, staff, club_ai, leagues, nations, detail
+from . import contract_terms, market, clauses, people, registration, staff, club_ai, leagues, nations, detail
 
 CAREER_DEFAULTS = dict(season_gap=14, offer_lifetime=7,
                       medical_days=2, manager_notice_weeks=4, academy_trial_fee=200000,
@@ -115,6 +115,7 @@ def process_day(s):
             o['status']='ready'
             o['medical']='Restricted training for 14 days after completion is advised.' if o['medical_days'] else 'No immediate registration concern was found. Future fitness is not guaranteed.'
             news(s,'Contract ready for final review',p['name']+': '+o['medical'])
+    contract_terms.process_day(s)
     for p in s['players']:
         p['age']=max(0,(day-p['birth_day'])//365)
         if p['club'] and p['contract_end'] is not None and day>p['contract_end']:
@@ -215,6 +216,7 @@ def apply(s,action,data):
             security=1-(duration-1)*.025
             required_wage=round(p['wage']*discount/100*security)
             if extra['club_option']:required_wage=required_wage*(100+cfg['clauses']['option_wage_premium'])//100
+            required_wage=required_wage*(100+extra['relegation_cut']//5)//100
             required_fee=0 if o['kind']=='renew' else p['fee']*.9
             acceptable=wage>=required_wage and fee>=required_fee
             o.update(wage=wage,fee=fee,duration=duration,end=end,expires=s['day']+settings['offer_lifetime'])

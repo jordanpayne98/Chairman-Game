@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, feeders, detail, managers, preparation
+from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, feeders, detail, managers, preparation, contract_terms, loan_clauses
 from .football import finished as match_finished
 
 
@@ -93,8 +93,9 @@ def new_career(seed=42,scenario='compact'):
     shortlists.initialise(world)
     detail.initialise(world)
     managers.initialise(world)
+    contract_terms.initialise(world)
     preparation.initialise(world)
-    world['schema']=18
+    world['schema']=19
     for p in world['players']:
         if p['club']:p['contract_end']=career.contractual_end(world,3)
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
@@ -165,6 +166,8 @@ def execute(state, command):
 
 
 def apply(s, action, payload):
+    result=loan_clauses.apply(s,action,payload)
+    if result is not None:return result
     cfg = s['config']
     result=managers.apply(s,action,payload)
     if result is not None:return result
@@ -412,6 +415,7 @@ def step_match(s,m):
 def record_result(s,m):
     f=next(f for f in s['fixtures'] if f['id']==m['fixture'])
     if f['result'] is not None:return
+    loan_clauses.record_match(s,m)
     clauses.record_match(s,m)
     if m.get('engine')==2:
         football.settle_players(s,m)
@@ -470,7 +474,7 @@ def close_season(s):
 
 
 def validate(s):
-    require(s.get('schema')==18,'Unsupported save schema. This build supports schema 18.')
+    require(s.get('schema')==19,'Unsupported save schema. This build supports schema 19.')
     leagues.validate(s)
     feeders.validate(s)
     detail.validate(s)

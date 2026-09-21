@@ -1,4 +1,4 @@
-# Club Chairman — Tactical Preparation Update (0.20)
+# Club Chairman — Contracts and Loans Update (0.21)
 
 A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic in the compact Northshire world or an England, Wales or Brazil national development scenario, with continuing league seasons and domestic cups. This is a playable development version; the approved full AA game is still being built.
 
@@ -15,13 +15,25 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing 0.1–0.19 / schema 1–17 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 18. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; external reports remain partial until a new assignment completes. Hired players gain exact current ratings through club access. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing 0.1–0.20 / schema 1–18 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 19. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; external reports remain partial until a new assignment completes. Hired players gain exact current ratings through club access. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
 Ctrl+K opens global search for known players, clubs, departments and help topics. Settings > Interface size cycles through 100/125/150/175% zoom. Mouse wheel pans vertically at larger sizes; Shift+wheel pans horizontally, and keyboard focus follows controls into view. Ctrl+0 restores 100%. This is whole-interface zoom; full responsive text reflow is still pending.
 
-## New in 0.20
+## New in 0.21
+
+**Contracts > Clauses > Employment clauses** adds a fixed release amount, annual signing-anniversary wage rises, relegation wage reductions, a one-time promotion bonus and a player-controlled extension option. Club and player options are mutually exclusive. Send the complete proposal for consent; editing a draft changes no signed contract. Release amounts require full payment, personal consent, medical and valid registration. The player decides a signed player option near expiry; the chairman cannot exercise it for them.
+
+**Transfers > Additional terms** adds appearance and promotion payments to club agreements. Each condition pays once before the new employment end date. Actual match participation counts; unused substitutes and forfeits do not. The signed-clause register shows progress, expiry, earned amounts and arrears. An earned payment remains due after the player leaves. For outgoing sales the current conservative buyer quote replaces guaranteed money with conditional money, capping the whole possible package at its valuation; richer probability-based negotiation remains open.
+
+Loan terms can include an optional permanent purchase or a binding purchase after a specified appearance threshold. Price, permanent wage and employment end are shown before consent. The borrower can exercise its option during the loan and an open window; an AI borrower reviews its option on the final loan day using recorded appearances and available resources. Binding fees and permanent wage capacity are reserved; an unmet condition returns the player. A binding loan cannot be recalled to cancel its condition. With the current calendar, a binding purchase must settle within the current window: shorten the loan before selecting that term.
+
+Financial reviews include scheduled salary changes, signed liabilities and binding purchase capacity. Untriggered performance payments remain contingent. Existing saves gain no invented signed clauses, new cash movements or changed in-progress matches.
+
+[Real-world contract research](docs/CONTRACT_RESEARCH.md) distinguishes buy-back rights, first refusal, country-specific buy-outs, loyalty terms and richer bonus structures. Those extensions are researched proposals, not completed 0.21 features. This update's fixed release amount is a transfer condition; it does not implement Spanish player-termination law. Full loan calendars, interest/reputation, agent depth, risk-based valuation and autonomous negotiation remain open.
+
+## Included from 0.20
 
 **Staff > Manager > Training report** shows recorded preparation for the manager's preferred formation and style, training sessions, match minutes and the latest attendance. Players without recorded evidence show “Not assessed”. The manager sets the tactical brief; the owner retains existing staffing, facilities and individual training-load controls.
 
@@ -175,7 +187,7 @@ To try delegation: appoint a manager, then contact and interview candidates unde
 - Loan duration controls cover 14–84 days. Newly agreed durations begin at final registration, after the medical, and employment coverage is checked again. This fixes the PR #7 review finding. Existing 0.5 signed loans and pending fixed-date agreements retain their dates.
 - Schema 5 reads schemas 1–4 without inventing past clauses or bonus payments. Guaranteed forecasts include earned unpaid bonuses but exclude unknown future performance, unexercised options and untriggered sell-on rights. Base wage budgets exclude performance bonuses; these are additional cash costs with no lifetime cap.
 
-This milestone does not complete the full clause catalogue. Player options, release clauses, conditional transfer/promotion bonuses, wage escalators/relegation reductions, loan purchase clauses, full nation eligibility and autonomous AI negotiation remain open.
+This earlier milestone introduced the first clause subset. Update 0.21 expands it above; full nation eligibility and autonomous AI negotiation remain open.
 
 ## Included from 0.5
 

@@ -2,6 +2,7 @@
 from .planning import dated
 from .market import TERMINAL
 from .clauses import sell_on_due
+from . import loan_clauses,contract_terms
 
 TEXT=(231,238,238);MUTED=(159,179,187);GREEN=(98,214,161);RED=(246,150,142)
 def money(n):return f'£{n/100:,.0f}'
@@ -12,6 +13,7 @@ class BusinessScreens:
         if not existing:
             if not self.command(action,id=pid,club=club):return
             existing=next(reversed(self.v['market']['deals'].values()))
+        self.deal_extra_page=False
         self.nav('Transfers');self.market_id=existing['id'];self.market_draft=None;self.outgoing_player=None
 
     def outgoing_open(self,pid,kind):
@@ -44,10 +46,12 @@ class BusinessScreens:
             for i,l in enumerate(rows[self.page*4:self.page*4+4]):
                 p=next(p for p in self.v['players'] if p['id']==l['player']);y=265+i*117
                 self.panel(x,y,1400-x,104);self.text(p['name']+' / '+l['status'].upper(),x+20,y+16,27)
-                self.text(self.club(l['source'])+' to '+self.club(l['target']),x+20,y+49,22,MUTED)
+                self.text(self.club(l['source'])+' to '+self.club(l['target'])+' / purchase: '+l.get('purchase_kind','none'),x+20,y+49,22,MUTED)
                 self.text(f"To {dated(self.v,l['end'])} / borrower pays {l['share']}% wages",x+20,y+78,21,MUTED)
+                if l['target']=='c0' and l['status']=='active' and l.get('purchase_kind')=='option':
+                    self.button('Review purchase',(1180,y+28,200,44),lambda l=l:self.confirm('Exercise purchase option',loan_clauses.description(l,self.v['start_date'])+' Employment runs to '+dated(self.v,l['purchase_end'])+'. Existing loan fee is retained. The purchase is final.',lambda:self.command('loan_purchase',id=l['id'])),not self.v['match'] and self.v['day']<=min(l['end'],self.v['window_end']))
                 if l['source']=='c0' and l['status']=='active':
-                    self.button('Review recall',(1180,y+28,200,44),lambda loan=l,name=p['name']:self.confirm('Recall '+name,f"Return registration immediately and refund {money(loan.get('fee',0)*max(0,loan['end']-self.v['day'])//max(1,loan['end']-loan['start']))} for the unserved loan period. Full wages resume. Recall is legal only inside the window. The game rechecks cash and wage capacity.",lambda:self.command('loan_recall',id=loan['id'])),not self.v['match'] and self.v['day']<=self.v['window_end'])
+                    self.button('Review recall',(1180,y+28,200,44),lambda loan=l,name=p['name']:self.confirm('Recall '+name,f"Return registration immediately and refund {money(loan.get('fee',0)*max(0,loan['end']-self.v['day'])//max(1,loan['end']-loan['start']))} for the unserved loan period. Full wages resume. Recall is legal only inside the window. The game rechecks cash and wage capacity.",lambda:self.command('loan_recall',id=loan['id'])),not self.v['match'] and self.v['day']<=self.v['window_end'] and l.get('purchase_kind')!='obligation')
             if not rows:self.wrap('No loan registrations yet. Open a club player in Recruitment to discuss an incoming loan, or use Review loan in Squad to arrange a temporary move.',x+20,295,1050,28,TEXT)
             self.pager(x,770,len(rows),4);return
         if self.market_tab=='Payments':
@@ -79,6 +83,8 @@ class BusinessScreens:
         if self.command('club_propose',id=d['id'],**payload):self.market_draft=None
 
     def draw_club_deal(self,x,d):
+        if getattr(self,'deal_extra_page',False):self.deal_extras(x,d);return
+        self.button('Additional terms',(x+840,190,300,42),lambda:setattr(self,'deal_extra_page',True))
         p=next(p for p in self.v['players'] if p['id']==d['player'])
         self.button('Back to desk',(x,190,180,42),lambda:(setattr(self,'market_id',None),setattr(self,'market_draft',None)))
         self.text(p['name']+' / '+d['kind'].upper()+' / '+d['status'].upper(),x+205,202,27,GREEN)
@@ -101,7 +107,7 @@ class BusinessScreens:
             self.wrap(('Unsent draft: ' if editable else '')+self.sell_on_text(dict(d,**{k:draft.get(k,d.get(k)) for k in ('sell_on_kind','sell_on_percent')})),right+20,537,1360-right,21,MUTED)
             if editable:self.button('Send club offer',(x,773,205,46),lambda:self.market_send(d),not self.v['match'])
             if d['status'] in ('agreed','counter'):
-                self.button('Review club consent',(x+225,773,240,46),lambda:self.confirm('Agree selling-club terms',f"Fee {money(d['fee'])}: {money(d['upfront'])} at registration and {money(d['fee']-d['upfront'])} after {d['defer_days']} days. Personal terms and medical remain outstanding; no money is paid now. {self.sell_on_text(d)}",lambda:self.command('club_accept',id=d['id'])),not self.v['match'])
+                self.button('Review club consent',(x+225,773,240,46),lambda:self.confirm('Agree selling-club terms',f"Fee {money(d['fee'])}: {money(d['upfront'])} at registration and {money(d['fee']-d['upfront'])} after {d['defer_days']} days. Personal terms and medical remain outstanding; no money is paid now. {self.sell_on_text(d)} {contract_terms.transfer_description(d)}",lambda:self.command('club_accept',id=d['id'])),not self.v['match'])
             if d['status']=='seller_agreed':self.button('Personal terms',(x,773,230,46),lambda:self.contract_open(p['id']),not self.v['match'])
         else:
             self.text('Club fee '+money(d['fee']),x+20,351,30,GREEN)
@@ -114,7 +120,7 @@ class BusinessScreens:
                 self.button('Term +14 days',(x+260,595,230,40),lambda:self.command('loan_terms',id=d['id'],share=d['share'],days=days+14),d['status']=='quote' and days is not None and days<84)
                 self.button('Wage share -25%',(x+20,541,220,40),lambda:self.command('loan_terms',id=d['id'],share=d['share']-25,days=d.get('days') or d['end']-self.v['day']),d['status']=='quote' and d['share']>50)
                 self.button('Wage share +25%',(x+260,541,230,40),lambda:self.command('loan_terms',id=d['id'],share=d['share']+25,days=d.get('days') or d['end']-self.v['day']),d['status']=='quote' and d['share']<100)
-                self.wrap('Lower wage cover increases the upfront fee. Full employer wages resume on return. Early recall refunds the unserved share of the fee. The loan cannot outlast employment.',right+20,354,1360-right,24,TEXT)
+                self.wrap('Lower wage cover increases the upfront fee. Full employer wages resume on return. Where recall is permitted, it refunds the unserved share of the fee. The loan cannot outlast employment.',right+20,354,1360-right,24,TEXT)
             else:
                 self.sell_on_controls(x+20,467,d,d['status']=='quote')
                 owed=sum(amount for _,amount in sell_on_due(self.v,p['id'],d['source'],d['fee']))
@@ -122,8 +128,8 @@ class BusinessScreens:
                 self.text('Net sale receipt '+money(d['fee']-owed),x+20,641,25,GREEN)
                 self.wrap(self.sell_on_text(d),right+20,505,1360-right,21,MUTED)
                 self.wrap('The receiving club must fund the fee and retain player consent. The player keeps their identity and history; employment and registration change together at final completion.',right+20,354,1360-right,24,TEXT)
-            if d['status']=='quote':self.button('Review conditional deal',(x,773,275,46),lambda:self.confirm('Accept conditional '+d['kind'],f"Receiving club {self.club(d['target'])} pays {money(d['fee'])} on completion and carries {money(d['wage_cost'])}/week. Medical and consent checks take {self.v['market_settings']['medical_days']} days. Registration remains unchanged until final review. {self.sell_on_text(d) if d['kind']=='sale' else str(d.get('days') or 'Legacy')+' days; full duration is checked at registration.'}",lambda:self.command('market_accept',id=d['id'])),not self.v['match'])
-            elif d['status']=='ready':self.button('Review registration',(x,773,260,46),lambda:self.confirm('Complete '+d['kind']+' of '+p['name'],f"Settle {money(d['fee'])} from {self.club(d['target'])} to {self.club(d['source'])}. Move registration and wage responsibility now. This cannot be undone. "+('Early recall refunds the unserved share of the fee. The original employment survives and the player returns after '+dated(self.v,self.v['day']+d['days'] if d.get('days') else d['end'])+'.' if d['kind']=='loan' else 'The receiving club starts a new employment agreement. '+self.sell_on_text(d)+' Existing sell-on payable '+money(owed)+'; net receipt '+money(d['fee']-owed)+'.'),lambda:self.command('market_complete',id=d['id'])),not self.v['match'])
+            if d['status']=='quote':self.button('Review conditional deal',(x,773,275,46),lambda:self.confirm('Accept conditional '+d['kind'],f"Receiving club {self.club(d['target'])} pays {money(d['fee'])} on completion and carries {money(d['wage_cost'])}/week. Medical and consent checks take {self.v['market_settings']['medical_days']} days. Registration remains unchanged until final review. {self.sell_on_text(d)+' '+contract_terms.transfer_description(d) if d['kind']=='sale' else str(d.get('days') or 'Legacy')+' days; full duration is checked at registration. '+loan_clauses.description(d,self.v['start_date'])}",lambda:self.command('market_accept',id=d['id'])),not self.v['match'])
+            elif d['status']=='ready':self.button('Review registration',(x,773,260,46),lambda:self.confirm('Complete '+d['kind']+' of '+p['name'],f"Settle {money(d['fee'])} from {self.club(d['target'])} to {self.club(d['source'])}. Move registration and wage responsibility now. This cannot be undone. "+('Where recall is permitted, it refunds the unserved share of the fee. The original employment survives and the player returns after '+dated(self.v,self.v['day']+d['days'] if d.get('days') else d['end'])+'. '+loan_clauses.description(d,self.v['start_date']) if d['kind']=='loan' else 'The receiving club starts a new employment agreement. '+self.sell_on_text(d)+' '+contract_terms.transfer_description(d)+' Existing sell-on payable '+money(owed)+'; net receipt '+money(d['fee']-owed)+'.'),lambda:self.command('market_complete',id=d['id'])),not self.v['match'])
             elif d['status']=='medical':self.text('Medical due '+dated(self.v,d['due'])+'. Continue to the review.',x,791,24,GREEN)
         self.wrap(d['transcript'][-1],x+20,742,1340-x,22,MUTED)
         if d['status'] not in TERMINAL:

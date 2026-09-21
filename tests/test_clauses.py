@@ -156,6 +156,6 @@ class ClauseTests(unittest.TestCase):
         self.act('market_accept',id=d['id']);self.progress(2);self.act('market_complete',id=d['id'])
         old=deepcopy(self.s);old['schema']=4;del old['clauses'];del old['config']['clauses']
         upgraded=migrate(old)
-        self.assertEqual(upgraded['clauses'],dict(employment={},history=[],payables=[],sell_on=[]))
+        self.assertEqual(upgraded['clauses'],dict(employment={},history=[],payables=[],sell_on=[],conditional=[]))
         for key in ('cash','players','ledger','market'):self.assertEqual(upgraded[key],old[key])
         self.assertEqual(old['schema'],4);validate(upgraded)

@@ -4,6 +4,7 @@ No new terms are invented for an old save. Money uses integer pence; sporting
 events create one liability each, independent of live playback or skipped games.
 """
 from copy import deepcopy
+from . import contract_terms
 
 DEFAULTS = dict(max_bonus=100000, max_sell_on_percent=50, option_wage_premium=5)
 EMPTY_TERMS = dict(appearance_bonus=0, goal_bonus=0, club_option=False)
@@ -17,7 +18,7 @@ def initialise(s):
 
 
 def terms(data):
-    return {key: data.get(key, default) for key, default in EMPTY_TERMS.items()}
+    return {**{key: data.get(key, default) for key, default in EMPTY_TERMS.items()},**contract_terms.terms(data)}
 
 
 def validate_terms(s, data):
@@ -27,13 +28,14 @@ def validate_terms(s, data):
         require(type(result[key]) is int and 0 <= result[key] <= s['config']['clauses']['max_bonus'],
                 'Bonuses must be whole pence between £0 and £1,000 per event.')
     require(type(result['club_option']) is bool, 'Choose whether the club has an extension option.')
+    contract_terms.validate_terms(s,data)
     return result
 
 
 def description(data):
     t = terms(data)
     return (f"£{t['appearance_bonus']/100:,.0f} per appearance; £{t['goal_bonus']/100:,.0f} per goal. "
-            + ('Club option: one additional season at the same wage.' if t['club_option'] else 'No extension option.'))
+            + ('Club option: one additional season continuing the signed pay conditions.' if t['club_option'] else 'No club extension option.')+' '+contract_terms.description(t))
 
 
 def sign(s, p, offer):
@@ -47,7 +49,8 @@ def sign(s, p, offer):
     s['clauses']['employment'][p['id']] = dict(
         id=offer['id'] + ':clauses', player=p['id'], employer='c0', start=s['day'],
         end=offer['end'], **terms(offer), option_end=option_end,
-        option_status='available' if offer.get('club_option') else 'none', cap=None)
+        option_status='available' if offer.get('club_option') or offer.get('player_option') else 'none', cap=None,
+        next_raise=add_year(s['config']['start_date'],s['day']))
 
 
 def end_employment(s, pid):
@@ -57,6 +60,7 @@ def end_employment(s, pid):
 
 def record_match(s, match):
     from .simulation import news
+    contract_terms.record_match(s,match)
     existing = {b['id'] for b in s['clauses']['payables']}
     for side, lineup in enumerate(match.get('participants',match['lineups'])):
         cid = match['home'] if side == 0 else match['away']
@@ -76,6 +80,7 @@ def record_match(s, match):
 
 
 def settle_payables(s):
+    contract_terms.settle(s)
     from .market import club_cash, post
     from .simulation import news
     for bill in s['clauses']['payables']:
@@ -116,6 +121,7 @@ def complete_sale(s, deal):
     for right, amount in sell_on_due(s, deal['player'], deal['source'], deal['fee']):
         transfer_cash(s, right['id'] + ':settlement', deal['source'], right['beneficiary'], amount, 'Sell-on clause')
         right.update(status='settled', settled=s['day'], amount=amount, sale=deal['id'])
+    contract_terms.signed_sale(s,deal)
     end_employment(s, deal['player'])
     if deal.get('sell_on_percent', 0):
         s['clauses']['sell_on'].append(dict(id=deal['id'] + ':sell-on', player=deal['player'],
@@ -139,13 +145,13 @@ def apply(s, action, data):
     pid = data.get('id'); p = person(s, pid)
     c = s['clauses']['employment'].get(pid)
     require(s['match'] is None, 'Exercise options outside matchday.')
-    require(c is not None and c['employer'] == 'c0' and c['option_status'] == 'available', 'No unused club option exists.')
+    require(c is not None and c['employer'] == 'c0' and c['option_status'] == 'available' and c.get('club_option'), 'No unused club option exists.')
     loan = active_loan(s, pid)
     require((loan['source'] if loan else p['club']) == 'c0' and s['day'] <= c['end'], 'The option expired or employment changed.')
     offer = s['career']['offers'].get(pid)
     require(not offer or offer['status'] in TERMINAL, 'Resolve the open renewal discussion before exercising this option.')
     p['contract_end'] = c['option_end']; c['end'] = c['option_end']; c['option_status'] = 'exercised'
-    news(s, 'Club option exercised', p['name'] + ': employment extended for one compact season at the same wage and bonuses.')
+    news(s, 'Club option exercised', p['name'] + ': employment extended for one additional season; signed wage clauses and bonuses continue.')
     return 'Extension signed. Guaranteed future wages increased; no immediate fee.'
 
 
@@ -156,11 +162,12 @@ def snapshot(s):
 
 def validate(s):
     from .simulation import require
+    contract_terms.validate(s)
     ids = {p['id'] for p in s['players']}
     for pid, c in s['clauses']['employment'].items():
         require(pid in ids and c['player'] == pid and c['start'] <= c['end'], 'Invalid employment clause.')
         validate_terms(s, c)
-        require(c['option_status'] in ('none', 'available', 'exercised'), 'Invalid extension state.')
+        require(c['option_status'] in ('none', 'available', 'exercised','declined','expired'), 'Invalid extension state.')
     bills = s['clauses']['payables']; rights = s['clauses']['sell_on']
     require(len({b['id'] for b in bills}) == len(bills), 'Duplicate earned bonus.')
     for b in bills:

@@ -5,6 +5,7 @@ RESERVED = ('medical', 'ready')
 
 
 def proposed_end(v, duration):
+    if str(duration) in v.get('contract_ends',{}):return v['contract_ends'][str(duration)]
     span = v['season_end'] - v['season_start'] + v['career_settings']['season_gap']
     return v['season_end'] + span * (duration if v['season_done'] else duration - 1)
 
@@ -27,8 +28,10 @@ def review(v, offer, draft=None):
     headroom = v['budget'] - v['payroll'] - reserved_wages - delta
     available = cash_after - receipt - reserved_cash - v['terms']['operating_buffer']
     days = max(0, end - v['day'])
-    future = terms['wage'] * days // 7
-    old_future = old_wage * max(0, (p['contract_end'] or v['day']) - v['day']) // 7
+    from .contract_terms import guaranteed
+    future = guaranteed(terms['wage'],v['day'],end,terms.get('annual_raise',0),v['start_date'])
+    from .contract_terms import remaining
+    old_future = remaining(old_wage,v.get('clauses',{}).get('employment',{}).get(p['id'],{}),v['day'],p['contract_end'] or v['day'],v['start_date'])
     due = (offer.get('due', v['day']) if offer['status'] in RESERVED else
            v['day'] + (v['career_settings']['medical_days'] if offer['kind'] != 'renew' else 0))
     cutoff = min(offer['expires'], v['window_end']) if offer['kind'] != 'renew' else min(offer['expires'], p['contract_end'] or offer['expires'])

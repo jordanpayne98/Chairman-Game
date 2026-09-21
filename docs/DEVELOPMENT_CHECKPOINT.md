@@ -1,5 +1,21 @@
 # Development checkpoint
 
+## PLAY-021 — Contracts and Loans Update 0.21
+
+Date: 21 September 2026. Continued from published 0.20 / PR #22 head `e22baca82c970e6298ff78983129d5ec0a79a89f` on `game/contracts-and-loans`. Current GDD revision 0.10 clauses/loans and reputation sections read. Jordan requested a larger contract/loan update with proportionate code checks and hands-on playtesting, then real-world bonus/transfer research. No engine/dependency change, GDD edit or predecessor merge.
+
+Implemented: fixed transfer-release amounts with full payment and separate player consent; player-controlled extension decisions; anniversary wage rises, rollover relegation cuts and a one-time employment promotion bonus. Conditional appearance/promotion club payments retain trigger evidence, expiry and once-only settlement; earned arrears survive departure. Loan options and appearance-conditioned obligations include price, permanent wages and employment dates in consent; reserve binding capacity; preserve identity/history; end loan restrictions on purchase; block recall from cancelling a binding condition. AI optional purchases review actual exposure and resource checks on the final loan day. Outgoing bonus packages reduce guaranteed proceeds so a bonus cannot create an unpriced claim. Forecasts include dated raises, earned liabilities and binding purchase commitments. UI controls, confirmations and signed register are connected.
+
+Research: CONTRACT_RESEARCH.md records primary club disclosures, published accounts, Spanish legislation and first-hand sports-law analysis. Buy-backs, first refusal/matching, country-specific buy-outs, loyalty schedules and richer bonus terms are researched proposals, not implemented features or newly approved detailed design. Current fixed release is a transfer condition, not Spanish unilateral termination. Prioritise buy-back price schedules, dated exercise/expiry and fresh player consent as the next research-informed extension; reconcile the living GDD when a concrete design is adopted.
+
+Compatibility: schema 19 reads 1–18 and adds only an empty conditional-payment register and ruleset defaults to old worlds. Existing signed employment, wages, cash and active matches are unchanged. A genuine 0.20 minute-27 SQLite career resumed to an identical entire world after removing only these added defaults and the schema number; original file bytes were unchanged.
+
+Verification: 13 new domain/UI tests passed in 6.205s; 36 affected clause, transfer, planning and contract-workflow tests passed in 46.580s. Coverage includes consent, player-owned decisions, dated wage effects, contingent trigger/forfeit/double-settlement guards, pricing/atomic refusal, real matched loan obligations, unmet conditions, option deadline/resource checks, reservations, financial conservation, forecasts and save roundtrip/migration. Syntax compilation passed. Employment, loan and transfer panels rendered and inspected; final transfer explanatory text fits. Final full regression, national/career/display checks and Windows executable evidence are reserved for the existing CI gate after publication; not yet claimed complete.
+
+Scope: compact binding loans must settle inside the current registration window. Player-option decisions and AI option use are provisional simple policies; outgoing add-ons replace guaranteed value at face value. Full-season loan registration, reputation/interest, agent priorities, risk-based package valuation, autonomous clause negotiation and country-law parity remain open. Lean testing preference is recorded in AGENTS.md; Jordan handles gameplay feel, and broad 50-season testing belongs at major/full-release milestones.
+
+Publication: changes are reviewable locally. Intended new PR targets unmerged `game/manager-preparation`. Record any automatic-publication approval block explicitly and do not bypass it. Final remote head, workflow and download belong in the PR once verified.
+
 ## PLAY-020 — Tactical Preparation Update 0.20
 
 Date: 21 September 2026. Continued from verified Update 0.19 / PR #21 head `43baeb8cc3d226070bafa6c897602bfb13a1e098` on `game/manager-preparation`. Read current GDD revision 0.10 manager transitions, training and familiarity requirements. No GDD change, new dependency or predecessor merge.
