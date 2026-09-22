@@ -5,6 +5,7 @@ RESERVED = ('medical', 'ready')
 
 
 def proposed_end(v, duration):
+    if str(duration) in v.get('contract_ends',{}):return v['contract_ends'][str(duration)]
     span = v['season_end'] - v['season_start'] + v['career_settings']['season_gap']
     return v['season_end'] + span * (duration if v['season_done'] else duration - 1)
 
@@ -27,8 +28,10 @@ def review(v, offer, draft=None):
     headroom = v['budget'] - v['payroll'] - reserved_wages - delta
     available = cash_after - receipt - reserved_cash - v['terms']['operating_buffer']
     days = max(0, end - v['day'])
-    future = terms['wage'] * days // 7
-    old_future = old_wage * max(0, (p['contract_end'] or v['day']) - v['day']) // 7
+    from .contract_terms import guaranteed
+    future = guaranteed(terms['wage'],v['day'],end,terms.get('annual_raise',0),v['start_date'])
+    from .contract_terms import remaining
+    old_future = remaining(old_wage,v.get('clauses',{}).get('employment',{}).get(p['id'],{}),v['day'],p['contract_end'] or v['day'],v['start_date'])
     due = (offer.get('due', v['day']) if offer['status'] in RESERVED else
            v['day'] + (v['career_settings']['medical_days'] if offer['kind'] != 'renew' else 0))
     cutoff = min(offer['expires'], v['window_end']) if offer['kind'] != 'renew' else min(offer['expires'], p['contract_end'] or offer['expires'])
@@ -67,4 +70,8 @@ def attention(v):
         if d['status']=='ready' or d['expires']-v['day']<=1:
             rows.append(dict(player=d['player'],name=people[d['player']]['name'],deadline=d['expires'],screen='Transfers',deal_id=d['id'],
                              label='Club deal ready for review' if d['status']=='ready' else 'Club deal expires soon'))
+    for n in v['clauses'].get('notices',[]):
+        if n['beneficiary']=='c0' and n['status']=='pending':
+            rows.append(dict(player=n['player'],name=people[n['player']]['name'],deadline=n['deadline'],screen='Rights',
+                             notice_id=n['id'],label='First-refusal response required'))
     return sorted(rows, key=lambda row: (row['deadline'], row['player']))

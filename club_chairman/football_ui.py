@@ -107,6 +107,8 @@ class FootballScreens:
             else:
                 self.button('Club enquiry',(x+225,794,195,44),lambda:self.market_open('club_enquire',p['id']),not self.v['match'] and not p.get('loan'))
                 self.button('Discuss loan',(x+435,794,195,44),lambda:self.market_open('loan_enquire',p['id']),not self.v['match'] and not p.get('loan'))
+                if p.get('buyout_amount'):
+                    self.button('Review buy-out',(x+645,794,230,44),lambda:self.confirm('Fund player buy-out',f"Compensation {money(p['buyout_amount'])}, paid in full for the player at completion. The player must agree fresh employment terms and pass medical/registration checks. Existing buy-back, first-refusal and next-transfer sell-on rights end under their signed wording. Nothing is paid now.",lambda:self.open_contract_exit('buyout_enquire',p['id'])),not self.v['match'] and not p.get('loan'))
 
     def cycle_training(self,p,key):
         choices=('Balanced',*GROUPS) if key=='focus' else ('Light','Normal','Intense')

@@ -1,5 +1,6 @@
 """Read-only planning tools. Inputs are authorised snapshots, never world state."""
 from datetime import date, timedelta
+from . import contract_terms,nations
 
 ATTRIBUTES = ('passing', 'finishing', 'tackling', 'reflexes')
 SORTS = ('Name', 'Wage', 'Age', 'Passing', 'Finishing', 'Tackling', 'Reflexes')
@@ -43,7 +44,7 @@ def signing_terms(v, players):
         upfront=deal.get('upfront',transfer);deferred=transfer-upfront
         contracts.append(dict(id=p['id'],upfront=upfront,deferred=deferred,defer_days=deal.get('defer_days',28),fee=o['fee'] if negotiated else p['fee'],
                               wage=o['wage'] if negotiated else p['wage'],
-                              end=o['end'] if negotiated else default_end))
+                              end=o['end'] if negotiated else default_end,annual_raise=o.get('annual_raise',0) if negotiated else 0))
     selected={p['id'] for p in targets}
     other=[o for pid,o in offers.items() if pid not in selected and o['status'] in ('medical','ready')]
     reserved_cash=v.get('reserved_cash',0);reserved_wages=v.get('reserved_wages',0)
@@ -52,7 +53,7 @@ def signing_terms(v, players):
         if o.get('status') in ('medical','ready'):
             reserved_cash-=o['fee']+c['upfront'];reserved_wages-=o['wage_delta']
     fee=sum(c['fee']+c['upfront'] for c in contracts);wage=sum(c['wage'] for c in contracts)
-    future=sum(c['wage']*max(0,c['end']-v['day'])//7 for c in contracts)
+    future=sum(contract_terms.guaranteed(c['wage'],v['day'],c['end'],c['annual_raise'],v['start_date']) for c in contracts)
     reasons=[]
     if targets:
         if v['day'] > v.get('window_end',28): reasons.append('Signing window closed')
@@ -76,6 +77,8 @@ def forecast(v, players=(), horizon=28):
     terms = signing_terms(v, players)
     end = v['day'] if v['season_done'] else min(v['season_end'], v['day']+horizon)
     bonus_due=sum(b['amount']-b['paid'] for b in v.get('clauses',{}).get('payables',[]) if b['source']=='c0')
+    conditional=sum(c['amount']-c['paid'] for c in v.get('clauses',{}).get('conditional',[]) if c['source']=='c0' and c['status'] in ('due','arrears'))
+    bonus_due+=conditional
     cash = v['cash']-terms['fee']-bonus_due; low=cash; high=cash
     accrued = v['accrued_costs']; sponsorship=costs=gates=0
     points = [dict(day=v['day'], cash=cash, low=low, high=high)]
@@ -94,9 +97,10 @@ def forecast(v, players=(), horizon=28):
         amount=accrued//7;cash-=amount;low-=amount;high-=amount;costs+=amount;accrued=0
         points.append(dict(day=v['day'],cash=cash,low=low,high=high))
     for day in range(v['day']+1,end+1):
-        committed=sum(projected_wage(p,day) for p in v['players'])
+        committed=sum(projected_wage(p,day,v) for p in v['players'])
         sponsor=sum(c['weekly'] for c in v.get('commercial',{}).get('contracts',[]) if c['start']<day<=c['end'] and (day-c['start'])%7==0)
         bills=sum(b['amount']*(1 if b['target']=='c0' else -1) for b in v.get('market',{}).get('obligations',[]) if b['status']=='scheduled' and b['due']==day and 'c0' in (b['source'],b['target']))
+        bills+=sum(l['purchase_fee']*(1 if l['source']=='c0' else -1) for l in v.get('market',{}).get('loans',[]) if l['status']=='active' and l.get('purchase_kind')=='obligation' and len(l['purchase_fixtures'])>=l['purchase_count'] and day==l['end']+1 and 'c0' in (l['source'],l['target']))
         bills-=sum(c['deferred'] for c in terms['contracts'] if v['day']+c['defer_days']==day)
         sponsorship+=sponsor;cash+=sponsor+bills;low+=sponsor+bills;high+=sponsor+bills
         manager=v['manager'];committed+=manager['wage'] if manager and manager.get('contract_end',end)>=day else 0
@@ -105,7 +109,7 @@ def forecast(v, players=(), horizon=28):
             if pending and pending['club']=='c0' and pending['start']<=day<=pending['end']:committed+=pending['wage']
             elif employee['club']=='c0' and employee['start']<=day<=employee['end']:committed+=employee['wage']
         extra=sum(p['upkeep'] for p in v.get('career',{}).get('projects',[]) if p['status']=='construction' and p['due']<=day)
-        accrued += committed+sum(c['wage'] for c in terms['contracts'] if c['end']>=day)+v['terms']['weekly_overheads']+extra
+        accrued += committed+sum(contract_terms.projected(c['wage'],dict(end=c['end'],annual_raise=c['annual_raise'],next_raise=nations.add_year(v['start_date'],v['day'])),v['start_date'],day) for c in terms['contracts'] if c['end']>=day)+v['terms']['weekly_overheads']+extra
         if day % 7 == 0:
             income=v['terms']['weekly_sponsor'];amount=accrued//7;accrued%=7
             sponsorship+=income;costs+=amount
@@ -121,9 +125,14 @@ def forecast(v, players=(), horizon=28):
                 bonus_due=bonus_due,reserve=v['terms']['operating_buffer'])
 
 
-def projected_wage(p,day):
-    if p['contract_end'] is not None and day>p['contract_end']:return 0
+def projected_wage(p,day,v=None):
+    if v:
+        from .contract_terms import projected
+        p=dict(p,wage=projected(p['wage'],v.get('clauses',{}).get('employment',{}).get(p['id'],{}),v['start_date'],day))
     loan=p.get('loan')
+    if loan and loan.get('purchase_kind')=='obligation' and len(loan['purchase_fixtures'])>=loan['purchase_count'] and day>loan['end']:
+        return loan['purchase_wage'] if loan['target']=='c0' and day<=loan['purchase_end'] else 0
+    if p['contract_end'] is not None and day>p['contract_end']:return 0
     if loan:
         if day>loan['end']:return p['wage'] if loan['source']=='c0' else 0
         share=p['wage']*loan['share']//100

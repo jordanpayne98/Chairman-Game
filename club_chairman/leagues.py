@@ -134,10 +134,14 @@ def close(s):
                 if c['id']!='c0':post(s,c['id'],f"season:{s['career']['season']}:{d['id']}:prize:{c['id']}",d['prizes'][i],'League prize')
         names={c['id']:c['name'] for c in s['clubs']}
         news(s,'Promotion and relegation confirmed','; '.join(names[m['club']]+' '+m['kind'].lower() for m in data['movements'])+'. Membership changes when the next season is prepared.')
+    from .contract_terms import movements
+    movements(s)
     data['closed']=True
 
 
 def rollover(s):
+    from .contract_terms import movements
+    movements(s,rollover=True)
     data=s['leagues']
     if data['legacy']:
         expand_world(s)

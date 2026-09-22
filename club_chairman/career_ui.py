@@ -55,7 +55,7 @@ class CareerScreens(ClauseScreens):
 
     def offer_edit(self,key,delta):
         draft=dict(self.offer_draft);draft[key]+=delta
-        limits={'wage':(10000,500000),'fee':(0,10000000),'duration':(1,3),'appearance_bonus':(0,100000),'goal_bonus':(0,100000)}
+        limits={'wage':(10000,500000),'fee':(0,10000000),'duration':(1,3),'appearance_bonus':(0,100000),'goal_bonus':(0,100000),'release_fee':(0,100000000),'annual_raise':(0,25),'relegation_cut':(0,50),'promotion_bonus':(0,10000000)}
         draft[key]=max(limits[key][0],min(limits[key][1],draft[key]));self.offer_draft=draft;self.save_preferences()
 
     def offer_action(self,action,o):
