@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, feeders, detail, managers, preparation, contract_terms, loan_clauses
+from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, feeders, detail, managers, preparation, contract_terms, loan_clauses, transfer_rights
 from .football import finished as match_finished
 
 
@@ -94,8 +94,9 @@ def new_career(seed=42,scenario='compact'):
     detail.initialise(world)
     managers.initialise(world)
     contract_terms.initialise(world)
+    transfer_rights.initialise(world)
     preparation.initialise(world)
-    world['schema']=19
+    world['schema']=20
     for p in world['players']:
         if p['club']:p['contract_end']=career.contractual_end(world,3)
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
@@ -166,6 +167,8 @@ def execute(state, command):
 
 
 def apply(s, action, payload):
+    result=transfer_rights.apply(s,action,payload)
+    if result is not None:return result
     result=loan_clauses.apply(s,action,payload)
     if result is not None:return result
     cfg = s['config']
@@ -474,7 +477,7 @@ def close_season(s):
 
 
 def validate(s):
-    require(s.get('schema')==19,'Unsupported save schema. This build supports schema 19.')
+    require(s.get('schema')==20,'Unsupported save schema. This build supports schema 20.')
     leagues.validate(s)
     feeders.validate(s)
     detail.validate(s)
@@ -522,6 +525,8 @@ def view(s):
         row['availability']=registration.reason(s,p,'c0',opponent) if p['club']=='c0' else 'Free agent' if p['club'] is None else 'Not assessed by your staff'
         row['development']={k:deepcopy(p['development'][k]) for k in ('focus','load','last_day')} if p['club']=='c0' else None
         row['scout_due']=s['scouting'].get(p['id'])
+        employment=s['clauses']['employment'].get(p['id'],{})
+        row['buyout_amount']=employment.get('release_fee',0) if employment.get('release_kind')=='buyout' and employment['employer']==p['club'] and s['day']<=employment['end'] else 0
         row['transfer_quote']=market.quote(s,p) if p['club'] not in (None,'c0') else 0
         row['loan']=deepcopy(market.active_loan(s,p['id']))
         players.append(row)
@@ -551,6 +556,7 @@ def view(s):
     snapshot['commercial']=deepcopy(s['commercial'])
     snapshot['clauses']=clauses.snapshot(s)
     snapshot['clause_settings']=deepcopy(s['config']['clauses'])
+    snapshot['clause_settings']['allowed_release_kinds']=transfer_rights.allowed_kinds(s)
     snapshot['market_settings']=deepcopy(s['config']['market'])
     snapshot['commercial_settings']=deepcopy(s['config']['commercial'])
     snapshot['terms']['capacity']=career.available_capacity(s)

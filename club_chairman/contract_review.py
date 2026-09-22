@@ -70,4 +70,8 @@ def attention(v):
         if d['status']=='ready' or d['expires']-v['day']<=1:
             rows.append(dict(player=d['player'],name=people[d['player']]['name'],deadline=d['expires'],screen='Transfers',deal_id=d['id'],
                              label='Club deal ready for review' if d['status']=='ready' else 'Club deal expires soon'))
+    for n in v['clauses'].get('notices',[]):
+        if n['beneficiary']=='c0' and n['status']=='pending':
+            rows.append(dict(player=n['player'],name=people[n['player']]['name'],deadline=n['deadline'],screen='Rights',
+                             notice_id=n['id'],label='First-refusal response required'))
     return sorted(rows, key=lambda row: (row['deadline'], row['player']))

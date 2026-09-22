@@ -11,7 +11,12 @@ def terms(s,d,data):
     if kind=='none':return dict(purchase_kind='none',purchase_fee=0,purchase_count=0)
     count=data.get('purchase_count',d.get('purchase_count') or 2)
     require(type(count) is int and 1<=count<=30,'Purchase appearance threshold must be 1–30 matches.')
-    p=player(s,d['player']);fee=d.get('purchase_fee') or quote(s,p)
+    p=player(s,d['player'])
+    require(not any(r['player']==p['id'] and r['liable']==d['source'] and r['kind']=='refusal'
+                    and r['beneficiary']!=d['target'] and r['status']=='active' and s['day']<=r['expiry']
+                    for r in s['clauses']['rights']),
+            'An existing first-refusal right prevents pre-agreeing this loan purchase. Use a permanent transfer with a matching notice, or a loan without purchase terms.')
+    fee=d.get('purchase_fee') or quote(s,p,d['target'])
     require(type(fee) is int and fee>0,'Invalid purchase price.')
     end=contractual_end(s,2)
     require(end>d['end'],'The permanent agreement must outlast the loan.')
@@ -64,6 +69,9 @@ def purchase(s,l,automatic=False):
     market.transfer_cash(s,deal['id'],target,l['source'],l['purchase_fee'],'Loan purchase')
     clauses.complete_sale(s,deal)
     p.update(wage=l['purchase_wage'],contract_end=l['purchase_end'])
+    if target!='c0':
+        from . import transfer_rights
+        transfer_rights.ai_employment(s,p,target,p['wage'],p['contract_end'],deal['id'])
     l.update(status='purchased',purchased=day)
     if target=='c0':s['transfer_spend']+=l['purchase_fee']
     news(s,'Loan purchase completed',p['name']+': pre-agreed purchase and employment terms settled; loan restrictions ended.')

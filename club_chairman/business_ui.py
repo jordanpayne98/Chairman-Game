@@ -13,14 +13,16 @@ class BusinessScreens:
         if not existing:
             if not self.command(action,id=pid,club=club):return
             existing=next(reversed(self.v['market']['deals'].values()))
-        self.deal_extra_page=False
+        self.deal_extra_page=False;self.right_clause_page=False
         self.nav('Transfers');self.market_id=existing['id'];self.market_draft=None;self.outgoing_player=None
 
     def outgoing_open(self,pid,kind):
         self.nav('Transfers');self.market_id=None;self.outgoing_player=pid;self.outgoing_kind=kind;self.page=0
 
     def business_attention(self,item):
-        if item.get('screen')=='Transfers':
+        if item.get('screen')=='Rights':
+            self.nav('Transfers');self.market_section('Rights')
+        elif item.get('screen')=='Transfers':
             self.nav('Transfers');self.market_id=item['deal_id'];self.market_draft=None;self.outgoing_player=None
         else:self.contract_open(item['player'])
 
@@ -39,8 +41,9 @@ class BusinessScreens:
             self.pager(x,760,len(clubs),5);return
         deals=self.v['market']['deals']
         if self.market_id in deals:self.draw_club_deal(x,deals[self.market_id]);return
-        for i,name in enumerate(('Deals','Loans','Payments')):
+        for i,name in enumerate(('Deals','Loans','Payments','Rights')):
             self.button(('• ' if self.market_tab==name else '')+name,(x+190*i,190,180,42),lambda name=name:self.market_section(name))
+        if self.market_tab=='Rights':self.draw_transfer_rights(x);return
         if self.market_tab=='Loans':
             rows=list(reversed(self.v['market']['loans']))
             for i,l in enumerate(rows[self.page*4:self.page*4+4]):
@@ -86,6 +89,7 @@ class BusinessScreens:
         if getattr(self,'deal_extra_page',False):self.deal_extras(x,d);return
         self.button('Additional terms',(x+840,190,300,42),lambda:setattr(self,'deal_extra_page',True))
         p=next(p for p in self.v['players'] if p['id']==d['player'])
+        if d.get('exit_kind'):self.text('Contractual exit: '+d['exit_kind']+' / full funding at completion',x,279,19,GREEN)
         self.button('Back to desk',(x,190,180,42),lambda:(setattr(self,'market_id',None),setattr(self,'market_draft',None)))
         self.text(p['name']+' / '+d['kind'].upper()+' / '+d['status'].upper(),x+205,202,27,GREEN)
         self.text(self.club(d['source'])+' to '+self.club(d['target']),x,250,26)
@@ -131,6 +135,7 @@ class BusinessScreens:
             if d['status']=='quote':self.button('Review conditional deal',(x,773,275,46),lambda:self.confirm('Accept conditional '+d['kind'],f"Receiving club {self.club(d['target'])} pays {money(d['fee'])} on completion and carries {money(d['wage_cost'])}/week. Medical and consent checks take {self.v['market_settings']['medical_days']} days. Registration remains unchanged until final review. {self.sell_on_text(d)+' '+contract_terms.transfer_description(d) if d['kind']=='sale' else str(d.get('days') or 'Legacy')+' days; full duration is checked at registration. '+loan_clauses.description(d,self.v['start_date'])}",lambda:self.command('market_accept',id=d['id'])),not self.v['match'])
             elif d['status']=='ready':self.button('Review registration',(x,773,260,46),lambda:self.confirm('Complete '+d['kind']+' of '+p['name'],f"Settle {money(d['fee'])} from {self.club(d['target'])} to {self.club(d['source'])}. Move registration and wage responsibility now. This cannot be undone. "+('Where recall is permitted, it refunds the unserved share of the fee. The original employment survives and the player returns after '+dated(self.v,self.v['day']+d['days'] if d.get('days') else d['end'])+'. '+loan_clauses.description(d,self.v['start_date']) if d['kind']=='loan' else 'The receiving club starts a new employment agreement. '+self.sell_on_text(d)+' '+contract_terms.transfer_description(d)+' Existing sell-on payable '+money(owed)+'; net receipt '+money(d['fee']-owed)+'.'),lambda:self.command('market_complete',id=d['id'])),not self.v['match'])
             elif d['status']=='medical':self.text('Medical due '+dated(self.v,d['due'])+'. Continue to the review.',x,791,24,GREEN)
+        if d['status']=='rights_wait':self.button('Review first refusal',(x,773,275,46),lambda:(setattr(self,'market_id',None),self.market_section('Rights')))
         self.wrap(d['transcript'][-1],x+20,742,1340-x,22,MUTED)
         if d['status'] not in TERMINAL:
             self.text('Consent expires '+dated(self.v,d['expires']),right+20,691,22,MUTED)

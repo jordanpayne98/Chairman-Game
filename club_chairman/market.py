@@ -4,7 +4,7 @@ All commands run inside Simulation's copy-on-commit transaction. Public quotes
 are persisted; opening a screen never rerolls a counterparty response.
 """
 from copy import deepcopy
-from . import clauses, registration, contract_terms, loan_clauses
+from . import clauses, registration, contract_terms, loan_clauses, transfer_rights
 
 DEFAULTS = dict(asking_multiple=3,minimum_squad=14,minimum_goalkeepers=1,
                 ai_opening_cash=35000000,ai_weekly_income=3000000,ai_weekly_overheads=350000,
@@ -70,8 +70,8 @@ def can_release(s,p,cid):
     return len(squad)>=cfg['minimum_squad'] and sum(q['role']=='GK' for q in squad)>=cfg['minimum_goalkeepers']
 
 
-def quote(s,p):
-    amount=contract_terms.release_amount(s,p,p['club'])
+def quote(s,p,buyer=None):
+    amount=transfer_rights.enforced_amount(s,p,buyer or ('c0' if p['club']!='c0' else None))
     normal=p['fee']*s['config']['market']['asking_multiple']
     return min(normal,amount) if amount else normal
 
@@ -91,9 +91,9 @@ def upfront_for_offer(s,o):
 
 def extra_reservations(s,cid='c0',exclude=None):
     deals=[d for d in s['market']['deals'].values() if d['id']!=exclude and d['status'] in ('medical','ready') and d['target']==cid]
-    ai=[d for d in s.get('club_ai',{}).get('decisions',[]) if d['club']==cid and d['status']=='medical' and d['id']!=exclude]
+    ai=[d for d in s.get('club_ai',{}).get('decisions',[]) if d['club']==cid and d['status'] in ('medical','rights_wait') and d['id']!=exclude]
     loan_cash,loan_wages=loan_clauses.active_reservations(s,cid)
-    return loan_cash+sum(d['fee']+loan_clauses.reserve(d) for d in deals)+sum(d['fee']+d['signing_fee'] for d in ai),loan_wages+sum(max(d['wage_cost'],d.get('purchase_wage',0)) if loan_clauses.reserve(d) else d['wage_cost'] for d in deals)+sum(d['wage'] for d in ai)
+    return loan_cash+sum(d['fee']+loan_clauses.reserve(d) for d in deals)+sum(d['fee']+d['signing_fee']+d.get('appearance_fee',0)+d.get('promotion_fee',0) for d in ai),loan_wages+sum(max(d['wage_cost'],d.get('purchase_wage',0)) if loan_clauses.reserve(d) else d['wage_cost'] for d in deals)+sum(d['wage'] for d in ai)
 
 
 def registration_check(s,p,cid):
@@ -115,10 +115,11 @@ def complete_purchase(s,o):
     p=player(s,o['player']);d=s['market']['deals'].get(o.get('deal_id'))
     require(d is not None and d['status']=='seller_agreed','The selling-club agreement is no longer available.')
     registration_check(s,p,'c0')
-    require(p['club']==d['source'] and (can_release(s,p,d['source']) or contract_terms.release_met(s,p,d)),'The selling club can no longer release this player.')
+    transfer_rights.check_exit(s,p,d)
+    require(p['club']==d['source'] and (can_release(s,p,d['source']) or transfer_rights.exit_met(s,p,d)),'The selling club can no longer release this player.')
     require(s['day']<=d['expires'],'The selling-club agreement expired.')
-    transfer_cash(s,d['id']+':upfront','c0',d['source'],d['upfront'],'Transfer fee: '+p['name'])
-    d['employment_end']=o['end']
+    transfer_cash(s,d['id']+':upfront','c0',d['source'],d['upfront'],('Player buy-out compensation: ' if d.get('exit_kind')=='buyout' else 'Transfer fee: ')+p['name'])
+    d['employment_end']=o['end'];d['player_consent']=o['id']
     clauses.complete_sale(s,d)
     remainder=d['fee']-d['upfront']
     if remainder:
@@ -130,12 +131,14 @@ def complete_purchase(s,o):
 
 def close_purchase(s,o,reason):
     d=s['market']['deals'].get(o.get('deal_id'))
-    if d and d['status'] not in TERMINAL:d['status']='withdrawn';d['transcript'].append(reason)
+    if d and d['status'] not in TERMINAL:
+        d['status']='withdrawn';d['transcript'].append(reason);transfer_rights.withdrawn(s,d)
 
 
 def process_day(s):
     from .simulation import news,require
     day=s['day']
+    transfer_rights.process_day(s)
     # Income then dated liabilities; Continue is atomic if a player-owned bill is unaffordable.
     for cid,a in s['market']['accounts'].items():
         if day%7==0:post(s,cid,f'ai-income:{day}',s['config']['market']['ai_weekly_income'],'Operating income')
@@ -204,10 +207,10 @@ def apply(s,action,data):
         require(target in s['market']['accounts'] or target=='c0','Select a receiving club.')
         require(target!=source,'Choose a different club.')
         registration_check(s,p,target)
-        require(can_release(s,p,source) or action!='loan_enquire' and contract_terms.release_amount(s,p,source)>0,'The current club must retain its minimum senior squad and goalkeeper cover.')
+        require(can_release(s,p,source) or action!='loan_enquire' and transfer_rights.enforced_amount(s,p,target)>0,'The current club must retain its minimum senior squad and goalkeeper cover.')
         kind='buy' if action=='club_enquire' else 'sale' if action=='sale_enquire' else 'loan'
         require((kind!='buy' or buying) and (kind!='sale' or not buying),'Use the correct transaction for this registration.')
-        price=quote(s,p) if kind!='loan' else cfg['loan_fee']
+        price=quote(s,p,target) if kind!='loan' else cfg['loan_fee']
         key=f"club:{p['id']}:{s['revision']}"
         days=min(56,p['contract_end']-day-cfg['medical_days']) if kind=='loan' else None
         end=day+cfg['medical_days']+days if kind=='loan' else None
@@ -236,9 +239,10 @@ def apply(s,action,data):
         d['status']='withdrawn';d['transcript'].append('Chairman withdrew. No registration changed.')
         o=s['career']['offers'].get(p['id'])
         if o and o.get('deal_id')==d['id'] and o['status'] not in TERMINAL:o['status']='withdrawn';o['transcript'].append('Club agreement withdrawn. Reservations released.')
+        transfer_rights.withdrawn(s,d)
         return 'Discussion withdrawn; reservations released.'
     registration_check(s,p,d['target'])
-    require(p['club']==d['source'] and (can_release(s,p,d['source']) or d['kind']!='loan' and contract_terms.release_met(s,p,d)),'Registration or selling-club squad cover changed.')
+    require(p['club']==d['source'] and (can_release(s,p,d['source']) or d['kind']!='loan' and transfer_rights.exit_met(s,p,d)),'Registration or selling-club squad cover changed.')
     require(day<=d['expires'],'The club offer expired.')
     if action=='club_propose':
         require(d['kind']=='buy' and d['status'] in ('quote','counter'),'Club terms cannot be revised at this stage.')
@@ -248,12 +252,12 @@ def apply(s,action,data):
         require(type(defer) is int and 7<=defer<=cfg['max_installment_days'],'Deferred payment must be due within 7–56 days.')
         sell_on=clauses.validate_sell_on(s,data)
         addons=contract_terms.transfer_terms(s,{**d,**data})
-        release=contract_terms.release_amount(s,p,d['source'])
+        release=transfer_rights.enforced_amount(s,p,d['target'])
         if release and fee>=release:
-            require(percent==100 and not sell_on['sell_on_percent'] and not addons['appearance_fee'] and not addons['promotion_fee'],'Release amount must be paid in full without conditional club terms.')
+            require(percent==100 and not sell_on['sell_on_percent'] and not addons['appearance_fee'] and not addons['promotion_fee'] and not addons['buy_back_fee'] and not addons['first_refusal'],'Release amount must be paid in full without conditional club terms.')
         proposal=[fee,percent,defer,*sell_on.values(),*addons.values()];require(proposal!=d.get('last_proposal'),'The club has already considered these terms.')
         d['last_proposal']=proposal;d['rounds']+=1
-        minimum=quote(s,p);accepted=fee>=minimum
+        minimum=quote(s,p,d['target']);accepted=fee>=minimum
         d.update(fee=fee if accepted else minimum,upfront=(fee if accepted else minimum)*percent//100,defer_days=defer,status='agreed' if accepted else 'counter')
         d.update(sell_on,**addons)
         if not accepted and d['rounds']>=3:d['status']='rejected'
@@ -261,6 +265,7 @@ def apply(s,action,data):
         return 'Club response recorded. No fee has been paid.'
     if action=='club_accept':
         require(d['kind']=='buy' and d['status'] in ('agreed','counter'),'Submit a club offer first.')
+        if transfer_rights.notify(s,d):return 'First refusal notified. Wait for the holder’s response in Transfers > Rights.'
         d['status']='seller_agreed';d['transcript'].append('Club terms agreed subject to personal terms, medical and registration.')
         return 'Selling-club consent recorded. Open personal terms to continue.'
     if action=='sale_terms':
@@ -269,7 +274,10 @@ def apply(s,action,data):
         addons=contract_terms.transfer_terms(s,{**d,**data})
         # Transparent preview valuation: retained upside reduces today's bid.
         discount=sell_on['sell_on_percent'] if sell_on['sell_on_kind']=='gross' else sell_on['sell_on_percent']//2
-        fee=quote(s,p)*(100-discount)//100
+        discount+=s['config']['clauses']['buyback_discount'] if addons['buy_back_fee'] else 0
+        discount+=s['config']['clauses']['refusal_discount'] if addons['first_refusal'] else 0
+        fee=quote(s,p,d['target'])*(100-discount)//100
+        require(not addons['buy_back_fee'] or addons['buy_back_fee']>=fee,'The buyer requires a buy-back price at least equal to its transfer valuation.')
         # Until risk-based AI valuation lands, a buyer caps the entire possible
         # package at its valuation; adding a bonus cannot create a free claim.
         contingent=addons['appearance_fee']+addons['promotion_fee']
@@ -293,6 +301,7 @@ def apply(s,action,data):
     if d['kind']=='loan':registration.check_arrival(s,p,d['target'],is_loan=True)
     if action=='market_accept':
         require(d['status']=='quote','This deal has already been accepted.')
+        if d['kind']=='sale' and transfer_rights.notify(s,d):return 'First refusal notified. Wait for the holder’s response in Transfers > Rights.'
         require(day+cfg['medical_days']<=d['expires'],'Medical checks cannot finish before this offer expires.')
         require(s['manager'] is not None,'Appoint a manager first.')
         if d['kind']=='loan' and d.get('days') is not None:
@@ -331,6 +340,7 @@ def apply(s,action,data):
         clauses.complete_sale(s,d)
         p['contract_end']=d['employment_end']
     p['club']=d['target'];d.update(status='completed',completed=day)
+    if d['kind']=='sale':transfer_rights.ai_employment(s,p,d['target'],p['wage'],p['contract_end'],d['id'])
     d['transcript'].append('Fee settled and registration completed atomically.')
     news(s,'Loan registered' if d['kind']=='loan' else 'Player sold',p['name']+': fees, payroll responsibility and registration updated together.')
     return 'Club transaction completed. Existing statistics and identity retained.'

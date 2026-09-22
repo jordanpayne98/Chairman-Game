@@ -1,9 +1,9 @@
 """Dated employment changes and conditional club payments; all amounts in pence."""
 from copy import deepcopy
-from . import nations
+from . import nations, transfer_rights
 
-EMPLOYMENT=dict(player_option=False,release_fee=0,annual_raise=0,relegation_cut=0,promotion_bonus=0)
-TRANSFER=dict(appearance_fee=0,appearance_count=10,promotion_fee=0)
+EMPLOYMENT=dict(player_option=False,release_fee=0,annual_raise=0,relegation_cut=0,promotion_bonus=0,release_kind="transfer")
+TRANSFER=dict(appearance_fee=0,appearance_count=10,promotion_fee=0,**transfer_rights.TERMS)
 
 
 def initialise(s):
@@ -22,7 +22,8 @@ def validate_terms(s,data):
     require(not(t['player_option'] and data.get('club_option')),'Club and player options cannot coexist.')
     for k,limit in (('release_fee',100000000),('promotion_bonus',10000000),('annual_raise',25),('relegation_cut',50)):
         require(type(t[k]) is int and 0<=t[k]<=limit,'Invalid '+k.replace('_',' ')+'.')
-    for k,v in t.items():require(not v or k in s['config']['clauses']['allowed_employment'],'This ruleset does not permit '+k.replace('_',' ')+'.')
+    require(t['release_kind'] in transfer_rights.allowed_kinds(s,data.get('employer','c0')),'This country profile does not support that release mechanism.')
+    for k,v in t.items():require(k=='release_kind' or not v or k in s['config']['clauses']['allowed_employment'],'This ruleset does not permit '+k.replace('_',' ')+'.')
     return t
 
 
@@ -32,13 +33,14 @@ def transfer_terms(s,data):
     for k in ('appearance_fee','promotion_fee'):
         require(type(t[k]) is int and 0<=t[k]<=100000000,'Conditional club payments must be £0–£1,000,000.')
     require(type(t['appearance_count']) is int and 1<=t['appearance_count']<=100,'Appearance threshold must be 1–100 matches.')
+    t.update(transfer_rights.terms(s,data))
     return t
 
 
 def description(t):
     rows=[]
     if t.get('player_option'):rows.append('Player option: one additional season; the player decides near expiry.')
-    if t.get('release_fee'):rows.append(f"Fixed release amount £{t['release_fee']/100:,.0f}, paid in full; personal consent and registration still required.")
+    if t.get('release_fee'):rows.append(f"{('Player buy-out compensation' if t.get('release_kind')=='buyout' else 'Fixed transfer release')} £{t['release_fee']/100:,.0f}, funded in full; personal consent and registration still required.")
     if t.get('annual_raise'):rows.append(f"Annual wage increase {t['annual_raise']}% on each signing anniversary.")
     if t.get('relegation_cut'):rows.append(f"Relegation wage reduction {t['relegation_cut']}% at division rollover.")
     if t.get('promotion_bonus'):rows.append(f"One promotion bonus £{t['promotion_bonus']/100:,.0f} during this employment agreement.")
@@ -47,7 +49,7 @@ def description(t):
 
 def transfer_description(t):
     return (f"After {t.get('appearance_count',10)} appearances: £{t.get('appearance_fee',0)/100:,.0f}; "
-            f"first promotion: £{t.get('promotion_fee',0)/100:,.0f}. Each once, before the new employment end date.")
+            f"first promotion: £{t.get('promotion_fee',0)/100:,.0f}. Each once, before the new employment end date. "+transfer_rights.description(t))
 
 
 def projected(wage,c,origin,day):
@@ -100,7 +102,7 @@ def process_day(s):
 
 def release_amount(s,p,source):
     c=s['clauses']['employment'].get(p['id'])
-    return c.get('release_fee',0) if c and c['employer']==source and c['start']<=s['day']<=c['end'] else 0
+    return c.get('release_fee',0) if c and c.get('release_kind','transfer')=='transfer' and c['employer']==source and c['start']<=s['day']<=c['end'] else 0
 
 
 def release_met(s,p,d):

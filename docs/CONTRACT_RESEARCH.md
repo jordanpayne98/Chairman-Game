@@ -21,13 +21,15 @@ Geey also explains that a buy-back still needs personal terms and a willing play
 
 **Already present before 0.21:** fixed fees and dated deferred payments, signing fees, negotiated wages, appearance/goal bonuses, club extension options, gross/profit next-sale rights, basic loans and recall rules.
 
-**Implemented locally for 0.21:** fixed transfer-release amounts; player extension options; annual wage increases; relegation wage cuts; one employment promotion bonus; appearance/promotion transfer add-ons; loan purchase options and appearance-conditioned obligations; persistent earned debt; related controls, consent and financial forecasts. These are explicit development rules, not a complete recreation of national law. A release amount in this build is a transfer condition, not the Spanish player-termination mechanism.
+**Implemented locally for 0.21:** fixed transfer-release amounts; player extension options; annual wage increases; relegation wage cuts; one employment promotion bonus; appearance/promotion transfer add-ons; loan purchase options and appearance-conditioned obligations; persistent earned debt; related controls, consent and financial forecasts. These are explicit development rules, not a complete recreation of national law. Transfer-release conditions and separately consented player buy-out compensation are distinct mechanisms.
 
-**Researched, not implemented:** fixed/stepped buy-backs; first refusal and offer matching; country-specific buy-outs; loyalty schedules and deferred signing fees; richer individual/team bonuses; international/award/qualification add-ons; appearance-triggered extensions; robust risk-based AI negotiation. The first extension I recommend is buy-back rights with dated prices, expiry and fresh personal consent, followed by matching rights and country-specific release/buy-out behaviour.
+**Transfer-right extension implemented in 0.21:** dated and stepped buy-backs; complete-package first-refusal notices, matching/decline/timeout and failed-consent recovery; player buy-out compensation, fresh personal consent and country-profile gates; AI participation and reservations; rights UI and schema-20 saves. The user explicitly approved finishing these three structures in this update. GDD revision 0.11 records their design rules separately from this implementation evidence.
+
+**Researched, not implemented:** loyalty schedules and deferred signing fees; richer individual/team bonuses; international/award/qualification add-ons; appearance-triggered extensions; robust risk-based AI negotiation and complete national legal parity. The Spain mechanism profile does not make its league playable. Initial buy-outs exclude transfer-only sell-on and matching triggers by explicit game wording; this is not a claim that all real contracts do so.
 
 The current compact loan calendar is also a limitation: binding purchase must settle within the current registration window. Full-season loans and future-window conditional registrations require calendar/registration work. Real-world examples do not justify claiming that gap is complete.
 
-## Proposed acceptance checks for the next extension
+## Transfer-right acceptance checks
 
 - Each right shows who can use it, against which club, on which dates, at what price, and what ends it. Renewal, third-club resale and overlapping sell-on rights have explicit outcomes.
 - A buy-back can require the selling club to cooperate while the player can still refuse personal terms. Missing a deadline expires the right without spending money.

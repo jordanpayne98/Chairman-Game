@@ -54,7 +54,7 @@ class ContractExpansionTests(unittest.TestCase):
         self.act('sale_enquire',id=p['id'],club='c1');d=next(reversed(self.s['market']['deals'].values()))
         self.assertEqual(d['fee'],500000);self.assertEqual(p['club'],'c0')
         self.act('market_accept',id=d['id']);self.progress(4);self.act('market_complete',id=d['id'])
-        self.assertEqual(self.player('p146')['club'],'c1');self.assertNotIn('p146',self.s['clauses']['employment'])
+        self.assertEqual(self.player('p146')['club'],'c1');self.assertEqual(self.s['clauses']['employment']['p146']['employer'],'c1')
 
     def test_conditional_fees_and_promotion_bonus_earned_once_survive_exit(self):
         self.sign(promotion_bonus=50000)
