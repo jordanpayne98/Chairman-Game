@@ -110,6 +110,9 @@ class MarketTests(unittest.TestCase):
     def test_no_last_keeper_sale_or_unfunded_counterparty(self):
         # Give the buyer wage room so this fixture isolates keeper/cash guards.
         self.s['config']['club_ai']['payroll_income_percent']=100
+        for p in self.s['players']:
+            if p['club']=='c0' and p['role']=='GK' and p['id'] not in ('p0','p1'):p['club']=None
+        self.s['recruitment']['clubs']['c1']['value']=100
         self.act('sale_enquire',id='p0',club='c1');d=next(reversed(self.s['market']['deals'].values()))
         self.act('market_accept',id=d['id']);self.progress(2);self.act('market_complete',id=d['id'])
         with self.assertRaises(ValueError):self.act('sale_enquire',id='p1',club='c2')
@@ -147,7 +150,7 @@ class MarketTests(unittest.TestCase):
         from club_chairman.planning import player_rows
         self.act('scout',id='p20');self.progress(3)
         v=view(self.s);rows=player_rows(v,True,sort='Passing',market_scope='Club players')
-        self.assertEqual(rows[0]['id'],'p20');self.assertEqual(len(rows),270)
+        self.assertEqual(rows[0]['id'],'p20');self.assertEqual(len(rows),333)
         self.assertTrue(rows[0]['report']['exact_current'])
         for p in self.s['players']:
             if p['id']!='p20':p['attrs']={k:1 for k in p['attrs']}

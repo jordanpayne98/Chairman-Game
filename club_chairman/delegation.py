@@ -36,7 +36,9 @@ def initialise(s):
 def exposure(s,action,data):
     from . import career,market
     cost=0;days=0;hold=None
-    if action=='scout':cost=s['config']['scout_fee']
+    if action=='scout':
+        from . import scouting
+        cost=scouting.quote(s,career.person(s,data.get('id')))['cost']
     elif action in ('propose_offer','accept_offer','complete_offer'):
         p=career.person(s,data.get('id'));o=s['career']['offers'].get(p['id'])
         if not o:raise ValueError('No player discussion exists.')
@@ -122,12 +124,14 @@ def reconcile(s):
 
 def perform(s,key,action,data,reason,override=False,approved=None):
     from .simulation import apply as domain_apply,validate
-    from . import registration
+    from . import registration,pathways,scouting,recruitment,reputation,dynamics,playing_time,morale
     actor=s['delegation']['responsibilities'][key]['delegate']
     e=authorize(s,actor,'c0',key,action,data,override)
     if approved and (e['cost']>approved['cost'] or e['days']>approved['days']):raise ValueError('Terms changed. Decline this proposal and review a fresh one.')
     trial=deepcopy(s);prior={p['id']:p['club'] for p in trial['players'] if not p['youth']}
     result=domain_apply(trial,action,deepcopy(data));registration.sync(trial,prior)
+    pathways.sync(trial);scouting.record_signings(trial,prior)
+    recruitment.sync(trial);reputation.sync(trial);dynamics.sync(trial);playing_time.reconcile(trial);morale.sync(trial)
     reconcile(trial)
     if action=='enquire':trial['career']['offers'][data['id']]['delegate']=actor
     if action=='sponsor_enquire':trial['commercial']['offers'][data['right']]['delegate']=actor

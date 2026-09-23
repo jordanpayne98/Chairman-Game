@@ -10,7 +10,7 @@ def money(n):return f'£{n/100:,.0f}'
 class ClauseScreens:
     def draw_offer_clauses(self,x,offer,current,editable):
         extra=getattr(self,'employment_clause_page',False)
-        self.button('Performance clauses' if extra else 'Employment clauses',(x+790,244,350,40),lambda:setattr(self,'employment_clause_page',not extra))
+        self.button('Performance clauses' if extra else 'Employment clauses',(x+790,732,350,36),lambda:setattr(self,'employment_clause_page',not extra))
         if extra:
             self.panel(x,360,560,351,'Employment conditions / send for consent')
             fields=[('release_fee','Release amount',500000),('annual_raise','Annual raise %',5),('relegation_cut','Relegation cut %',5),('promotion_bonus','Promotion bonus',50000)]

@@ -1,4 +1,10 @@
-# Club Chairman — Contracts and Loans Update (0.21)
+# Club Chairman — Background Club Transfers Update (0.31)
+
+The production football content gate is being researched separately from the current playable development scenarios. `python tools/audit_content_gate.py` reports the explicit missing rule records and exits with an error until all verified tiers, supporting clubs, competitions, entrants and qualification links exist. See `data/production_rules_2026.json`. Passing development tests does not override this gate.
+
+## New in 0.31 — Batch 3 employed background movement
+
+Background clubs can buy employed senior players to fill squad vacancies when the seller has sufficient cover, the buyer can afford the fee and wages, and the player accepts the move. The same person and career history move between clubs; the fee is posted to both persistent club ledgers. World > Database displays the latest cycle's transfer count and each person's history shows the source, destination and dated transfer. These are reduced-detail club-to-club decisions, not an owner-controlled negotiation or a substitute for the approved international employed market. The latest GDD 0.16 Batch 3 gates remain open in `docs/RELEASE_READINESS.md`.
 
 A playable early Python/Pygame football chairman simulation. Take charge of Northbridge Athletic in the compact Northshire world or an England, Wales or Brazil national development scenario, with continuing league seasons and domestic cups. This is a playable development version; the approved full AA game is still being built.
 
@@ -15,11 +21,97 @@ Download **ClubChairman-Windows-preview** from the successful GitHub Actions run
 
 Save manually at any time, including mid-match. Autosaves follow management actions and full time. Load / recover career lists manual slots, three rotating autosaves and backups; a loaded career starts a separate save timeline so existing files are preserved. Windows saves live under `%LOCALAPPDATA%\ClubChairman\saves`. The application writes saves outside the game installation folder.
 
-The update reads **existing schema 1–19 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 20. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; external reports remain partial until a new assignment completes. Hired players gain exact current ratings through club access. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
+The update reads **existing schema 1–28 saves** and upgrades them in memory. Original files remain unchanged on load; new saves use schema 29. An old in-progress match and its remaining matchday fixtures finish with the original engine, preserving the outcome and payments. Later fixtures use the new football engine. Existing reports retain their original evidence; external reports remain partial until a new assignment completes. Hired players gain exact current ratings through club access. Older executables cannot read new saves. Existing contracts retain their expiry dates; renew before advancing beyond them. Shortlists, pins, notes and read markers travel with the career; interface preferences are stored separately.
 
 Tab and Shift+Tab move focus; Enter activates the focused control. Ctrl+S saves, Ctrl+F searches players, Alt+Left/Right moves through navigation history, Space pauses live matches and F1 opens Help. Escape cancels an overlay or goes back. In the note editor, Enter does not submit while typing; Tab reaches Save note and Discard. Back/Forward and profile Previous/Next preserve filters, sorting and pagination. The sidebar collapses and the window scales with letterboxing.
 
 Ctrl+K opens global search for known players, clubs, departments and help topics. Settings > Interface size cycles through 100/125/150/175% zoom. Mouse wheel pans vertically at larger sizes; Shift+wheel pans horizontally, and keyboard focus follows controls into view. Ctrl+0 restores 100%. This is whole-interface zoom; full responsive text reflow is still pending.
+
+## New in 0.30 — Batch 3 living world population
+
+Open **Competitions > World calendar > Database** to browse countries, players, staff and dated career events. The compact new-career world now starts with **81,039 persistent background people** (69,114 players and 11,925 staff), **1,086 background clubs**, **239 country/territory identities**, and **68 name pools**, alongside its existing detailed simulation. Nationality availability is independent of playable league availability or international competition membership. The fourteen planned playable nations retain their approved club counts; other identities have provisional supporting clubs. These are fictional football populations, not real population statistics.
+
+Initial players, staff and future youth/staff entrants receive seeded RNG names. Names, nationality, birth dates, attributes, potential, contracts and identity persist in saves. Regens are new individuals with their own profiles. Existing people in older careers keep their names and attributes; use **Create world database** to add the new background population once, beginning on the current day.
+
+Background people continue living outside the detailed match engine. Monthly processing advances employment, training injuries/recovery and youth/reserve pathways; quarterly development and physical decline affect player attributes. Annual checks handle staff development, retirement, youth intake and regional staff entrants. Clubs pay dated wages, retain affordable players and staff, release surplus players and recruit persistent free agents within their provisional budgets. Retired or inactive people retain their records. Catch-up processes every elapsed cycle in order, including after save/load.
+
+An unattached eligible player or staff member can be added to Recruitment from their world history. Their existing identity and abilities transfer into the normal scouting/contact/hiring flow; this does not sign them or reveal hidden attributes. Background processing then stops for that identity so it cannot develop or be employed twice.
+
+**Batch 3 remains open.** Employed background transfers, connected multi-country competitions, continental/international qualification and call-ups, full primary-world rosters, wider career history and regional name/content expansion remain unfinished. The current names and population/finance coefficients are starter content and provisional tuning. Windows packaging and the final Windows/Linux regression gate remain pending; this is local source work.
+
+## New in 0.29 — Batch 3 calendar and population groundwork
+
+Open **Competitions > World calendar** for a combined senior/youth/reserve fixture view, current world population by club, and the latest season-boundary population reconciliation. Each created or retired person retains their identity and a recorded reason. This is evidence of the existing population policy, not a claim that full-world population balance is finished.
+
+Youth and reserve dates now share senior and undrawn domestic-cup reservations, recovery spacing and configured blackout dates. The scheduler searches within fourteen days of the old target; an impossible fixture is explicitly marked as a calendar conflict and is not silently played. A recent development appearance also blocks immediate senior selection. Youth eligibility and senior age exemptions use the season-opening age cutoff, so birthdays do not change a competition's age band mid-season. Actual minimum senior age remains a live eligibility condition.
+
+Existing saves retain their scheduled fixtures, age rules and selection behaviour for the current season. The new rules activate when the following season is prepared. No people, past matches, wages or financial transactions are created by migration.
+
+**Batch 3 remains open.** Connected multi-country careers, complete continental/international qualification content and tournaments, international call-ups/availability, competition-specific continental lists, and full-scale sustainable youth/reserve populations are not implemented by this update. The GDD's supporting-nation identities and complete qualification allocation tables are unresolved content gates. No international entrants have been fabricated. This update is local source work; there is no new Windows package.
+
+## New in 0.28 — Batch 2 recruitment and development
+
+Open **Recruitment > Scouting desk** to save a position, age, playing-role and first-year cost brief. Recommendations use existing dated observations. Saved-target batches commission up to twelve players with individual paid/skipped outcomes; Queue shows the assigned observer, start, due date and cost. Remote nationality assessments provisionally require extra travel time and expense. Current ratings become exact on completion, while potential remains uncertain. Outcomes records completed recruitment and subsequent senior appearances/goals.
+
+Open **Academy > Pathways** for monthly staff advice, development groups, youth/reserve fixtures and tables, and loan monitoring. Apply advice or assign a senior/reserve group with confirmation. Expiring academy agreements can be renewed within 28 days on the existing wage, subject to cash and wage authority. Promotions and loan terms retain their existing separate review flows. Development minutes are recorded separately from senior statistics and contribute discounted, challenge-sensitive exposure to weekly growth. Recovery and quarterly potential limits still apply.
+
+New careers start the original eight clubs with nine youth and nine reserve players each, with real weekly wages (£2,520 per club). The owner's opening wage authority includes that cost; opening cash is unchanged. AI wage authority for new careers is 100% of recurring income less overheads, with the existing cash reserve and commitment checks retained. Existing saves gain no invented players, money or past appearances; future development fixtures may remain unplayed where there are too few eligible players. Annual AI admissions are bounded by six, academy capacity and funds.
+
+This is a connected development milestone, not the completed full-GDD academy, scouting or world simulation. Full world rosters/calendars, frozen youth eligibility, richer references/personality evidence, mentoring, advanced development and staff resources remain open. Version 0.28 is local source work; no Windows package for this update has been published.
+
+## New in 0.27 — Batch 1 club dynamics
+
+Open **Squad > Club dynamics** (also linked from Staff). Concerns connects playing-time complaints to private player support and witnessed manager/staff concerns to confirmed private follow-ups. Connections shows social evidence, settling-in and earned influence; Staff reactions separates football agreement from objections to the process. Meetings preserves staff follow-up responses. Monthly inbox reviews link back to the overview.
+
+Shared eligible training days and concurrent match minutes build club-specific directed relationships. Social coordination uses the actual on-pitch participants, updates after substitutions and is bounded separately from morale and tactical preparation. Departures remove current influence without deleting historical links. External clubs follow the same contact/cohesion rules. Existing saves gain empty social records, and already-running old matches retain their original outcome path.
+
+Private support never invents teammate unrest. Available coaching witnesses may back attacking intent while objecting to owner pressure; Listen/Respect remit meetings record intent, and future conduct can repair a concern. Manager authority and playing-time promises are unchanged. Full leak/faction/mentoring stories, departmental cooperation and expanded bench negotiation remain outstanding full-GDD work; this batch does not declare those systems complete.
+
+Version 0.27 is currently a locally verified source update. Publication and a Windows build for the stacked 0.22–0.27 work remain pending; the download instructions above only apply to a confirmed successful published build.
+
+## New in 0.26
+
+Profile > Contract > Morale and support > Private support opens a private player meeting. Listen or offer encouragement through the normal confirmation flow. The player can appreciate the support or remain unconvinced; the recorded response uses existing ambition and relationship evidence. Support gives at most three temporary morale points and expires over seven days. It cannot resolve a role concern, alter an agreement, buy trust or force manager selection. Meetings have a fourteen-day cooldown and an already-heard concern cannot be farmed again.
+
+Sparse directed player-to-chairman links record trust, respect, alignment and grievances from meaningful contact. Shortfalls reduce trust once per unresolved episode; fulfilled recorded windows rebuild it gradually. Private events identify participants and have no observers, so teammates do not acquire invented reactions. Other clubs use the same private support response and cooldown policy. Relationship history and meetings persist, with qualitative club-access feedback rather than exposed hidden scores.
+
+Schema 25 reads 1–24, preserving current mood and existing evidence. Old reviews create no invented historical relationships. Wider social networks, informal influence, manager/staff relationships, successor identities, leaks, factions, cohesion and richer circumstance/personality models are still pending. This milestone does not complete all of GDD chapter 16. No Windows executable or published download is claimed by the local source build.
+
+## New in 0.25
+
+Player morale now comes from a neutral 50 plus capped, recorded causes: unresolved playing-time shortfalls and temporary reactions to played results relative to pre-match club standing. The same policy runs for every club. Concern reactions use existing ambition; they do not change attributes. Results expire over seven days. Role fulfilment clears its concern without a repeated daily penalty. A loan suspends the parent-club contribution without deleting its evidence.
+
+Profile > Contract > Morale and support shows the bar, band, seven-day trend and paginated reasons. The first-team summary includes injured/suspended players, excludes academy/departed/loaned-out players, and compares only the shared seven-day cohort. External profiles gain no private mood access. Summaries add no match modifier; the existing individual execution multiplier is reused once.
+
+Older saves preserve current mood through a labelled fourteen-day transition, without inventing historical causes or trend data. Existing in-progress matches gain no retrospective result reaction. Coefficients remain provisional. Other circumstance sources, tailored personality assessments, academy summaries, social cohesion and broad relationship propagation remain open.
+
+## New in 0.24
+
+- Agree key starter, regular starter, rotation, squad cover or development prospect in **Contracts > Playing time**. The promise begins only when employment completes. Existing players can discuss roles through **Profile > Contract > Playing time**.
+- Dated reviews compare meaningful starts or minutes with the explicit promise, excluding medical absence, suspension and in-match injury. A late cameo cannot fulfil a starting promise. Being left off the competition list is recorded as a club omission, not an excuse.
+- Renewals, manager changes and promotion retain the promise and evidence. Permanent departure archives it; loans suspend parent-club coverage. Changes require a recorded player response on a review day; repeated conversations cannot reset a deadline or erase concerns.
+- Unfulfilled commitments remain a private concern and affect later recruitment consent at that club. A fulfilled review clears the concern. The manager still controls selection. New AI signings can receive rotation agreements using the same evidence and consent rules.
+- Prior saves gain no invented roles, disputes or historical minutes. Thresholds are configurable and provisional. This stage does not add the wider social-influence graph, general morale rewrite, bespoke development plans, loan promises or a full manager-intention negotiation model.
+
+## New in 0.23
+
+Reputation now develops from dated football evidence. Every 28 days, played results and meaningful player performances receive gradual domestic-standing reviews. Season closure records league titles, cup wins and promotion/relegation. A player receives trophy credit only after at least 90 recorded minutes for that club in that competition; unused substitutes, byes, forfeits and abandoned matches create no performance credit. Former contributors retain their history after moving clubs.
+
+**Career > Reputation** lists club, league and domestic-cup standing, with baseline dates and paginated review histories. **Player profile > Contract > Reputation history** shows individual evidence, before/after values and dated changes. Unchanged reviews remain visible. Public standing remains separate from ability and uncertain potential, and now feeds the existing owner/AI recruitment-interest policy as it changes.
+
+Changes have shared season limits, including trophies and divisional movement. Competitions use prior-period club standing, avoiding circular inflation from simultaneous awards. Replaying a command, loading a save or repeatedly transferring a player cannot earn duplicate standing. Lack of minutes alone does not reduce reputation. Existing saves keep their current values and begin collecting evidence on upgrade; no past performances are reconstructed.
+
+This is a domestic evidence milestone. Starting histories and tuning remain provisional; staff reputation, international/regional scope, commercial integration and formal role promises remain unfinished. Windows publication and packaging are recorded separately in the development checkpoint.
+
+## New in 0.22
+
+Player consent now considers persistent domestic standing, individual career priorities, competition for places, current job satisfaction, guaranteed wages and employment security. A player can decline talks over a firm career priority, or counter with a package they would actually accept. Large salaries have diminishing value; transfer fees never buy player consent. Reopening a discussion does not reroll preferences.
+
+Use **Contracts > Player interest** to read the dated agent response. The player profile's **Contract** tab shows public reputation separately from football ability. Draft changes do not imply agreement. Consent is rechecked before reservation and completion. AI recruitment and renewals, outgoing sales, first-refusal matching, contractual exits and new loan-purchase consent use the same contextual assessment; funds, registration and medical gates remain mandatory.
+
+This is the first recruitment-interest implementation. Reputation starts from explicitly provisional, persistent domestic baselines, independent of hidden ability. Long-term reputation changes, staff/cup/international recognition, detailed manager-fit and minutes forecasts, location/relationships, competing employment packages and enforceable role promises remain unfinished. Roster opportunity is an indication, not a promised starting role. Ordinary temporary loans keep their previous consent rules. Existing discussions and conditional deals loaded from 0.21 retain their existing consent; new discussions use the new policy. Once a loan purchase is pre-agreed, its binding employment consent is preserved.
+
+Windows packaging and publication status are recorded in the current development checkpoint; a local source update is not a new downloadable Windows executable.
 
 ## New in 0.21
 

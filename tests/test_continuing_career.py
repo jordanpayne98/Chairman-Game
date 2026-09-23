@@ -72,10 +72,10 @@ class ContinuingCareerTests(unittest.TestCase):
         self.assertEqual(signed['wage'],counter['wage']);self.assertEqual(signed['club'],'c0')
 
     def test_academy_identity_and_project_milestones(self):
-        self.act('academy_intake');ids=[p['id'] for p in self.s['players'] if p['youth']]
+        self.act('academy_intake');ids=[p['id'] for p in self.s['players'] if p['youth'] and p['club'] is None and p.get('candidate_season')==self.s['career']['season']]
         self.assertEqual(len(ids),6)
         with self.assertRaises(ValueError):self.act('academy_intake')
-        pid=next(p['id'] for p in self.s['players'] if p['youth'] and p['age']>=16)
+        pid=next(p['id'] for p in self.s['players'] if p['id'] in ids and p['age']>=16)
         self.act('academy_admit',id=pid);p=deepcopy(next(p for p in self.s['players'] if p['id']==pid))
         self.act('academy_promote',id=pid);promoted=next(p for p in self.s['players'] if p['id']==pid)
         self.assertEqual(promoted['contract_end'],p['contract_end']);self.assertEqual(promoted['wage'],p['wage']);self.assertFalse(promoted['youth'])

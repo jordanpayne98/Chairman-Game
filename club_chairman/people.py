@@ -166,9 +166,10 @@ def process_day(s):
             load = cfg['intense_load'] if d['load']=='Intense' else cfg['light_load'] if d['load']=='Light' else 1
             age = max(0, min(1.4, (29-p['age'])/10))
             coaching = s['career']['facilities']['training'] if p['club']=='c0' else 1
-            minutes = min(1, d['minutes']/90)
+            minutes = min(1, d.get('exposure',d['minutes'])/90)
             headroom = max(0, (p['potential']-rating)/20)
             growth = cfg['weekly_growth']*age*min(1,headroom)*load*(.5+p['hidden']['professionalism']/100)*(.65+minutes*.35)*(1+.06*coaching)
+            growth*=max(.25,min(1,(100-p['fatigue'])/75))*min(1,p['condition']/85)
             if 'staff' in s:
                 from .staff import capability
                 growth*=1+(capability(s,p['club'],'coaching')-50)/250
@@ -181,16 +182,16 @@ def process_day(s):
                 p['attrs'][key] = round(max(1, p['attrs'][key]-.012*(p['age']-cfg['decline_age'])), 4)
         rating = overall(p, cfg['weights'])
         p['potential'] = max(rating, p['potential']); p['peak_overall'] = max(rating,p['peak_overall'])
-        d['history'].append(dict(day=day, overall=rating, minutes=d['minutes'], focus=d['focus'], load=d['load']))
+        d['history'].append(dict(day=day, overall=rating, club=p['club'], exposure=d.get('exposure',d['minutes']), minutes=d['minutes'], focus=d['focus'], load=d['load']))
         d['history'] = d['history'][-52:]
         if day-d['last_review'] >= cfg['potential_review_days']:
             recent = [h for h in d['history'] if day-h['day']<=91]
             annual = sum(abs(r['change']) for r in d['reviews'] if day-r['day']<365)
             change = 0
-            if p['age']<24 and len(recent)>=10 and sum(h['minutes'] for h in recent)>=450 and recent[-1]['overall']>recent[0]['overall'] and p['hidden']['professionalism']>=65 and annual<cfg['potential_annual_limit']:
+            if p['age']<24 and len(recent)>=10 and sum(min(90,h.get('exposure',h['minutes'])) for h in recent)>=450 and recent[-1]['overall']>recent[0]['overall'] and p['hidden']['professionalism']>=65 and annual<cfg['potential_annual_limit']:
                 change = min(1, 100-p['potential']); p['potential'] += change
             d['reviews'].append(dict(day=day,change=change)); d['reviews']=d['reviews'][-8:]; d['last_review']=day
-        d['last_day']=day; d['minutes']=0
+        d['last_day']=day; d['minutes']=0;d['exposure']=0
         if p['club']=='c0' and day%28==0:
             s['reports'][p['id']]=report(s,p,'Academy coaches' if p['youth'] else 'Coaching staff',9 if p['youth'] else 5)
             if rating>before: developed.append(p['name'])

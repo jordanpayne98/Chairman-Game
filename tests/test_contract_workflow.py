@@ -58,6 +58,7 @@ class ContractWorkflowTests(unittest.TestCase):
     def test_late_medical_rejected_atomically_and_cutoff_is_inclusive(self):
         # Narrow the content's season opening window without skipping financial days.
         self.s['career']['start']=-27  # Window closes on day 1; medical takes 2 days.
+        self.s['world_calendar']['cutoffs']['1']=-27
         self.act('enquire',id='p144')
         p=next(p for p in self.s['players'] if p['id']=='p144')
         self.act('propose_offer',id=p['id'],wage=p['wage'],fee=p['fee'],duration=2)
@@ -66,6 +67,7 @@ class ContractWorkflowTests(unittest.TestCase):
         self.assertEqual(self.s,before)
         self.assertTrue(review(view(self.s),self.s['career']['offers'][p['id']])['reasons'])
         self.s['career']['start']=-26  # Completion remains legal on day 2.
+        self.s['world_calendar']['cutoffs']['1']=-26
         self.act('accept_offer',id=p['id']);self.act('continue');self.act('continue')
         self.act('complete_offer',id=p['id'])
         self.assertEqual(next(player for player in self.s['players'] if player['id']=='p144')['club'],'c0')

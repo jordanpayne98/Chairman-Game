@@ -16,6 +16,7 @@ class StaffScreens:
     def draw_staff(self,x):
         from .ui import BG
         pygame.draw.rect(self.canvas,BG,(x,142,1155,37))
+        self.button('Club dynamics',(x+915,142,220,36),lambda:(self.nav('Squad'),setattr(self,'tab','Dynamics'),setattr(self,'page',0)))
         for i,(tab,width) in enumerate((('Manager',150),('People',150),('Responsibilities',215),('Approvals',170),('Reports',150))):
             left=x+(0,165,330,560,745)[i]
             count=sum(c['status'] in ('pending','blocked') for c in self.v['delegation']['cases'])
@@ -29,7 +30,7 @@ class StaffScreens:
 
     def staff_people(self,x):
         from .ui import GREEN,MUTED,money
-        people=self.v['staff']['people']
+        people=[p for p in self.v['staff']['people'] if not p.get('retired')]
         p=next((p for p in people if p['id']==self.staff_person),None)
         if p:self.staff_profile(x,p);return
         scopes=('Candidates','Employed here','Shortlist','All')

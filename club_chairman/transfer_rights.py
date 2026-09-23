@@ -257,7 +257,9 @@ def match(s,n):
     else:
         wage=p['wage']*110//100;end=max(career.contractual_end(s,2),p['contract_end']+1)
         require(ai_affordable(s,p,cid,d,wage),'The matching club cannot fund the complete package.')
-        require(personal_accepts(p,wage,end,s['day']),'The player refused the matching club’s proposed employment.')
+        from . import recruitment
+        recruitment.check(s,p,cid,wage,end)
+        d['interest_policy']=1
         d.update(club=cid,day=s['day'],due=s['day']+s['config']['club_ai']['medical_days'],status='medical',
                  signing_fee=p['fee'],wage=wage,end=end,reason='Exercise first refusal on matched terms after player consent.',outcome=None)
         s['club_ai']['decisions'].append(d)

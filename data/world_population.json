@@ -1,0 +1,6424 @@
+{
+  "version": 1,
+  "name_algorithm": "locale-parts-v1",
+  "coverage": "239 countries and territories, including non-FIFA states; independent from career scenario support or competition entry",
+  "sources": [
+    {
+      "url": "https://inside.fifa.com/associations",
+      "accessed": "2026-09-22",
+      "scope": "Reference for breadth of football association geography; names, rosters and tuning are authored fictional content."
+    },
+    {
+      "url": "https://unstats.un.org/unsd/methodology/m49/overview/",
+      "accessed": "2026-09-22",
+      "scope": "Country and area identities beyond football membership. Group labels follow game football regions, not UN statistical regions."
+    }
+  ],
+  "warnings": [
+    "Starter name corpora require regional editorial expansion; shared language pools are not exhaustive ethnicity or citizenship models.",
+    "Supporting-club names outside authored city lists are fictional geographic-neutral identities.",
+    "Population and ability distributions are provisional game tuning, not observed national statistics."
+  ],
+  "settings": {
+    "senior_target": 25,
+    "youth_target": 18,
+    "reserve_target": 18,
+    "free_players_per_nation": 12,
+    "free_staff_per_nation": 9,
+    "intake_limit": 6,
+    "annual_days": 365,
+    "cycle_days": 30,
+    "development_days": 90,
+    "inactive_free_years": 2
+  },
+  "names": {
+    "english": {
+      "given": [
+        "Oliver",
+        "George",
+        "Harry",
+        "Jack",
+        "Jacob",
+        "Noah",
+        "Charlie",
+        "Oscar",
+        "James",
+        "William",
+        "Thomas",
+        "Alfie",
+        "Henry",
+        "Leo",
+        "Freddie",
+        "Arthur",
+        "Archie",
+        "Theo",
+        "Finley",
+        "Joshua",
+        "Ethan",
+        "Isaac",
+        "Alexander",
+        "Joseph",
+        "Edward",
+        "Samuel",
+        "Daniel",
+        "Benjamin",
+        "Nathan",
+        "Max"
+      ],
+      "family": [
+        "Smith",
+        "Jones",
+        "Taylor",
+        "Brown",
+        "Williams",
+        "Wilson",
+        "Johnson",
+        "Davies",
+        "Robinson",
+        "Wright",
+        "Thompson",
+        "Evans",
+        "Walker",
+        "White",
+        "Roberts",
+        "Green",
+        "Hall",
+        "Wood",
+        "Jackson",
+        "Clarke",
+        "Mason",
+        "Turner",
+        "Hughes",
+        "Edwards",
+        "Hill",
+        "Moore",
+        "Cooper",
+        "Ward",
+        "Bennett",
+        "Reed"
+      ],
+      "style": "given_family"
+    },
+    "irish": {
+      "given": [
+        "Seán",
+        "Cian",
+        "Oisín",
+        "Darragh",
+        "Conor",
+        "Finn",
+        "Ronan",
+        "Tadhg",
+        "Cillian",
+        "Eoin",
+        "Fionn",
+        "Niall",
+        "Patrick",
+        "Liam",
+        "Declan",
+        "Aidan"
+      ],
+      "family": [
+        "Murphy",
+        "Kelly",
+        "Byrne",
+        "Ryan",
+        "O’Brien",
+        "Walsh",
+        "O’Sullivan",
+        "Doyle",
+        "McCarthy",
+        "Gallagher",
+        "O’Connor",
+        "Kennedy",
+        "Lynch",
+        "Murray",
+        "Quinn",
+        "Reilly"
+      ],
+      "style": "given_family"
+    },
+    "welsh": {
+      "given": [
+        "Dylan",
+        "Rhys",
+        "Ieuan",
+        "Owain",
+        "Gareth",
+        "Bryn",
+        "Evan",
+        "Gethin",
+        "Iwan",
+        "Aled",
+        "Dafydd",
+        "Harri",
+        "Llyr",
+        "Morgan",
+        "Tomos",
+        "Ellis"
+      ],
+      "family": [
+        "Jones",
+        "Davies",
+        "Evans",
+        "Thomas",
+        "Williams",
+        "Griffiths",
+        "Hughes",
+        "Price",
+        "Lloyd",
+        "Rees",
+        "Powell",
+        "Parry",
+        "Vaughan",
+        "Roberts",
+        "Lewis",
+        "Jenkins"
+      ],
+      "style": "given_family"
+    },
+    "scottish": {
+      "given": [
+        "Alasdair",
+        "Callum",
+        "Euan",
+        "Fraser",
+        "Hamish",
+        "Lachlan",
+        "Lewis",
+        "Angus",
+        "Iain",
+        "Finlay",
+        "Gregor",
+        "Duncan",
+        "Ross",
+        "Cameron",
+        "Blair",
+        "Jamie"
+      ],
+      "family": [
+        "Campbell",
+        "Stewart",
+        "MacDonald",
+        "MacLeod",
+        "Fraser",
+        "Robertson",
+        "Murray",
+        "Anderson",
+        "Scott",
+        "Reid",
+        "Wallace",
+        "Graham",
+        "Ferguson",
+        "Douglas",
+        "MacKenzie",
+        "Grant"
+      ],
+      "style": "given_family"
+    },
+    "french": {
+      "given": [
+        "Lucas",
+        "Hugo",
+        "Louis",
+        "Gabriel",
+        "Arthur",
+        "Jules",
+        "Raphaël",
+        "Léo",
+        "Maxime",
+        "Antoine",
+        "Étienne",
+        "Mathis",
+        "Clément",
+        "Baptiste",
+        "Romain",
+        "Julien"
+      ],
+      "family": [
+        "Martin",
+        "Bernard",
+        "Dubois",
+        "Thomas",
+        "Robert",
+        "Richard",
+        "Petit",
+        "Durand",
+        "Leroy",
+        "Moreau",
+        "Simon",
+        "Laurent",
+        "Lefebvre",
+        "Michel",
+        "Garcia",
+        "Roux"
+      ],
+      "style": "given_family"
+    },
+    "german": {
+      "given": [
+        "Lukas",
+        "Leon",
+        "Paul",
+        "Finn",
+        "Felix",
+        "Jonas",
+        "Elias",
+        "Ben",
+        "Niklas",
+        "Moritz",
+        "Florian",
+        "Tobias",
+        "Julian",
+        "Maximilian",
+        "Anton",
+        "Sebastian"
+      ],
+      "family": [
+        "Müller",
+        "Schmidt",
+        "Schneider",
+        "Fischer",
+        "Weber",
+        "Meyer",
+        "Wagner",
+        "Becker",
+        "Schulz",
+        "Hoffmann",
+        "Schäfer",
+        "Koch",
+        "Bauer",
+        "Richter",
+        "Klein",
+        "Wolf"
+      ],
+      "style": "given_family"
+    },
+    "spanish": {
+      "given": [
+        "Alejandro",
+        "Daniel",
+        "Pablo",
+        "Álvaro",
+        "Adrián",
+        "David",
+        "Javier",
+        "Diego",
+        "Sergio",
+        "Marcos",
+        "Manuel",
+        "Antonio",
+        "Miguel",
+        "Carlos",
+        "Raúl",
+        "Hugo"
+      ],
+      "family": [
+        "García",
+        "Rodríguez",
+        "González",
+        "Fernández",
+        "López",
+        "Martínez",
+        "Sánchez",
+        "Pérez",
+        "Gómez",
+        "Martín",
+        "Jiménez",
+        "Ruiz",
+        "Hernández",
+        "Díaz",
+        "Moreno",
+        "Muñoz"
+      ],
+      "style": "double_family"
+    },
+    "portuguese": {
+      "given": [
+        "João",
+        "Miguel",
+        "Diogo",
+        "Tiago",
+        "Pedro",
+        "Rafael",
+        "Gonçalo",
+        "André",
+        "Tomás",
+        "Francisco",
+        "Duarte",
+        "Afonso",
+        "Guilherme",
+        "Rodrigo",
+        "Lucas",
+        "Gabriel"
+      ],
+      "family": [
+        "Silva",
+        "Santos",
+        "Ferreira",
+        "Pereira",
+        "Oliveira",
+        "Costa",
+        "Rodrigues",
+        "Martins",
+        "Jesus",
+        "Sousa",
+        "Fernandes",
+        "Gonçalves",
+        "Gomes",
+        "Lopes",
+        "Marques",
+        "Almeida"
+      ],
+      "style": "double_family"
+    },
+    "italian": {
+      "given": [
+        "Lorenzo",
+        "Francesco",
+        "Alessandro",
+        "Matteo",
+        "Leonardo",
+        "Andrea",
+        "Gabriele",
+        "Riccardo",
+        "Federico",
+        "Davide",
+        "Marco",
+        "Luca",
+        "Giovanni",
+        "Simone",
+        "Filippo",
+        "Niccolò"
+      ],
+      "family": [
+        "Rossi",
+        "Russo",
+        "Ferrari",
+        "Esposito",
+        "Bianchi",
+        "Romano",
+        "Colombo",
+        "Ricci",
+        "Marino",
+        "Greco",
+        "Bruno",
+        "Gallo",
+        "Conti",
+        "De Luca",
+        "Costa",
+        "Mancini"
+      ],
+      "style": "given_family"
+    },
+    "dutch": {
+      "given": [
+        "Daan",
+        "Sem",
+        "Bram",
+        "Luuk",
+        "Finn",
+        "Lars",
+        "Niels",
+        "Jasper",
+        "Thijs",
+        "Jesse",
+        "Sven",
+        "Joris",
+        "Ruben",
+        "Stijn",
+        "Floris",
+        "Willem"
+      ],
+      "family": [
+        "De Jong",
+        "Jansen",
+        "De Vries",
+        "Van den Berg",
+        "Van Dijk",
+        "Bakker",
+        "Janssen",
+        "Visser",
+        "Smit",
+        "Meijer",
+        "De Boer",
+        "Mulder",
+        "De Groot",
+        "Bos",
+        "Vos",
+        "Peters"
+      ],
+      "style": "given_family"
+    },
+    "nordic": {
+      "given": [
+        "Erik",
+        "Lars",
+        "Anders",
+        "Johan",
+        "Magnus",
+        "Emil",
+        "Oscar",
+        "Axel",
+        "Viktor",
+        "Elias",
+        "Nils",
+        "Gustav",
+        "Oskar",
+        "Henrik",
+        "Sven",
+        "Mikkel"
+      ],
+      "family": [
+        "Andersson",
+        "Johansson",
+        "Karlsson",
+        "Nilsson",
+        "Eriksson",
+        "Larsen",
+        "Hansen",
+        "Nielsen",
+        "Jensen",
+        "Olsen",
+        "Berg",
+        "Lindberg",
+        "Lund",
+        "Dahl",
+        "Holm",
+        "Sørensen"
+      ],
+      "style": "given_family"
+    },
+    "finnish": {
+      "given": [
+        "Eetu",
+        "Elias",
+        "Onni",
+        "Väinö",
+        "Lauri",
+        "Mikko",
+        "Antti",
+        "Jussi",
+        "Juho",
+        "Oskari",
+        "Aapo",
+        "Aatu",
+        "Vilho",
+        "Ilmari",
+        "Tuomas",
+        "Aleksi"
+      ],
+      "family": [
+        "Korhonen",
+        "Virtanen",
+        "Mäkinen",
+        "Nieminen",
+        "Mäkelä",
+        "Hämäläinen",
+        "Laine",
+        "Heikkinen",
+        "Koskinen",
+        "Järvinen",
+        "Lehtonen",
+        "Lehtinen",
+        "Saarinen",
+        "Salminen",
+        "Heinonen",
+        "Niemi"
+      ],
+      "style": "given_family"
+    },
+    "icelandic": {
+      "given": [
+        "Jón",
+        "Aron",
+        "Bjarni",
+        "Einar",
+        "Gunnar",
+        "Hákon",
+        "Ólafur",
+        "Ragnar",
+        "Sigurður",
+        "Stefán",
+        "Viktor",
+        "Benedikt",
+        "Baldur",
+        "Kári",
+        "Kristján",
+        "Magnús"
+      ],
+      "family": [
+        "Jónsson",
+        "Aronsson",
+        "Bjarnason",
+        "Einarsson",
+        "Gunnarsson",
+        "Hákonarson",
+        "Ólafsson",
+        "Ragnarsson",
+        "Sigurðsson",
+        "Stefánsson",
+        "Viktorsson",
+        "Benediktsson",
+        "Baldursson",
+        "Kárason",
+        "Kristjánsson",
+        "Magnússon"
+      ],
+      "style": "given_family"
+    },
+    "polish": {
+      "given": [
+        "Jakub",
+        "Kacper",
+        "Filip",
+        "Szymon",
+        "Jan",
+        "Michał",
+        "Adam",
+        "Mateusz",
+        "Piotr",
+        "Paweł",
+        "Bartosz",
+        "Wojciech",
+        "Tomasz",
+        "Kamil",
+        "Marcin",
+        "Krzysztof"
+      ],
+      "family": [
+        "Nowak",
+        "Kowalski",
+        "Wiśniewski",
+        "Wójcik",
+        "Kowalczyk",
+        "Kamiński",
+        "Lewandowski",
+        "Zieliński",
+        "Szymański",
+        "Woźniak",
+        "Dąbrowski",
+        "Kozłowski",
+        "Jankowski",
+        "Mazur",
+        "Kwiatkowski",
+        "Wojciechowski"
+      ],
+      "style": "given_family"
+    },
+    "czech": {
+      "given": [
+        "Jakub",
+        "Jan",
+        "Tomáš",
+        "Adam",
+        "Lukáš",
+        "Matěj",
+        "Filip",
+        "Vojtěch",
+        "Ondřej",
+        "Petr",
+        "David",
+        "Michal",
+        "Martin",
+        "Josef",
+        "Daniel",
+        "Šimon"
+      ],
+      "family": [
+        "Novák",
+        "Svoboda",
+        "Novotný",
+        "Dvořák",
+        "Černý",
+        "Procházka",
+        "Kučera",
+        "Veselý",
+        "Horák",
+        "Němec",
+        "Pokorný",
+        "Marek",
+        "Pospíšil",
+        "Hájek",
+        "Král",
+        "Jelínek"
+      ],
+      "style": "given_family"
+    },
+    "balkan": {
+      "given": [
+        "Luka",
+        "Marko",
+        "Nikola",
+        "Ivan",
+        "Stefan",
+        "Petar",
+        "Filip",
+        "Miloš",
+        "Dušan",
+        "Nemanja",
+        "Aleksandar",
+        "Milan",
+        "Dejan",
+        "Dragan",
+        "Andrej",
+        "Matej"
+      ],
+      "family": [
+        "Petrović",
+        "Jovanović",
+        "Nikolić",
+        "Marković",
+        "Đorđević",
+        "Stojanović",
+        "Ilić",
+        "Pavlović",
+        "Popović",
+        "Kovačević",
+        "Babić",
+        "Marić",
+        "Jurić",
+        "Horvat",
+        "Vuković",
+        "Knežević"
+      ],
+      "style": "given_family"
+    },
+    "romanian": {
+      "given": [
+        "Andrei",
+        "Alexandru",
+        "Mihai",
+        "Ștefan",
+        "Gabriel",
+        "Cristian",
+        "Ionuț",
+        "Vlad",
+        "Rareș",
+        "Radu",
+        "Darius",
+        "Florin",
+        "Ciprian",
+        "Adrian",
+        "Claudiu",
+        "Daniel"
+      ],
+      "family": [
+        "Popescu",
+        "Popa",
+        "Ionescu",
+        "Dumitrescu",
+        "Stoica",
+        "Stan",
+        "Dobre",
+        "Marin",
+        "Radu",
+        "Gheorghe",
+        "Diaconu",
+        "Tudor",
+        "Preda",
+        "Dinu",
+        "Niculescu",
+        "Munteanu"
+      ],
+      "style": "given_family"
+    },
+    "hungarian": {
+      "given": [
+        "Bence",
+        "Máté",
+        "Levente",
+        "Ádám",
+        "Dávid",
+        "Balázs",
+        "Dominik",
+        "Dániel",
+        "Benedek",
+        "Gergő",
+        "Zoltán",
+        "Péter",
+        "Tamás",
+        "András",
+        "Attila",
+        "Miklós"
+      ],
+      "family": [
+        "Nagy",
+        "Kovács",
+        "Tóth",
+        "Szabó",
+        "Horváth",
+        "Varga",
+        "Kiss",
+        "Molnár",
+        "Németh",
+        "Farkas",
+        "Balogh",
+        "Papp",
+        "Takács",
+        "Juhász",
+        "Lakatos",
+        "Mészáros"
+      ],
+      "style": "family_given"
+    },
+    "greek": {
+      "given": [
+        "Giorgos",
+        "Nikos",
+        "Dimitris",
+        "Giannis",
+        "Kostas",
+        "Vasilis",
+        "Panagiotis",
+        "Christos",
+        "Stavros",
+        "Alexandros",
+        "Andreas",
+        "Marios",
+        "Michalis",
+        "Sotiris",
+        "Theodoros",
+        "Petros"
+      ],
+      "family": [
+        "Papadopoulos",
+        "Nikolaou",
+        "Georgiou",
+        "Dimitriou",
+        "Ioannou",
+        "Pappas",
+        "Karagiannis",
+        "Vasileiou",
+        "Papadakis",
+        "Alexiou",
+        "Konstantinou",
+        "Antoniou",
+        "Makris",
+        "Lazaridis",
+        "Michailidis",
+        "Christou"
+      ],
+      "style": "given_family"
+    },
+    "turkish": {
+      "given": [
+        "Emir",
+        "Yusuf",
+        "Mustafa",
+        "Mehmet",
+        "Ahmet",
+        "Ali",
+        "Ömer",
+        "Eren",
+        "Burak",
+        "Kerem",
+        "Arda",
+        "Mert",
+        "Can",
+        "Emre",
+        "Deniz",
+        "Kaan"
+      ],
+      "family": [
+        "Yılmaz",
+        "Kaya",
+        "Demir",
+        "Şahin",
+        "Çelik",
+        "Yıldız",
+        "Yıldırım",
+        "Öztürk",
+        "Aydın",
+        "Arslan",
+        "Doğan",
+        "Kılıç",
+        "Aslan",
+        "Çetin",
+        "Kara",
+        "Koç"
+      ],
+      "style": "given_family"
+    },
+    "russian": {
+      "given": [
+        "Aleksandr",
+        "Dmitri",
+        "Maksim",
+        "Ivan",
+        "Mikhail",
+        "Nikita",
+        "Artem",
+        "Andrei",
+        "Sergei",
+        "Kirill",
+        "Pavel",
+        "Roman",
+        "Viktor",
+        "Denis",
+        "Ilya",
+        "Yegor"
+      ],
+      "family": [
+        "Ivanov",
+        "Smirnov",
+        "Kuznetsov",
+        "Popov",
+        "Sokolov",
+        "Lebedev",
+        "Kozlov",
+        "Novikov",
+        "Morozov",
+        "Petrov",
+        "Volkov",
+        "Solovyov",
+        "Vasilyev",
+        "Zaitsev",
+        "Pavlov",
+        "Semyonov"
+      ],
+      "style": "given_family"
+    },
+    "ukrainian": {
+      "given": [
+        "Oleksandr",
+        "Dmytro",
+        "Maksym",
+        "Andrii",
+        "Mykhailo",
+        "Artem",
+        "Bohdan",
+        "Denys",
+        "Ivan",
+        "Yaroslav",
+        "Vladyslav",
+        "Serhii",
+        "Pavlo",
+        "Roman",
+        "Viktor",
+        "Taras"
+      ],
+      "family": [
+        "Shevchenko",
+        "Kovalenko",
+        "Bondarenko",
+        "Tkachenko",
+        "Kravchenko",
+        "Kovalchuk",
+        "Melnyk",
+        "Boyko",
+        "Savchenko",
+        "Polishchuk",
+        "Shevchuk",
+        "Tkachuk",
+        "Moroz",
+        "Marchenko",
+        "Pavlenko",
+        "Rudenko"
+      ],
+      "style": "given_family"
+    },
+    "baltic": {
+      "given": [
+        "Jonas",
+        "Lukas",
+        "Mantas",
+        "Tomas",
+        "Domas",
+        "Paulius",
+        "Arnas",
+        "Rokas",
+        "Matas",
+        "Dovydas",
+        "Jānis",
+        "Artūrs",
+        "Roberts",
+        "Rasmus",
+        "Karl",
+        "Markus"
+      ],
+      "family": [
+        "Kazlauskas",
+        "Jankauskas",
+        "Petrauskas",
+        "Stankevičius",
+        "Vasiliauskas",
+        "Žukauskas",
+        "Paulauskas",
+        "Urbonas",
+        "Bērziņš",
+        "Kalniņš",
+        "Ozoliņš",
+        "Liepiņš",
+        "Tamm",
+        "Saar",
+        "Sepp",
+        "Kask"
+      ],
+      "style": "given_family"
+    },
+    "albanian": {
+      "given": [
+        "Arben",
+        "Ardit",
+        "Besnik",
+        "Dritan",
+        "Erion",
+        "Ilir",
+        "Luan",
+        "Mentor",
+        "Sokol",
+        "Valon",
+        "Ylli",
+        "Altin",
+        "Blerim",
+        "Faton",
+        "Gent",
+        "Visar"
+      ],
+      "family": [
+        "Hoxha",
+        "Shehu",
+        "Dervishi",
+        "Krasniqi",
+        "Berisha",
+        "Gashi",
+        "Shala",
+        "Kelmendi",
+        "Mustafa",
+        "Rama",
+        "Prifti",
+        "Leka",
+        "Basha",
+        "Bytyqi",
+        "Hoti",
+        "Kola"
+      ],
+      "style": "given_family"
+    },
+    "georgian": {
+      "given": [
+        "Giorgi",
+        "Luka",
+        "Nika",
+        "Davit",
+        "Saba",
+        "Irakli",
+        "Levan",
+        "Tornike",
+        "Zurab",
+        "Giga",
+        "Guram",
+        "Beka",
+        "Sandro",
+        "Vakhtang",
+        "Shota",
+        "Merab"
+      ],
+      "family": [
+        "Beridze",
+        "Kapanadze",
+        "Gelashvili",
+        "Maisuradze",
+        "Giorgadze",
+        "Lomidze",
+        "Tsiklauri",
+        "Dvali",
+        "Chkheidze",
+        "Kiknadze",
+        "Japaridze",
+        "Kvaratskhelia",
+        "Kalandadze",
+        "Gogoladze",
+        "Tsereteli",
+        "Metreveli"
+      ],
+      "style": "given_family"
+    },
+    "armenian": {
+      "given": [
+        "Aram",
+        "Armen",
+        "Gor",
+        "Hayk",
+        "Narek",
+        "Tigran",
+        "Vahan",
+        "Artur",
+        "Davit",
+        "Levon",
+        "Hovhannes",
+        "Karen",
+        "Ashot",
+        "Samvel",
+        "Suren",
+        "Ruben"
+      ],
+      "family": [
+        "Sargsyan",
+        "Harutyunyan",
+        "Hovhannisyan",
+        "Hakobyan",
+        "Grigoryan",
+        "Petrosyan",
+        "Vardanyan",
+        "Gevorgyan",
+        "Karapetyan",
+        "Manukyan",
+        "Avetisyan",
+        "Ghazaryan",
+        "Martirosyan",
+        "Simonyan",
+        "Mkrtchyan",
+        "Stepanyan"
+      ],
+      "style": "given_family"
+    },
+    "arabic": {
+      "given": [
+        "Mohamed",
+        "Ahmed",
+        "Omar",
+        "Youssef",
+        "Ali",
+        "Hassan",
+        "Hussein",
+        "Ibrahim",
+        "Khalid",
+        "Karim",
+        "Yassine",
+        "Amine",
+        "Walid",
+        "Rami",
+        "Tariq",
+        "Sami"
+      ],
+      "family": [
+        "Haddad",
+        "Mansour",
+        "Nasser",
+        "Saleh",
+        "Khalil",
+        "Hamdan",
+        "Farah",
+        "Darwish",
+        "Saad",
+        "Habib",
+        "Fahmy",
+        "Aziz",
+        "Idrissi",
+        "Benali",
+        "Moussa",
+        "Rahmani"
+      ],
+      "style": "given_family"
+    },
+    "hebrew": {
+      "given": [
+        "Noam",
+        "Itai",
+        "Ariel",
+        "Eitan",
+        "Daniel",
+        "David",
+        "Yonatan",
+        "Uri",
+        "Omer",
+        "Lior",
+        "Amit",
+        "Nadav",
+        "Eyal",
+        "Alon",
+        "Yair",
+        "Roee"
+      ],
+      "family": [
+        "Cohen",
+        "Levi",
+        "Mizrahi",
+        "Peretz",
+        "Biton",
+        "Dahan",
+        "Avraham",
+        "Friedman",
+        "Azoulay",
+        "Amar",
+        "Gabay",
+        "Katz",
+        "Yosef",
+        "Tal",
+        "Barak",
+        "Shapiro"
+      ],
+      "style": "given_family"
+    },
+    "persian": {
+      "given": [
+        "Amir",
+        "Ali",
+        "Reza",
+        "Hossein",
+        "Mehdi",
+        "Arman",
+        "Saman",
+        "Farhad",
+        "Navid",
+        "Parsa",
+        "Kian",
+        "Pouya",
+        "Omid",
+        "Dariush",
+        "Sina",
+        "Shahin"
+      ],
+      "family": [
+        "Mohammadi",
+        "Hosseini",
+        "Ahmadi",
+        "Rezaei",
+        "Karimi",
+        "Mousavi",
+        "Rahimi",
+        "Jafari",
+        "Kazemi",
+        "Moradi",
+        "Ebrahimi",
+        "Alizadeh",
+        "Hashemi",
+        "Ghasemi",
+        "Bahrami",
+        "Shirazi"
+      ],
+      "style": "given_family"
+    },
+    "turkic": {
+      "given": [
+        "Aziz",
+        "Timur",
+        "Rustam",
+        "Bekzod",
+        "Sardor",
+        "Jasur",
+        "Alisher",
+        "Doston",
+        "Dilshod",
+        "Sherzod",
+        "Ulugbek",
+        "Islom",
+        "Akmal",
+        "Anvar",
+        "Mirzo",
+        "Kamol"
+      ],
+      "family": [
+        "Karimov",
+        "Yusupov",
+        "Tursunov",
+        "Rahimov",
+        "Ismailov",
+        "Abdullayev",
+        "Nazarov",
+        "Saidov",
+        "Mirzayev",
+        "Ergashev",
+        "Rakhmonov",
+        "Azimov",
+        "Sharipov",
+        "Mamatov",
+        "Rustamov",
+        "Ibragimov"
+      ],
+      "style": "given_family"
+    },
+    "hindi": {
+      "given": [
+        "Aarav",
+        "Arjun",
+        "Aditya",
+        "Rohan",
+        "Rahul",
+        "Vikram",
+        "Karan",
+        "Nikhil",
+        "Ankit",
+        "Sanjay",
+        "Ravi",
+        "Deepak",
+        "Manish",
+        "Amit",
+        "Vivek",
+        "Pranav"
+      ],
+      "family": [
+        "Sharma",
+        "Verma",
+        "Singh",
+        "Gupta",
+        "Kumar",
+        "Patel",
+        "Yadav",
+        "Chauhan",
+        "Joshi",
+        "Mishra",
+        "Pandey",
+        "Rao",
+        "Mehta",
+        "Jain",
+        "Kapoor",
+        "Nair"
+      ],
+      "style": "given_family"
+    },
+    "tamil": {
+      "given": [
+        "Arun",
+        "Karthik",
+        "Suresh",
+        "Vijay",
+        "Prakash",
+        "Dinesh",
+        "Saravanan",
+        "Ganesh",
+        "Senthil",
+        "Ramesh",
+        "Bala",
+        "Kumar",
+        "Ravi",
+        "Sathish",
+        "Pradeep",
+        "Ashwin"
+      ],
+      "family": [
+        "Rajendran",
+        "Subramanian",
+        "Krishnan",
+        "Raman",
+        "Murugan",
+        "Sundaram",
+        "Natarajan",
+        "Balasubramanian",
+        "Shanmugam",
+        "Ramasamy",
+        "Velu",
+        "Perumal",
+        "Mani",
+        "Pillai",
+        "Selvam",
+        "Arumugam"
+      ],
+      "style": "given_family"
+    },
+    "bengali": {
+      "given": [
+        "Arif",
+        "Rahim",
+        "Hasan",
+        "Rakib",
+        "Sajid",
+        "Imran",
+        "Fahim",
+        "Tanvir",
+        "Soham",
+        "Anirban",
+        "Sourav",
+        "Arindam",
+        "Subhas",
+        "Debashis",
+        "Ranjan",
+        "Suman"
+      ],
+      "family": [
+        "Rahman",
+        "Ahmed",
+        "Hossain",
+        "Islam",
+        "Khan",
+        "Alam",
+        "Chowdhury",
+        "Sarkar",
+        "Das",
+        "Roy",
+        "Sen",
+        "Dutta",
+        "Bose",
+        "Mitra",
+        "Saha",
+        "Biswas"
+      ],
+      "style": "given_family"
+    },
+    "urdu": {
+      "given": [
+        "Ahmed",
+        "Ali",
+        "Hassan",
+        "Usman",
+        "Hamza",
+        "Bilal",
+        "Fahad",
+        "Imran",
+        "Kamran",
+        "Salman",
+        "Farhan",
+        "Adnan",
+        "Zain",
+        "Adeel",
+        "Danish",
+        "Waqas"
+      ],
+      "family": [
+        "Khan",
+        "Ahmed",
+        "Ali",
+        "Hussain",
+        "Malik",
+        "Iqbal",
+        "Butt",
+        "Sheikh",
+        "Raza",
+        "Qureshi",
+        "Chaudhry",
+        "Shah",
+        "Javed",
+        "Siddiqui",
+        "Abbasi",
+        "Akhtar"
+      ],
+      "style": "given_family"
+    },
+    "nepali": {
+      "given": [
+        "Suman",
+        "Bikash",
+        "Rajan",
+        "Prakash",
+        "Dipak",
+        "Santosh",
+        "Anil",
+        "Sagar",
+        "Ramesh",
+        "Binod",
+        "Manoj",
+        "Kiran",
+        "Nabin",
+        "Suraj",
+        "Ashish",
+        "Bibek"
+      ],
+      "family": [
+        "Shrestha",
+        "Gurung",
+        "Tamang",
+        "Rai",
+        "Limbu",
+        "Thapa",
+        "Karki",
+        "Adhikari",
+        "Acharya",
+        "Bhandari",
+        "Poudel",
+        "Khadka",
+        "Basnet",
+        "Magar",
+        "Koirala",
+        "Rijal"
+      ],
+      "style": "given_family"
+    },
+    "sinhalese": {
+      "given": [
+        "Nuwan",
+        "Chamara",
+        "Thilina",
+        "Kasun",
+        "Dinesh",
+        "Lahiru",
+        "Dilshan",
+        "Gayan",
+        "Roshan",
+        "Sampath",
+        "Chathura",
+        "Isuru",
+        "Pradeep",
+        "Dasun",
+        "Ravindu",
+        "Sajith"
+      ],
+      "family": [
+        "Perera",
+        "Fernando",
+        "Silva",
+        "Mendis",
+        "Jayasinghe",
+        "Dissanayake",
+        "Wijesinghe",
+        "Bandara",
+        "Gunawardena",
+        "Senanayake",
+        "Herath",
+        "Weerasinghe",
+        "Karunaratne",
+        "Ratnayake",
+        "Abeysekera",
+        "Rajapaksa"
+      ],
+      "style": "given_family"
+    },
+    "chinese": {
+      "given": [
+        "Wei",
+        "Jun",
+        "Ming",
+        "Tao",
+        "Hao",
+        "Lei",
+        "Jie",
+        "Bo",
+        "Feng",
+        "Qiang",
+        "Yong",
+        "Bin",
+        "Chao",
+        "Peng",
+        "Chen",
+        "Kai"
+      ],
+      "family": [
+        "Wang",
+        "Li",
+        "Zhang",
+        "Liu",
+        "Chen",
+        "Yang",
+        "Huang",
+        "Zhao",
+        "Wu",
+        "Zhou",
+        "Xu",
+        "Sun",
+        "Ma",
+        "Zhu",
+        "Hu",
+        "Guo"
+      ],
+      "style": "family_given"
+    },
+    "japanese": {
+      "given": [
+        "Haruto",
+        "Yuto",
+        "Sota",
+        "Ren",
+        "Yuki",
+        "Kaito",
+        "Riku",
+        "Daiki",
+        "Takumi",
+        "Shota",
+        "Hiroki",
+        "Tsubasa",
+        "Ryota",
+        "Kenta",
+        "Sho",
+        "Yuma"
+      ],
+      "family": [
+        "Sato",
+        "Suzuki",
+        "Takahashi",
+        "Tanaka",
+        "Watanabe",
+        "Ito",
+        "Yamamoto",
+        "Nakamura",
+        "Kobayashi",
+        "Kato",
+        "Yoshida",
+        "Yamada",
+        "Sasaki",
+        "Yamaguchi",
+        "Matsumoto",
+        "Inoue"
+      ],
+      "style": "family_given"
+    },
+    "korean": {
+      "given": [
+        "Min-jun",
+        "Seo-jun",
+        "Ji-ho",
+        "Do-yun",
+        "Ha-jun",
+        "Jun-seo",
+        "Si-woo",
+        "Ye-jun",
+        "Ju-won",
+        "Hyun-woo",
+        "Ji-hun",
+        "Sung-min",
+        "Jae-hyun",
+        "Min-su",
+        "Seung-ho",
+        "Dong-hyun"
+      ],
+      "family": [
+        "Kim",
+        "Lee",
+        "Park",
+        "Choi",
+        "Jung",
+        "Kang",
+        "Cho",
+        "Yoon",
+        "Jang",
+        "Lim",
+        "Han",
+        "Oh",
+        "Seo",
+        "Shin",
+        "Kwon",
+        "Hwang"
+      ],
+      "style": "family_given"
+    },
+    "vietnamese": {
+      "given": [
+        "Minh",
+        "Anh",
+        "Duc",
+        "Huy",
+        "Khang",
+        "Bao",
+        "Phuc",
+        "Nam",
+        "Quang",
+        "Tuan",
+        "Long",
+        "Thanh",
+        "Hung",
+        "Son",
+        "Duy",
+        "Hai"
+      ],
+      "family": [
+        "Nguyễn",
+        "Trần",
+        "Lê",
+        "Phạm",
+        "Hoàng",
+        "Huỳnh",
+        "Phan",
+        "Vũ",
+        "Võ",
+        "Đặng",
+        "Bùi",
+        "Đỗ",
+        "Hồ",
+        "Ngô",
+        "Dương",
+        "Lý"
+      ],
+      "style": "family_given"
+    },
+    "thai": {
+      "given": [
+        "Somchai",
+        "Anan",
+        "Arthit",
+        "Chai",
+        "Kittipong",
+        "Nattapong",
+        "Piyawat",
+        "Sakchai",
+        "Somsak",
+        "Thanawat",
+        "Weerachai",
+        "Wichai",
+        "Phuwin",
+        "Krit",
+        "Narin",
+        "Teerapat"
+      ],
+      "family": [
+        "Sukjai",
+        "Srisai",
+        "Thongchai",
+        "Wongsa",
+        "Saengsuwan",
+        "Boonmee",
+        "Kaewmanee",
+        "Chaisri",
+        "Intara",
+        "Phromma",
+        "Khamdee",
+        "Chantana",
+        "Saetang",
+        "Wongchai",
+        "Suwan",
+        "Thongsuk"
+      ],
+      "style": "given_family"
+    },
+    "indonesian": {
+      "given": [
+        "Agus",
+        "Budi",
+        "Dimas",
+        "Eko",
+        "Fajar",
+        "Hadi",
+        "Indra",
+        "Joko",
+        "Rizky",
+        "Aditya",
+        "Bayu",
+        "Dedi",
+        "Gilang",
+        "Wahyu",
+        "Yoga",
+        "Rian"
+      ],
+      "family": [
+        "Pratama",
+        "Saputra",
+        "Wijaya",
+        "Santoso",
+        "Setiawan",
+        "Hidayat",
+        "Nugroho",
+        "Wibowo",
+        "Kurniawan",
+        "Putra",
+        "Ramadhan",
+        "Firmansyah",
+        "Susanto",
+        "Gunawan",
+        "Prasetyo",
+        "Permana"
+      ],
+      "style": "given_family"
+    },
+    "malay": {
+      "given": [
+        "Amir",
+        "Hakim",
+        "Hafiz",
+        "Faiz",
+        "Azlan",
+        "Azmi",
+        "Farid",
+        "Rizal",
+        "Shahrul",
+        "Zulkifli",
+        "Khairul",
+        "Aiman",
+        "Irfan",
+        "Haziq",
+        "Syafiq",
+        "Firdaus"
+      ],
+      "family": [
+        "Abdullah",
+        "Ibrahim",
+        "Ismail",
+        "Hassan",
+        "Omar",
+        "Ahmad",
+        "Rahman",
+        "Yusof",
+        "Hamid",
+        "Osman",
+        "Ali",
+        "Abdul Aziz",
+        "Zainal",
+        "Salleh",
+        "Razak",
+        "Musa"
+      ],
+      "style": "given_family"
+    },
+    "filipino": {
+      "given": [
+        "Jose",
+        "Juan",
+        "Miguel",
+        "Paolo",
+        "Carlo",
+        "Rafael",
+        "Angelo",
+        "Luis",
+        "Mark",
+        "John",
+        "Jayson",
+        "Christian",
+        "Marco",
+        "Gabriel",
+        "Enzo",
+        "Antonio"
+      ],
+      "family": [
+        "Santos",
+        "Reyes",
+        "Cruz",
+        "Bautista",
+        "Ocampo",
+        "Garcia",
+        "Mendoza",
+        "Torres",
+        "Dela Cruz",
+        "Ramos",
+        "Aquino",
+        "Flores",
+        "Castillo",
+        "Rivera",
+        "Gonzales",
+        "Villanueva"
+      ],
+      "style": "given_family"
+    },
+    "mongolian": {
+      "given": [
+        "Bat",
+        "Bold",
+        "Dorj",
+        "Temuulen",
+        "Tengis",
+        "Bilguun",
+        "Munkh",
+        "Batsaikhan",
+        "Batbayar",
+        "Erdene",
+        "Enkh",
+        "Bayar",
+        "Ganbold",
+        "Altan",
+        "Otgon",
+        "Anand"
+      ],
+      "family": [
+        "Batmunkh",
+        "Dorj",
+        "Enkhbat",
+        "Batbayar",
+        "Baatar",
+        "Ganbold",
+        "Tseren",
+        "Davaajav",
+        "Erdenebat",
+        "Bayarsaikhan",
+        "Jargal",
+        "Purev",
+        "Tumur",
+        "Naran",
+        "Sukhbat",
+        "Lkhagva"
+      ],
+      "style": "family_given"
+    },
+    "khmer": {
+      "given": [
+        "Dara",
+        "Sokha",
+        "Sopheap",
+        "Vannak",
+        "Rithy",
+        "Sovann",
+        "Visal",
+        "Sopheak",
+        "Chhay",
+        "Bunthorn",
+        "Sothea",
+        "Piseth",
+        "Virak",
+        "Sambath",
+        "Sovan",
+        "Chenda"
+      ],
+      "family": [
+        "Sok",
+        "Chan",
+        "Chea",
+        "Kem",
+        "Long",
+        "Lim",
+        "Ly",
+        "Heng",
+        "Chhun",
+        "Phan",
+        "Seng",
+        "Som",
+        "Sun",
+        "Hun",
+        "Touch",
+        "You"
+      ],
+      "style": "family_given"
+    },
+    "burmese": {
+      "given": [
+        "Aung",
+        "Min",
+        "Kyaw",
+        "Htet",
+        "Zaw",
+        "Thant",
+        "Win",
+        "Soe",
+        "Myo",
+        "Naing",
+        "Tun",
+        "Ye",
+        "Hein",
+        "Nyein",
+        "Lin",
+        "Thet"
+      ],
+      "family": [
+        "Aung",
+        "Min",
+        "Kyaw",
+        "Htet",
+        "Zaw",
+        "Thant",
+        "Win",
+        "Soe",
+        "Myo",
+        "Naing",
+        "Tun",
+        "Ye",
+        "Hein",
+        "Nyein",
+        "Lin",
+        "Thet"
+      ],
+      "style": "given_family"
+    },
+    "wolof": {
+      "given": [
+        "Moussa",
+        "Ibrahima",
+        "Mamadou",
+        "Cheikh",
+        "Ousmane",
+        "Lamine",
+        "Abdoulaye",
+        "Samba",
+        "Pape",
+        "Saliou",
+        "Malick",
+        "Amadou",
+        "Babacar",
+        "Modou",
+        "Omar",
+        "Demba"
+      ],
+      "family": [
+        "Diop",
+        "Ndiaye",
+        "Fall",
+        "Gueye",
+        "Sow",
+        "Diallo",
+        "Ba",
+        "Sarr",
+        "Diouf",
+        "Seck",
+        "Cissé",
+        "Faye",
+        "Touré",
+        "Camara",
+        "Dieng",
+        "Sy"
+      ],
+      "style": "given_family"
+    },
+    "akan": {
+      "given": [
+        "Kwame",
+        "Kofi",
+        "Kwabena",
+        "Kwaku",
+        "Yaw",
+        "Kwesi",
+        "Kojo",
+        "Nana",
+        "Kwasi",
+        "Akwasi",
+        "Kwadwo",
+        "Afriyie",
+        "Agyeman",
+        "Osei",
+        "Kweku",
+        "Nii"
+      ],
+      "family": [
+        "Mensah",
+        "Owusu",
+        "Osei",
+        "Boateng",
+        "Acheampong",
+        "Asante",
+        "Adjei",
+        "Agyemang",
+        "Opoku",
+        "Appiah",
+        "Bonsu",
+        "Amoah",
+        "Antwi",
+        "Asare",
+        "Agyei",
+        "Sarpong"
+      ],
+      "style": "given_family"
+    },
+    "yoruba": {
+      "given": [
+        "Ade",
+        "Tunde",
+        "Femi",
+        "Segun",
+        "Dele",
+        "Babatunde",
+        "Oluwaseun",
+        "Ayodele",
+        "Olamide",
+        "Temitope",
+        "Tobi",
+        "Kunle",
+        "Seyi",
+        "Dayo",
+        "Damilola",
+        "Akin"
+      ],
+      "family": [
+        "Adeyemi",
+        "Adebayo",
+        "Ogunleye",
+        "Adesina",
+        "Oladipo",
+        "Olatunji",
+        "Akinwale",
+        "Falade",
+        "Ojo",
+        "Balogun",
+        "Adeleke",
+        "Alabi",
+        "Lawal",
+        "Afolabi",
+        "Oke",
+        "Olaleye"
+      ],
+      "style": "given_family"
+    },
+    "igbo": {
+      "given": [
+        "Chinedu",
+        "Chukwudi",
+        "Ikenna",
+        "Emeka",
+        "Obinna",
+        "Nnamdi",
+        "Ifeanyi",
+        "Chidi",
+        "Chibuike",
+        "Uche",
+        "Chisom",
+        "Nonso",
+        "Kelechi",
+        "Tochukwu",
+        "Ikechukwu",
+        "Chimezie"
+      ],
+      "family": [
+        "Okafor",
+        "Okeke",
+        "Eze",
+        "Okonkwo",
+        "Nwankwo",
+        "Nwachukwu",
+        "Nwosu",
+        "Obi",
+        "Onyeka",
+        "Okoro",
+        "Ibe",
+        "Nnamani",
+        "Umeh",
+        "Anyanwu",
+        "Ezeh",
+        "Agu"
+      ],
+      "style": "given_family"
+    },
+    "hausa": {
+      "given": [
+        "Musa",
+        "Ibrahim",
+        "Sani",
+        "Umar",
+        "Aliyu",
+        "Yusuf",
+        "Bello",
+        "Abdullahi",
+        "Hassan",
+        "Suleiman",
+        "Kabiru",
+        "Aminu",
+        "Usman",
+        "Garba",
+        "Haruna",
+        "Lawal"
+      ],
+      "family": [
+        "Abubakar",
+        "Mohammed",
+        "Ibrahim",
+        "Suleiman",
+        "Bello",
+        "Abdullahi",
+        "Usman",
+        "Garba",
+        "Haruna",
+        "Lawal",
+        "Danladi",
+        "Yakubu",
+        "Sani",
+        "Umar",
+        "Musa",
+        "Yusuf"
+      ],
+      "style": "given_family"
+    },
+    "swahili": {
+      "given": [
+        "Juma",
+        "Baraka",
+        "Hamisi",
+        "Omari",
+        "Rashidi",
+        "Salim",
+        "Bakari",
+        "Hassan",
+        "Said",
+        "Rajabu",
+        "Issa",
+        "Musa",
+        "Nuru",
+        "Abdallah",
+        "Mwaniki",
+        "Mwangi"
+      ],
+      "family": [
+        "Mussa",
+        "Juma",
+        "Said",
+        "Mohamed",
+        "Hassan",
+        "Bakari",
+        "Salum",
+        "Mwakalinga",
+        "Mwinyi",
+        "Khamis",
+        "Mashauri",
+        "Nyerere",
+        "Mboya",
+        "Odhiambo",
+        "Omondi",
+        "Otieno"
+      ],
+      "style": "given_family"
+    },
+    "amharic": {
+      "given": [
+        "Abel",
+        "Dawit",
+        "Daniel",
+        "Yonas",
+        "Samuel",
+        "Henok",
+        "Tesfaye",
+        "Bereket",
+        "Girma",
+        "Mulugeta",
+        "Solomon",
+        "Getachew",
+        "Tadesse",
+        "Amanuel",
+        "Eyob",
+        "Fikru"
+      ],
+      "family": [
+        "Tesfaye",
+        "Bekele",
+        "Getachew",
+        "Tadesse",
+        "Girma",
+        "Haile",
+        "Mekonnen",
+        "Alemu",
+        "Abebe",
+        "Kebede",
+        "Desta",
+        "Tsegaye",
+        "Ayele",
+        "Teferi",
+        "Assefa",
+        "Wolde"
+      ],
+      "style": "given_family"
+    },
+    "somali": {
+      "given": [
+        "Abdi",
+        "Ahmed",
+        "Ali",
+        "Hassan",
+        "Hussein",
+        "Mohamed",
+        "Omar",
+        "Yusuf",
+        "Abdullahi",
+        "Ismail",
+        "Ibrahim",
+        "Farah",
+        "Jama",
+        "Warsame",
+        "Bashir",
+        "Osman"
+      ],
+      "family": [
+        "Mohamed",
+        "Ahmed",
+        "Ali",
+        "Hassan",
+        "Omar",
+        "Yusuf",
+        "Abdi",
+        "Farah",
+        "Jama",
+        "Warsame",
+        "Bashir",
+        "Osman",
+        "Adan",
+        "Nur",
+        "Roble",
+        "Guled"
+      ],
+      "style": "given_family"
+    },
+    "southern_african": {
+      "given": [
+        "Sipho",
+        "Thabo",
+        "Themba",
+        "Sibusiso",
+        "Bongani",
+        "Mandla",
+        "Vusi",
+        "Sizwe",
+        "Mpho",
+        "Kabelo",
+        "Lerato",
+        "Tebogo",
+        "Tumelo",
+        "Tshepo",
+        "Lungelo",
+        "Siyabonga"
+      ],
+      "family": [
+        "Dlamini",
+        "Nkosi",
+        "Ndlovu",
+        "Khumalo",
+        "Mokoena",
+        "Molefe",
+        "Mabena",
+        "Mahlangu",
+        "Mthembu",
+        "Maseko",
+        "Sithole",
+        "Zulu",
+        "Dube",
+        "Moyo",
+        "Mhlanga",
+        "Ncube"
+      ],
+      "style": "given_family"
+    },
+    "central_african": {
+      "given": [
+        "Jean",
+        "Alain",
+        "Patrick",
+        "Fabrice",
+        "Serge",
+        "Didier",
+        "Christian",
+        "Cédric",
+        "Joseph",
+        "Emmanuel",
+        "Samuel",
+        "Franck",
+        "André",
+        "Paul",
+        "Michel",
+        "Blaise"
+      ],
+      "family": [
+        "Mbala",
+        "Nsimba",
+        "Mbuyi",
+        "Kabongo",
+        "Tshibangu",
+        "Ilunga",
+        "Mwamba",
+        "Kasongo",
+        "Moke",
+        "Makengo",
+        "Ngoma",
+        "Moukoko",
+        "Nkomo",
+        "Essomba",
+        "Abega",
+        "Ondoa"
+      ],
+      "style": "given_family"
+    },
+    "malagasy": {
+      "given": [
+        "Andry",
+        "Tiana",
+        "Hery",
+        "Faneva",
+        "Fetra",
+        "Toky",
+        "Tahina",
+        "Mamy",
+        "Lova",
+        "Hasina",
+        "Njaka",
+        "Aina",
+        "Solo",
+        "Mickaël",
+        "Tsiory",
+        "Henintsoa"
+      ],
+      "family": [
+        "Rakoto",
+        "Rabe",
+        "Rajaona",
+        "Randrianasolo",
+        "Rakotomalala",
+        "Rasoanaivo",
+        "Randria",
+        "Razanakoto",
+        "Andrianina",
+        "Ravelomanana",
+        "Ramaroson",
+        "Ratsimba",
+        "Ralaivao",
+        "Rafaly",
+        "Razanadrakoto",
+        "Razanamparany"
+      ],
+      "style": "given_family"
+    },
+    "polynesian": {
+      "given": [
+        "Tane",
+        "Manu",
+        "Sione",
+        "Tavita",
+        "Pita",
+        "Ioane",
+        "Malakai",
+        "Viliami",
+        "Sami",
+        "Latu",
+        "Niko",
+        "Mika",
+        "Iosefa",
+        "Paulo",
+        "Sefa",
+        "Toa"
+      ],
+      "family": [
+        "Fetu",
+        "Latu",
+        "Manu",
+        "Tupou",
+        "Taumoepeau",
+        "Tuipulotu",
+        "Vaega",
+        "Tui",
+        "Vea",
+        "Iosefo",
+        "Fale",
+        "Mata",
+        "Moli",
+        "Savelio",
+        "Toma",
+        "Ulu"
+      ],
+      "style": "given_family"
+    },
+    "melanesian": {
+      "given": [
+        "Jone",
+        "Josua",
+        "Peni",
+        "Samu",
+        "Iliesa",
+        "Setareki",
+        "Tevita",
+        "Kini",
+        "Mesake",
+        "Savenaca",
+        "Mosese",
+        "Nemani",
+        "Ratu",
+        "Viliame",
+        "Isikeli",
+        "Meli"
+      ],
+      "family": [
+        "Bale",
+        "Roko",
+        "Koro",
+        "Naivalu",
+        "Tawake",
+        "Ravulo",
+        "Ratu",
+        "Kuru",
+        "Nadro",
+        "Luvu",
+        "Vula",
+        "Vakuru",
+        "Vakacegu",
+        "Naisara",
+        "Sogo",
+        "Tavaga"
+      ],
+      "style": "given_family"
+    },
+    "dzongkha": {
+      "given": [
+        "Jigme",
+        "Tenzin",
+        "Sonam",
+        "Pema",
+        "Karma",
+        "Tshering",
+        "Ugyen",
+        "Kezang",
+        "Wangdi",
+        "Dorji",
+        "Dawa",
+        "Namgay",
+        "Sangay",
+        "Phuntsho",
+        "Kinley",
+        "Jamyang"
+      ],
+      "family": [
+        "Dorji",
+        "Wangchuk",
+        "Namgyel",
+        "Tobgay",
+        "Tshering",
+        "Norbu",
+        "Gyeltshen",
+        "Wangdi",
+        "Rinchen",
+        "Tashi",
+        "Choden",
+        "Gyatso",
+        "Penjor",
+        "Dendup",
+        "Zangpo",
+        "Jamtsho"
+      ],
+      "style": "given_family"
+    },
+    "lao": {
+      "given": [
+        "Somphone",
+        "Khampheng",
+        "Bounmy",
+        "Bounthavy",
+        "Phouthone",
+        "Sengdao",
+        "Anousone",
+        "Souvannasak",
+        "Vannasone",
+        "Manivone",
+        "Khamla",
+        "Bounnhang",
+        "Thongkham",
+        "Sithong",
+        "Phouvong",
+        "Sombath"
+      ],
+      "family": [
+        "Phommasane",
+        "Souvannavong",
+        "Phanthavong",
+        "Keomany",
+        "Sisoulith",
+        "Vongphachanh",
+        "Inthavong",
+        "Chanthavong",
+        "Sengsavang",
+        "Sayavong",
+        "Vongsa",
+        "Sihanath",
+        "Phommalath",
+        "Soulivong",
+        "Intharath",
+        "Keovongsa"
+      ],
+      "style": "given_family"
+    },
+    "divehi": {
+      "given": [
+        "Mohamed",
+        "Ahmed",
+        "Ibrahim",
+        "Ali",
+        "Hassan",
+        "Hussain",
+        "Ismail",
+        "Abdulla",
+        "Yusuf",
+        "Adam",
+        "Fathih",
+        "Nashid",
+        "Shifau",
+        "Ishaq",
+        "Niyaz",
+        "Ziyad"
+      ],
+      "family": [
+        "Rasheed",
+        "Shareef",
+        "Shiham",
+        "Waheed",
+        "Shaheem",
+        "Didi",
+        "Manik",
+        "Zahir",
+        "Naseem",
+        "Latheef",
+        "Shakir",
+        "Shameem",
+        "Fauzee",
+        "Saeed",
+        "Nazeer",
+        "Mahir"
+      ],
+      "style": "given_family"
+    },
+    "nilotic": {
+      "given": [
+        "Deng",
+        "Dut",
+        "Majok",
+        "Ajak",
+        "Bior",
+        "Bol",
+        "Garang",
+        "Kuol",
+        "Mabior",
+        "Maker",
+        "Malual",
+        "Mayen",
+        "Nhial",
+        "Riek",
+        "Tut",
+        "Wek"
+      ],
+      "family": [
+        "Deng",
+        "Dut",
+        "Majok",
+        "Ajak",
+        "Bior",
+        "Bol",
+        "Garang",
+        "Kuol",
+        "Mabior",
+        "Maker",
+        "Malual",
+        "Mayen",
+        "Nhial",
+        "Riek",
+        "Tut",
+        "Wek"
+      ],
+      "style": "given_family"
+    },
+    "kiribati": {
+      "given": [
+        "Beniamino",
+        "David",
+        "Ioane",
+        "Kaiea",
+        "Teburoro",
+        "Taneti",
+        "Anote",
+        "Ieremia",
+        "Tebao",
+        "Tion",
+        "Teatao",
+        "Taomati",
+        "Tebwe",
+        "Teariki",
+        "Tevita",
+        "Toakai"
+      ],
+      "family": [
+        "Tong",
+        "Tabai",
+        "Tito",
+        "Maamau",
+        "Ieremia",
+        "Teannaki",
+        "Onorio",
+        "Teaiwa",
+        "Tebano",
+        "Tamuera",
+        "Tooma",
+        "Baiteke",
+        "Kabure",
+        "Katoa",
+        "Bureimoa",
+        "Reiher"
+      ],
+      "style": "given_family"
+    },
+    "micronesian": {
+      "given": [
+        "David",
+        "John",
+        "Thomas",
+        "Peter",
+        "Joseph",
+        "Elias",
+        "Paul",
+        "James",
+        "Nakamura",
+        "Kuniwo",
+        "Anjain",
+        "Nero",
+        "Rubin",
+        "Tosiwo",
+        "Bailey",
+        "Surangel"
+      ],
+      "family": [
+        "Remengesau",
+        "Whipps",
+        "Toribiong",
+        "Nakamura",
+        "Olkeriil",
+        "Mori",
+        "Panuelo",
+        "Christian",
+        "Falcam",
+        "Nakayama",
+        "Kabua",
+        "Loeak",
+        "Note",
+        "Heine",
+        "Scotty",
+        "Adeang"
+      ],
+      "style": "given_family"
+    },
+    "tuvaluan": {
+      "given": [
+        "Sopoaga",
+        "Kausea",
+        "Feleti",
+        "Toafa",
+        "Maatia",
+        "Enele",
+        "Iakoba",
+        "Ionatana",
+        "Telavi",
+        "Apisai",
+        "Tavau",
+        "Teo",
+        "Loto",
+        "Pita",
+        "Samu",
+        "Ioane"
+      ],
+      "family": [
+        "Sopoaga",
+        "Natano",
+        "Teo",
+        "Toafa",
+        "Italeli",
+        "Ielemia",
+        "Ionatana",
+        "Telavi",
+        "Lautasi",
+        "Paeniu",
+        "Puasau",
+        "Latasi",
+        "Salesi",
+        "Fale",
+        "Taufatofua",
+        "Malo"
+      ],
+      "style": "given_family"
+    },
+    "greenlandic": {
+      "given": [
+        "Malik",
+        "Aputsiaq",
+        "Minik",
+        "Inuk",
+        "Ivik",
+        "Nuka",
+        "Pavia",
+        "Angut",
+        "Kuno",
+        "Jens",
+        "Hans",
+        "Karl",
+        "Lars",
+        "Ole",
+        "Peter",
+        "Mikael"
+      ],
+      "family": [
+        "Lynge",
+        "Rosing",
+        "Motzfeldt",
+        "Egede",
+        "Kleist",
+        "Heilmann",
+        "Lund",
+        "Berthelsen",
+        "Petersen",
+        "Nielsen",
+        "Hansen",
+        "Jensen",
+        "Olsen",
+        "Frederiksen",
+        "Kristiansen",
+        "Poulsen"
+      ],
+      "style": "given_family"
+    }
+  },
+  "nations": [
+    {
+      "id": "england",
+      "name": "England",
+      "region": "Europe",
+      "playable": true,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 100,
+      "cities": [
+        "Bristol",
+        "Liverpool",
+        "Manchester",
+        "Birmingham",
+        "Leeds",
+        "Sheffield",
+        "London",
+        "Newcastle",
+        "Nottingham",
+        "Leicester",
+        "Southampton",
+        "Portsmouth",
+        "Plymouth",
+        "Norwich",
+        "Reading",
+        "York",
+        "Derby",
+        "Oxford",
+        "Cambridge",
+        "Peterborough"
+      ],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "scotland",
+      "name": "Scotland",
+      "region": "Europe",
+      "playable": true,
+      "locales": [
+        {
+          "pool": "scottish",
+          "weight": 100
+        }
+      ],
+      "clubs": 36,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "wales",
+      "name": "Wales",
+      "region": "Europe",
+      "playable": true,
+      "locales": [
+        {
+          "pool": "welsh",
+          "weight": 100
+        }
+      ],
+      "clubs": 24,
+      "cities": [
+        "Cardiff",
+        "Swansea",
+        "Newport",
+        "Wrexham",
+        "Bangor",
+        "St Davids",
+        "Aberystwyth",
+        "Llandudno",
+        "Carmarthen",
+        "Merthyr Tydfil",
+        "Barry",
+        "Caernarfon"
+      ],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "northern-ireland",
+      "name": "Northern Ireland",
+      "region": "Europe",
+      "playable": true,
+      "locales": [
+        {
+          "pool": "irish",
+          "weight": 100
+        }
+      ],
+      "clubs": 24,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "ireland",
+      "name": "Republic of Ireland",
+      "region": "Europe",
+      "playable": true,
+      "locales": [
+        {
+          "pool": "irish",
+          "weight": 100
+        }
+      ],
+      "clubs": 24,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "germany",
+      "name": "Germany",
+      "region": "Europe",
+      "playable": true,
+      "locales": [
+        {
+          "pool": "german",
+          "weight": 100
+        }
+      ],
+      "clubs": 54,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "france",
+      "name": "France",
+      "region": "Europe",
+      "playable": true,
+      "locales": [
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 54,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "spain",
+      "name": "Spain",
+      "region": "Europe",
+      "playable": true,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 54,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "netherlands",
+      "name": "Netherlands",
+      "region": "Europe",
+      "playable": true,
+      "locales": [
+        {
+          "pool": "dutch",
+          "weight": 100
+        }
+      ],
+      "clubs": 36,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "portugal",
+      "name": "Portugal",
+      "region": "Europe",
+      "playable": true,
+      "locales": [
+        {
+          "pool": "portuguese",
+          "weight": 100
+        }
+      ],
+      "clubs": 36,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "italy",
+      "name": "Italy",
+      "region": "Europe",
+      "playable": true,
+      "locales": [
+        {
+          "pool": "italian",
+          "weight": 100
+        }
+      ],
+      "clubs": 54,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "albania",
+      "name": "Albania",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "albanian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "andorra",
+      "name": "Andorra",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "armenia",
+      "name": "Armenia",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "armenian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "austria",
+      "name": "Austria",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "german",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "azerbaijan",
+      "name": "Azerbaijan",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "turkic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "belarus",
+      "name": "Belarus",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "russian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "belgium",
+      "name": "Belgium",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "dutch",
+          "weight": 100
+        },
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "bosnia-and-herzegovina",
+      "name": "Bosnia and Herzegovina",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "balkan",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "bulgaria",
+      "name": "Bulgaria",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "balkan",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "croatia",
+      "name": "Croatia",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "balkan",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "cyprus",
+      "name": "Cyprus",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "greek",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "czechia",
+      "name": "Czechia",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "czech",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "denmark",
+      "name": "Denmark",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "nordic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "estonia",
+      "name": "Estonia",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "baltic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "faroe-islands",
+      "name": "Faroe Islands",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "nordic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "finland",
+      "name": "Finland",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "finnish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "georgia",
+      "name": "Georgia",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "georgian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "gibraltar",
+      "name": "Gibraltar",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "greece",
+      "name": "Greece",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "greek",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "hungary",
+      "name": "Hungary",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "hungarian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "iceland",
+      "name": "Iceland",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "icelandic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "israel",
+      "name": "Israel",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "hebrew",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "kazakhstan",
+      "name": "Kazakhstan",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "turkic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "kosovo",
+      "name": "Kosovo",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "albanian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "latvia",
+      "name": "Latvia",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "baltic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "liechtenstein",
+      "name": "Liechtenstein",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "german",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "lithuania",
+      "name": "Lithuania",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "baltic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "luxembourg",
+      "name": "Luxembourg",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "malta",
+      "name": "Malta",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "moldova",
+      "name": "Moldova",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "romanian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "montenegro",
+      "name": "Montenegro",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "balkan",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "north-macedonia",
+      "name": "North Macedonia",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "balkan",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "norway",
+      "name": "Norway",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "nordic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "poland",
+      "name": "Poland",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "polish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "romania",
+      "name": "Romania",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "romanian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "russia",
+      "name": "Russia",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "russian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "san-marino",
+      "name": "San Marino",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "italian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "serbia",
+      "name": "Serbia",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "balkan",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "slovakia",
+      "name": "Slovakia",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "czech",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "slovenia",
+      "name": "Slovenia",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "balkan",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "sweden",
+      "name": "Sweden",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "nordic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "switzerland",
+      "name": "Switzerland",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "german",
+          "weight": 100
+        },
+        {
+          "pool": "french",
+          "weight": 100
+        },
+        {
+          "pool": "italian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "turkiye",
+      "name": "Türkiye",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "turkish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "ukraine",
+      "name": "Ukraine",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "ukrainian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "argentina",
+      "name": "Argentina",
+      "region": "South America",
+      "playable": true,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 54,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "bolivia",
+      "name": "Bolivia",
+      "region": "South America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "brazil",
+      "name": "Brazil",
+      "region": "South America",
+      "playable": true,
+      "locales": [
+        {
+          "pool": "portuguese",
+          "weight": 100
+        }
+      ],
+      "clubs": 54,
+      "cities": [
+        "Curitiba",
+        "São Paulo",
+        "Rio de Janeiro",
+        "Brasília",
+        "Salvador",
+        "Fortaleza",
+        "Recife",
+        "Porto Alegre",
+        "Manaus",
+        "Belém",
+        "Goiânia",
+        "Santos",
+        "Campinas",
+        "Natal",
+        "Maceió",
+        "João Pessoa",
+        "Vitória",
+        "Florianópolis"
+      ],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "chile",
+      "name": "Chile",
+      "region": "South America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "colombia",
+      "name": "Colombia",
+      "region": "South America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "ecuador",
+      "name": "Ecuador",
+      "region": "South America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "paraguay",
+      "name": "Paraguay",
+      "region": "South America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "peru",
+      "name": "Peru",
+      "region": "South America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "uruguay",
+      "name": "Uruguay",
+      "region": "South America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "venezuela",
+      "name": "Venezuela",
+      "region": "South America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "anguilla",
+      "name": "Anguilla",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "antigua-and-barbuda",
+      "name": "Antigua and Barbuda",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "aruba",
+      "name": "Aruba",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "dutch",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "bahamas",
+      "name": "Bahamas",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "barbados",
+      "name": "Barbados",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "belize",
+      "name": "Belize",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "bermuda",
+      "name": "Bermuda",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "british-virgin-islands",
+      "name": "British Virgin Islands",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "canada",
+      "name": "Canada",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        },
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "cayman-islands",
+      "name": "Cayman Islands",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "costa-rica",
+      "name": "Costa Rica",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "cuba",
+      "name": "Cuba",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "curacao",
+      "name": "Curaçao",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "dutch",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "dominica",
+      "name": "Dominica",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "dominican-republic",
+      "name": "Dominican Republic",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "el-salvador",
+      "name": "El Salvador",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "grenada",
+      "name": "Grenada",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "guatemala",
+      "name": "Guatemala",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "guyana",
+      "name": "Guyana",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "haiti",
+      "name": "Haiti",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "honduras",
+      "name": "Honduras",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "jamaica",
+      "name": "Jamaica",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "mexico",
+      "name": "Mexico",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "montserrat",
+      "name": "Montserrat",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "nicaragua",
+      "name": "Nicaragua",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "panama",
+      "name": "Panama",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "puerto-rico",
+      "name": "Puerto Rico",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "saint-kitts-and-nevis",
+      "name": "Saint Kitts and Nevis",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "saint-lucia",
+      "name": "Saint Lucia",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "saint-vincent-and-the-grenadines",
+      "name": "Saint Vincent and the Grenadines",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "suriname",
+      "name": "Suriname",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "dutch",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "trinidad-and-tobago",
+      "name": "Trinidad and Tobago",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "turks-and-caicos-islands",
+      "name": "Turks and Caicos Islands",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "usa",
+      "name": "USA",
+      "region": "North America",
+      "playable": true,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        },
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 32,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "us-virgin-islands",
+      "name": "US Virgin Islands",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "afghanistan",
+      "name": "Afghanistan",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "persian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "australia",
+      "name": "Australia",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "bahrain",
+      "name": "Bahrain",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "bangladesh",
+      "name": "Bangladesh",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "bengali",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "bhutan",
+      "name": "Bhutan",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "dzongkha",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "brunei",
+      "name": "Brunei",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "malay",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "cambodia",
+      "name": "Cambodia",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "khmer",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "china",
+      "name": "China",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "chinese",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "chinese-taipei",
+      "name": "Chinese Taipei",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "chinese",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "guam",
+      "name": "Guam",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "filipino",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "hong-kong",
+      "name": "Hong Kong",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "chinese",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "india",
+      "name": "India",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "hindi",
+          "weight": 100
+        },
+        {
+          "pool": "tamil",
+          "weight": 100
+        },
+        {
+          "pool": "bengali",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "indonesia",
+      "name": "Indonesia",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "indonesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "iran",
+      "name": "Iran",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "persian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "iraq",
+      "name": "Iraq",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "japan",
+      "name": "Japan",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "japanese",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "jordan",
+      "name": "Jordan",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "kuwait",
+      "name": "Kuwait",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "kyrgyzstan",
+      "name": "Kyrgyzstan",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "turkic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "laos",
+      "name": "Laos",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "lao",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "lebanon",
+      "name": "Lebanon",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "macau",
+      "name": "Macau",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "chinese",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "malaysia",
+      "name": "Malaysia",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "malay",
+          "weight": 100
+        },
+        {
+          "pool": "chinese",
+          "weight": 100
+        },
+        {
+          "pool": "tamil",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "maldives",
+      "name": "Maldives",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "divehi",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "mongolia",
+      "name": "Mongolia",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "mongolian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "myanmar",
+      "name": "Myanmar",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "burmese",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "nepal",
+      "name": "Nepal",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "nepali",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "north-korea",
+      "name": "North Korea",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "korean",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "oman",
+      "name": "Oman",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "pakistan",
+      "name": "Pakistan",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "urdu",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "palestine",
+      "name": "Palestine",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "philippines",
+      "name": "Philippines",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "filipino",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "qatar",
+      "name": "Qatar",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "saudi-arabia",
+      "name": "Saudi Arabia",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "singapore",
+      "name": "Singapore",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "chinese",
+          "weight": 100
+        },
+        {
+          "pool": "malay",
+          "weight": 100
+        },
+        {
+          "pool": "tamil",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "south-korea",
+      "name": "South Korea",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "korean",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "sri-lanka",
+      "name": "Sri Lanka",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "sinhalese",
+          "weight": 100
+        },
+        {
+          "pool": "tamil",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "syria",
+      "name": "Syria",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "tajikistan",
+      "name": "Tajikistan",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "persian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "thailand",
+      "name": "Thailand",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "thai",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "timor-leste",
+      "name": "Timor-Leste",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "portuguese",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "turkmenistan",
+      "name": "Turkmenistan",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "turkic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "united-arab-emirates",
+      "name": "United Arab Emirates",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "uzbekistan",
+      "name": "Uzbekistan",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "turkic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "vietnam",
+      "name": "Vietnam",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "vietnamese",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "yemen",
+      "name": "Yemen",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "algeria",
+      "name": "Algeria",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "angola",
+      "name": "Angola",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "portuguese",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "benin",
+      "name": "Benin",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "yoruba",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "botswana",
+      "name": "Botswana",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "southern_african",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "burkina-faso",
+      "name": "Burkina Faso",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "wolof",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "burundi",
+      "name": "Burundi",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "swahili",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "cameroon",
+      "name": "Cameroon",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "central_african",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "cabo-verde",
+      "name": "Cabo Verde",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "portuguese",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "central-african-republic",
+      "name": "Central African Republic",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "central_african",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "chad",
+      "name": "Chad",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "comoros",
+      "name": "Comoros",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "swahili",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "congo",
+      "name": "Congo",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "central_african",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "dr-congo",
+      "name": "DR Congo",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "central_african",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "cote-divoire",
+      "name": "Côte d’Ivoire",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "akan",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "djibouti",
+      "name": "Djibouti",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "somali",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "egypt",
+      "name": "Egypt",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "equatorial-guinea",
+      "name": "Equatorial Guinea",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "spanish",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "eritrea",
+      "name": "Eritrea",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "amharic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "eswatini",
+      "name": "Eswatini",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "southern_african",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "ethiopia",
+      "name": "Ethiopia",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "amharic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "gabon",
+      "name": "Gabon",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "central_african",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "gambia",
+      "name": "Gambia",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "wolof",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "ghana",
+      "name": "Ghana",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "akan",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "guinea",
+      "name": "Guinea",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "wolof",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "guinea-bissau",
+      "name": "Guinea-Bissau",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "wolof",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "kenya",
+      "name": "Kenya",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "swahili",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "lesotho",
+      "name": "Lesotho",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "southern_african",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "liberia",
+      "name": "Liberia",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "libya",
+      "name": "Libya",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "madagascar",
+      "name": "Madagascar",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "malagasy",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "malawi",
+      "name": "Malawi",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "swahili",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "mali",
+      "name": "Mali",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "wolof",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "mauritania",
+      "name": "Mauritania",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "mauritius",
+      "name": "Mauritius",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "hindi",
+          "weight": 100
+        },
+        {
+          "pool": "french",
+          "weight": 100
+        },
+        {
+          "pool": "tamil",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "morocco",
+      "name": "Morocco",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "mozambique",
+      "name": "Mozambique",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "portuguese",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "namibia",
+      "name": "Namibia",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "southern_african",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "niger",
+      "name": "Niger",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "hausa",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "nigeria",
+      "name": "Nigeria",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "yoruba",
+          "weight": 100
+        },
+        {
+          "pool": "igbo",
+          "weight": 100
+        },
+        {
+          "pool": "hausa",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "rwanda",
+      "name": "Rwanda",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "swahili",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "sao-tome-and-principe",
+      "name": "São Tomé and Príncipe",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "portuguese",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "senegal",
+      "name": "Senegal",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "wolof",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "seychelles",
+      "name": "Seychelles",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "sierra-leone",
+      "name": "Sierra Leone",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "somalia",
+      "name": "Somalia",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "somali",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "south-africa",
+      "name": "South Africa",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "southern_african",
+          "weight": 100
+        },
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "south-sudan",
+      "name": "South Sudan",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "nilotic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "sudan",
+      "name": "Sudan",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "tanzania",
+      "name": "Tanzania",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "swahili",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "togo",
+      "name": "Togo",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "akan",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "tunisia",
+      "name": "Tunisia",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "arabic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "uganda",
+      "name": "Uganda",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "swahili",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "zambia",
+      "name": "Zambia",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "swahili",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "zimbabwe",
+      "name": "Zimbabwe",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "southern_african",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "american-samoa",
+      "name": "American Samoa",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "polynesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "cook-islands",
+      "name": "Cook Islands",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "polynesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "fiji",
+      "name": "Fiji",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "melanesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "new-caledonia",
+      "name": "New Caledonia",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "new-zealand",
+      "name": "New Zealand",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "papua-new-guinea",
+      "name": "Papua New Guinea",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "melanesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "samoa",
+      "name": "Samoa",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "polynesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "solomon-islands",
+      "name": "Solomon Islands",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "melanesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "tahiti",
+      "name": "Tahiti",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "polynesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "tonga",
+      "name": "Tonga",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "polynesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "vanuatu",
+      "name": "Vanuatu",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "melanesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool"
+    },
+    {
+      "id": "monaco",
+      "name": "Monaco",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "vatican-city",
+      "name": "Vatican City",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "italian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "guernsey",
+      "name": "Guernsey",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "jersey",
+      "name": "Jersey",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "isle-of-man",
+      "name": "Isle of Man",
+      "region": "Europe",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "kiribati",
+      "name": "Kiribati",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "kiribati",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "marshall-islands",
+      "name": "Marshall Islands",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "micronesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "micronesia",
+      "name": "Micronesia",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "micronesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "nauru",
+      "name": "Nauru",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "micronesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "palau",
+      "name": "Palau",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "micronesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "tuvalu",
+      "name": "Tuvalu",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "tuvaluan",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "niue",
+      "name": "Niue",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "polynesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "wallis-and-futuna",
+      "name": "Wallis and Futuna",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "polynesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "tokelau",
+      "name": "Tokelau",
+      "region": "Oceania",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "polynesian",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "northern-mariana-islands",
+      "name": "Northern Mariana Islands",
+      "region": "Asia",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "filipino",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "greenland",
+      "name": "Greenland",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "greenlandic",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "guadeloupe",
+      "name": "Guadeloupe",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "martinique",
+      "name": "Martinique",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "saint-martin",
+      "name": "Saint Martin",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "sint-maarten",
+      "name": "Sint Maarten",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "dutch",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "bonaire",
+      "name": "Bonaire",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "dutch",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "saint-barthelemy",
+      "name": "Saint Barthélemy",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "saint-pierre-and-miquelon",
+      "name": "Saint Pierre and Miquelon",
+      "region": "North America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "french-guiana",
+      "name": "French Guiana",
+      "region": "South America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "falkland-islands",
+      "name": "Falkland Islands",
+      "region": "South America",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "reunion",
+      "name": "Réunion",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "french",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "mayotte",
+      "name": "Mayotte",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "swahili",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    },
+    {
+      "id": "saint-helena",
+      "name": "Saint Helena",
+      "region": "Africa",
+      "playable": false,
+      "locales": [
+        {
+          "pool": "english",
+          "weight": 100
+        }
+      ],
+      "clubs": 2,
+      "cities": [],
+      "coverage": "authored starter pool; international competition entry separate"
+    }
+  ]
+}

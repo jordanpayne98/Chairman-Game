@@ -6,10 +6,10 @@ from .planning import dated, forecast
 from .presentation import crest
 
 
-TITLES = {'Overview': "Chairman’s overview", 'Inbox': 'Decision centre', 'Squad': 'First-team squad',
+TITLES = {'Reputation': 'Reputation & career evidence', 'Overview': "Chairman’s overview", 'Inbox': 'Decision centre', 'Squad': 'First-team squad',
           'Recruitment': 'Recruitment', 'Facilities': 'Stadium & facilities', 'League': 'Competitions',
           'CupHistory': 'Archived domestic cup', 'Cup': 'Domestic cup', 'Career': 'Club history & career', 'Comparison': 'Player comparison'}
-DESCRIPTIONS = {'Overview': 'Your club, your decisions. Here’s what needs your attention.',
+DESCRIPTIONS = {'Reputation': 'Public achievements, gradual change and a dated explanation for every review.', 'Overview': 'Your club, your decisions. Here’s what needs your attention.',
     'Squad': 'Contracts, registration and availability. Selection belongs to your manager.',
     'Recruitment': 'Build your shortlist with evidence, context and clear commitments.',
     'Finances': 'Inspect cash, commitments and forecasts before making your next decision.',
@@ -144,7 +144,7 @@ class ExecutiveScreens:
         self.panel(914,560,422,214)
         self.text('THE OWNERSHIP GAME',938,587,16,GREEN)
         self.wrap('Appoint the people.\nMake the big decisions.\nLeave a lasting club.',938,627,370,29,TEXT)
-        self.text('BACKGROUND REVIEWS 0.15',104,820,16,FAINT)
+        self.text('CLUB DYNAMICS 0.27',104,820,16,FAINT)
         self.text('Single-country scenarios / Development build',914,820,16,FAINT)
 
     def executive_overview(self,x):
@@ -156,7 +156,7 @@ class ExecutiveScreens:
         metrics=[('AVAILABLE CASH',money(v['cash']),'Operating reserve '+money(v['terms']['operating_buffer'])),
             ('WAGE BUDGET',f"{v['payroll']/v['budget']:.0%}" if v['budget'] else 'No budget',money(v['payroll'])+' / '+money(v['budget'])+' per week'),
             ('LEAGUE POSITION',f"{pos} / {len(v['table'])}",f"{own['points']} points · {own['played']} played"),
-            ('SUPPORTER MOOD',mood,f"Support {v['supporters']} / 100 · Morale {v['morale']}")]
+            ('SUPPORTER MOOD',mood,f"Squad: {v['mood']['squad']['band']} / {v['mood']['squad']['concerns']} concerns")]
         for i,(label,value,detail) in enumerate(metrics):
             left=x+i*(w+15);self.panel(left,200,w,113)
             self.text(label,left+17,215,16,MUTED);self.text(value,left+17,240,38,GREEN if i==3 else TEXT)
@@ -258,6 +258,8 @@ class ExecutiveScreens:
                 self.text('One-off cost '+money(d['cost']),detail+40,y+68,18,MUTED)
                 self.button('Review required decision',(detail+24,689,265,43),self.review_owner_decision)
                 self.button('Decline',(detail+308,689,130,43),lambda:self.confirm('Decline this decision?',d['title']+' will be declined with no approval payment.',lambda:self.command('decision',choice='decline')))
+            elif n['title']=='Club dynamics review':
+                self.button('Review club dynamics',(detail+24,689,265,43),lambda:(self.nav('Squad'),setattr(self,'tab','Dynamics'),setattr(self,'page',0)))
             elif attention(v):
                 item=attention(v)[0];self.button('Review contract',(detail+24,689,215,43),lambda:self.business_attention(item))
         else:self.wrap('No messages yet. Career news and outcomes will appear here.',detail+24,290,dw-48,26)
@@ -359,7 +361,8 @@ class ExecutiveScreens:
             self.text('Membership is fixed for this season. Results determine next season’s division.',x+15,714,20,MUTED)
         levels=self.v['detail']['levels'];reduced=sum(levels[c['id']]=='reduced' for c in rows)
         info=f"Club reviews: {reduced} reduced / {len(rows)-reduced} detailed. Routine reduced reviews every {self.v['detail']['routine_days']} days; urgent reviews weekly."
-        self.clipped_text(info,x+15,749,1100,16,MUTED)
+        self.clipped_text(info,x+15,749,850,16,MUTED)
+        self.button('World calendar',(1180,738,220,36),lambda:(setattr(self,'tab','World calendar'),setattr(self,'page',0)))
         self.pager(x,781,len(rows),8)
         self.button('Your division',(x+465,781,170,42),lambda:(setattr(self,'league_id',data['own_division']),setattr(self,'page',0)))
         self.button('Fixtures & reports',(x+650,781,230,42),lambda:self.nav('Fixtures'))

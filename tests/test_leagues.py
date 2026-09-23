@@ -34,7 +34,7 @@ class DivisionTests(unittest.TestCase):
     def test_schedules_world_and_original_identities(self):
         s=new_career(42);ds=s['leagues']['divisions']
         self.assertEqual([len(d['members']) for d in ds],[8,8])
-        self.assertEqual(len(s['players']),300)
+        self.assertEqual(len(s['players']),444)
         self.assertEqual(s['players'][144]['id'],'p144');self.assertIsNone(s['players'][144]['club'])
         self.assertEqual([sum(f.get('division')==d['id'] for f in s['fixtures']) for d in ds],[56,56])
         self.assertEqual(len(s['competitions']['cup']['rounds'][0]['entrants']),16)

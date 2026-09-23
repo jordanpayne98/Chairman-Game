@@ -4,6 +4,7 @@ Employment and eligibility are separate. Loan returns preserve employment even
 when there is no list place; they never silently displace another registration.
 """
 from copy import deepcopy
+from . import world_calendar
 
 DEFAULTS = dict(name='Northshire League', senior_limit=25, exempt_under=21,
                 minimum_age=16, non_homegrown_limit=17, loan_limit=5,
@@ -40,7 +41,7 @@ def reserved(s,cid,exclude=None):
 
 def capacity_errors(s,cid,players):
     cfg=s['config']['competition']
-    senior=[p for p in players if p['age']>=cfg['exempt_under']]
+    senior=[p for p in players if world_calendar.age(s,p)>=cfg['exempt_under']]
     result=[]
     if len(senior)>cfg['senior_limit']:result.append(f"The senior list allows {cfg['senior_limit']} players aged {cfg['exempt_under']} or over.")
     if sum(not p['homegrown'] for p in senior)>cfg['non_homegrown_limit']:result.append('The non-homegrown allowance is full.')
@@ -92,6 +93,8 @@ def reason(s,p,cid,opponent=None,day=None):
     if p['injury_until']>day:return 'Injured'
     if p['discipline']['ban']>0:return f"Suspended: {p['discipline']['ban']} match(es)"
     if p['condition']<35:return 'Not match fit'
+    recovery=world_calendar.recovery_reason(s,p,day)
+    if recovery:return recovery
     if opponent and not cfg['loan_against_parent']:
         from .market import active_loan
         loan=active_loan(s,p['id'])
@@ -121,8 +124,10 @@ def apply(s,action,data):
 def snapshot(s):
     from .career import window_end
     own=list_players(s,'c0');cfg=s['config']['competition']
-    senior=[p for p in own if p['age']>=cfg['exempt_under']]
+    senior=[p for p in own if world_calendar.age(s,p)>=cfg['exempt_under']]
     return dict(rules=deepcopy(cfg),players=list(s['registration']['c0']),
+                ages={p['id']:world_calendar.age(s,p) for p in s['players'] if p['club']=='c0'},
+                cutoff=s.get('world_calendar',{}).get('cutoffs',{}).get(str(s['career']['season'])),
                 senior=len(senior),exempt=len(own)-len(senior),non_homegrown=sum(not p['homegrown'] for p in senior),
                 reserved=len(reserved(s,'c0')),deadline=window_end(s))
 

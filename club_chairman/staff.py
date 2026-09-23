@@ -65,6 +65,10 @@ def add_club_staff(s,clubs):
                 notice_weeks=4,availability=100,reputation=60,autonomy='Advisory',pending=None,
                 workload=0,morale=60,objectives=[],history=[],risk=rng.choice(('Cautious','Balanced','Ambitious'))))
             enrich(s,s['staff']['people'][-1])
+            if 'world_population' in s['config']:
+                from . import identities
+                identities.stamp(s,s['staff']['people'][-1],c.get('nation'))
+                s['staff']['people'][-1].update(birth_day=s['day']-rng.randint(30,59)*365,lifecycle_year=s['day']//365,retired=False)
 
 
 
@@ -153,10 +157,24 @@ def capability(s,cid,key,default=50):
 
 
 def process_day(s):
-    from .simulation import news
+    from .simulation import news,rng_for
     from . import delegation
     day=s['day']
     for p in s['staff']['people']:
+        if 'birth_day' in p:p['age']=max(0,(day-p['birth_day'])//365)
+        if p.get('retired'):continue
+        if 'lifecycle_year' in p and day//365>p['lifecycle_year']:
+            p['lifecycle_year']=day//365;rng=rng_for(s['seed'],f"staff-life:{p['id']}:{day//365}")
+            if p['age']>=64 and (p['age']>=70 or rng.random()<.2+(p['age']-64)*.12):
+                old=p['club'];p.update(retired=True,club=None,wage=0,pending=None)
+                if p['id'] in s['staff']['offers']:s['staff']['offers'][p['id']]['status']='ended'
+                s['staff']['history'].append(dict(day=day,person=p['id'],kind='retired',club=old))
+                if old=='c0':news(s,'Staff retirement',p['name']+' has retired. Uncovered responsibilities return to the owner.')
+                continue
+            if p['age']<55 and p['club'] and rng.random()<.55:
+                k=rng.choice(CAPABILITIES);p['capabilities'][k]=min(100,p['capabilities'][k]+1)
+            elif p['age']>=64 and rng.random()<.5:
+                k=rng.choice(CAPABILITIES);p['capabilities'][k]=max(1,p['capabilities'][k]-1)
         pending=p['pending']
         if pending and pending['start']<=day:
             old=p['club'];p.update(club=pending['club'],wage=pending['wage'],start=day,end=pending['end'],autonomy=pending['autonomy'],pending=None)
@@ -183,6 +201,7 @@ def apply(s,action,data):
     from . import market,delegation
     require(s['match'] is None,'Staff employment changes pause during matchday.')
     p=person(s,data.get('id'));cfg=s['config']['staff'];store=s['staff'];day=s['day']
+    require(not p.get('retired'),'This staff member has retired.')
     if action=='staff_shortlist':
         if p['id'] in store['shortlist']:store['shortlist'].remove(p['id'])
         else:store['shortlist'].append(p['id'])

@@ -79,7 +79,7 @@ class QolInterfaceTests(unittest.TestCase):
 
     def test_career_contracts_projects_and_keyboard_explanations(self):
         a=self.app;a.command('budget',value=4000000)
-        self.click('Staff');self.click('Review Alex Rowan');self.click('Confirm')
+        self.click('Staff');self.click('Review '+a.v['manager_candidates'][0]["name"]);self.click('Confirm')
         self.click('Recruitment');a.open_profile('p144');self.click('Negotiate contract')
         self.assertEqual(a.screen,'Contracts');self.click('+',0)
         draft=dict(a.offer_draft);self.click('Finances');self.click('Contracts')
@@ -89,11 +89,11 @@ class QolInterfaceTests(unittest.TestCase):
         self.click('Continue  >');self.click('Continue  >')
         self.click('Review completion');self.click('Confirm')
         self.assertEqual(next(p for p in a.v['players'] if p['id']=='p144')['club'],'c0')
-        self.click('Staff');self.click('Review Morgan Vale');self.click('Confirm')
+        self.click('Staff');self.click('Review '+a.v['manager_candidates'][1]["name"]);self.click('Confirm')
         self.assertEqual(a.v['manager']['id'],'m1')
         self.click('Academy');self.click('Arrange annual trials');self.click('Confirm')
         self.click('Review admission',0);self.click('Confirm')
-        self.assertEqual(sum(p['club']=='c0' and p['youth'] for p in a.v['players']),1)
+        self.assertEqual(sum(p['club']=='c0' and p['youth'] for p in a.v['players']),10)
         self.click('Facilities');self.click('Commission proposal',0);self.click('Confirm')
         self.click('Cancel proposal');self.click('Confirm')
         self.assertEqual(a.v['career']['projects'][0]['status'],'cancelled')
