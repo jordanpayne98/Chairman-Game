@@ -26,7 +26,6 @@ jobs:
       - run: python -m club_chairman --self-test
       - run: python -m club_chairman --smoke
   windows-build:
-    needs: test
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
