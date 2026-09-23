@@ -46,7 +46,7 @@ class NationalTests(unittest.TestCase):
     def test_national_membership_fixture_counts_and_squads(self):
         for id,count,size,exchange in (('england',100,20,3),('wales',24,12,2),('brazil',54,18,2)):
             s=new_career(42,id);validate(s)
-            self.assertEqual(len(s['clubs']),count+8);self.assertEqual(len(s['players']),(count+8)*18+12)
+            self.assertEqual(len(s['clubs']),count+8);self.assertEqual(len(s['players']),(count+8)*18+12+144)
             if id=='brazil':self.assertEqual(s['clubs'][1]['city'],'São Paulo')
             self.assertEqual(s['leagues']['exchange'],exchange)
             self.assertEqual(sum(not f.get('knockout') for f in s['fixtures']),count*(size-1)+56)

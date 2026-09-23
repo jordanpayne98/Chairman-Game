@@ -69,14 +69,15 @@ class CareerScreens(ClauseScreens):
         p=next(p for p in self.v['players'] if p['id']==o['player'])
         if self.offer_draft is None:self.offer_draft={k:o[k] for k in ('wage','fee','duration')}
         for key,value in clause_terms(o).items():self.offer_draft.setdefault(key,value)
+        self.offer_draft.setdefault('playing_role',o.get('playing_role'))
         editable=not archived and o['status'] in ('draft','counter','agreed')
         terms=self.offer_draft if editable else o
         details=review(self.v,o,terms if editable else None)
         accepted=review(self.v,o)
         self.button('< Discussions',(x,190,185,42),lambda:(setattr(self,'offer_id',None),setattr(self,'offer_archive',None),setattr(self,'offer_draft',None),setattr(self,'page',0)))
         self.text(p['name']+' / '+o['status'].upper()+(' / ARCHIVED' if archived else ''),x+205,202,27,GREEN)
-        for i,label in enumerate(('Terms','Cash review','Conversation','Clauses')):
-            self.button(('• ' if self.offer_tab==label else '')+label,(x+i*190,244,180,40),lambda label=label:self.offer_section(label))
+        for i,label in enumerate(('Terms','Cash review','Conversation','Clauses','Player interest','Playing time')):
+            self.button(('• ' if self.offer_tab==label else '')+label,(x+i*170,244,162,40),lambda label=label:self.offer_section(label))
         stages=('Personal terms','Conditional acceptance','Medical review','Registration')
         stage={'draft':0,'counter':0,'agreed':1,'medical':2,'ready':3,'completed':4}.get(o['status'],-1)
         width=(1400-x)/4
@@ -85,6 +86,21 @@ class CareerScreens(ClauseScreens):
             pygame.draw.rect(self.canvas,GREEN if i<stage else (47,62,70),(left,303,width-10,3))
             self.text(str(i+1)+'. '+label,left,316,20,GREEN if i==stage else MUTED)
         if self.offer_tab=='Clauses':self.draw_offer_clauses(x,o,terms,editable)
+        elif self.offer_tab=='Playing time':self.draw_role_offer(x,o,terms,editable)
+        elif self.offer_tab=='Player interest':
+            rep=self.v['reputation'];personal=rep['players'][p['id']];club=rep['clubs']['c0']
+            league=rep['leagues'][self.v['leagues']['own_division']]
+            self.panel(x,360,1400-x,335,'Agent feedback / last recorded review')
+            interest=o.get('interest')
+            lines=[f"Domestic standing: player {personal['value']}/100; your club {club['value']}/100; division {league['value']}/100. Standing now develops through dated evidence. See Career > Reputation and player profiles; football ability remains separate."]
+            if interest:
+                lines+=['Review dated '+dated(self.v,interest['day'])+'. '+reason for reason in interest['reasons']]
+                lines.append(interest['opportunity'])
+                lines.append('Feedback describes the last reviewed package. Unsent edits have no consent; submit a proposal for a new response.')
+            else:lines.append('This discussion predates contextual interest. Its existing consent is retained; new discussions use the current policy.')
+            page=min(self.page,max(0,(len(lines)-1)//3));self.page=page;y=410
+            for line in lines[page*3:page*3+3]:y=self.wrap(line,x+24,y,1350-x,22,TEXT)+20
+            self.pager(x,706,len(lines),3)
         elif self.offer_tab=='Conversation':
             self.panel(x,360,1400-x,335,'Offer history / oldest first')
             lines=o['transcript'];page=min(self.page,max(0,(len(lines)-1)//3));self.page=page
@@ -228,6 +244,7 @@ class CareerScreens(ClauseScreens):
         change=next((m for m in v['leagues']['movements'] if m['club']=='c0'),None)
         if change:self.text(change['kind']+' at next season preparation',x+570,424,21,GREEN)
         self.button('Review squad contracts',(x+260,408,280,44),lambda:self.nav('Squad'))
+        self.button('Reputation',(1190,470,205,38),lambda:self.reputation_open())
         self.text('SEASON HISTORY',x,486,21,MUTED)
         history=list(reversed(v['career']['history']))
         for i,h in enumerate(history[self.page*4:self.page*4+4]):
@@ -275,12 +292,14 @@ class CareerScreens(ClauseScreens):
         self.pager(x,780,len(fixtures),1)
 
     def draw_academy(self,x):
+        if self.tab=='Pathways':self.draw_pathways(x);return
+        self.button('Pathways',(875,190,220,44),lambda:self.development_tab('tab','Pathways'))
         v=self.v;owned=[p for p in v['players'] if p['youth'] and p['club']=='c0' and not p['retired']]
         candidates=[p for p in v['players'] if p['youth'] and p['club'] is None and not p['retired']]
         self.text(f"ACADEMY / Level {v['career']['facilities']['academy']} / {len(owned)} enrolled",x,202,26,GREEN)
         self.button('Arrange annual trials',(1120,190,280,44),lambda:self.confirm('Commission academy trials',f"Pay {money(v['career_settings']['academy_trial_fee'])} for this year’s six regional candidates. Reports are uncertain. Each admission needs a separate review. Candidates are available until this compact season ends; trials cannot be rerolled.",lambda:self.command('academy_intake')),v['day']//365 not in v['career']['intakes'] and not v['match'])
         self.wrap('Coaches review young players every 28 days. Better training improves opportunities; it cannot guarantee development. Promotion is available from age 16.',x,254,1100,23)
-        rows=owned+candidates
+        rows=candidates+owned
         for i,p in enumerate(rows[self.page*5:self.page*5+5]):
             y=331+i*85;self.panel(x,y,1400-x,74);portrait(self.canvas,p['id'],p['age'],(x+10,y+7,49,59))
             self.text(p['name']+f" / {p['role']} / {p['age']}",x+78,y+13,25)

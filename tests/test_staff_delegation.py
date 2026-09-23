@@ -122,6 +122,20 @@ class StaffDelegationTests(unittest.TestCase):
         self.assertTrue(any(d['status']=='completed' for d in self.s['club_ai']['decisions']))
         validate(self.s)
 
+    def test_delegated_academy_intake_initialises_all_identity_systems(self):
+        self.hire_staff();self.assign('academy')
+        count=len(self.s['players']);cash=self.s['cash']
+        delegation.perform(self.s,'academy','academy_intake',{},'Assess this annual cohort.')
+        self.assertEqual(len(self.s['players']),count+6)
+        self.assertEqual(cash-self.s['cash'],self.s['config']['career']['academy_trial_fee'])
+        for p in self.s['players'][count:]:
+            self.assertEqual(p['development']['group'],'Youth')
+            self.assertIn(p['id'],self.s['recruitment']['players'])
+        validate(self.s)
+        before=deepcopy(self.s)
+        with self.assertRaises(ValueError):delegation.perform(self.s,'academy','academy_intake',{},'Duplicate request.')
+        self.assertEqual(before,self.s)
+
     def test_ai_cannot_spend_owed_bills_or_exceed_payroll_authority(self):
         for a in self.s['market']['accounts'].values():
             a['ledger'].append(dict(id='fixture:reduce',day=0,amount=-a['cash'],reason='Test',balance=0));a['cash']=0

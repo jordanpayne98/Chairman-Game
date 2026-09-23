@@ -20,7 +20,7 @@ class InterfaceTests(unittest.TestCase):
                 self.assertEqual(len(found),1,label);rect,enabled=found[0];self.assertTrue(enabled,label)
                 point=(round(rect.centerx*app.scale+app.offset[0]),round(rect.centery*app.scale+app.offset[1]))
                 app.event(pygame.event.Event(pygame.MOUSEBUTTONDOWN,button=1,pos=point))
-            click('New career');click('Confirm');click('Staff');click('Review Alex Rowan');click('Confirm')
+            click('New career');click('Confirm');click('Staff');click('Review '+app.v['manager_candidates'][0]["name"]);click('Confirm')
             self.assertIsNotNone(app.state['manager'])
             click('Recruitment');app.profile='p144';click('Request scouting');click('Confirm')
             click('Overview')

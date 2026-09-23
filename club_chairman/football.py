@@ -1,7 +1,7 @@
 """Saved possession engine: rules, manager changes and one auditable event stream."""
 from copy import deepcopy
 import math
-from . import people, registration, managers as manager_model, manager_selection, preparation
+from . import people, registration, managers as manager_model, manager_selection, preparation, playing_time, morale, dynamics
 
 DEFAULTS=dict(actions_per_minute=1, foul_rate=.18, yellow_rate=.19, red_rate=.003,
               injury_rate=.003, penalty_rate=.045, condition_cost=.19,
@@ -65,6 +65,9 @@ def start(s,f):
         m['manager_plan']=manager_model.plan(s)
         m['risk'][own]=m['manager_plan']['baseline']
     preparation.snapshot(s,m)
+    playing_time.snapshot(s,m)
+    morale.kickoff(s,m)
+    dynamics.snapshot(s,m)
     for pid in a+b:ensure_stats(m,pid)
     under=[len(ids)<s['config']['competition']['minimum_players'] for ids in (a,b)]
     if any(under):
@@ -222,6 +225,7 @@ def action(s,m,rng):
     if (m['home'] if side==0 else m['away'])=='c0' and s['manager'] and 'manager_plan' not in m:
         advantage+=(s['manager']['skill']-62)*.12
     advantage+=preparation.edge(m,side)-preparation.edge(m,other)
+    advantage+=dynamics.edge(m,side,attacker['id'])-dynamics.edge(m,other,defender['id'])
     if rng.random()<probability(attack+edge+advantage+10,defence,cfg['action_scale']):
         m['completed_passes'][side]+=1;m['stats'][attacker['id']]['completed']+=1;m['zone']=min(2,m['zone']+1)
         if m['zone']==2:event(m,'progression',attacker['name']+' finds space in the attacking third.',side=side,player=attacker['id'])
@@ -277,6 +281,7 @@ def step(s,m):
     offset={'first_half':0,'second_half':45,'extra_first':90,'extra_second':105}[m['phase']]
     reg=offset+m['phase_length'];local=m['phase_minute']
     m['clock']=str(offset+local) if local<=m['phase_length'] else f"{reg}+{local-m['phase_length']}"
+    dynamics.tick(m)
     by_id={p['id']:p for p in s['players']}
     for pid in sum(m['on_pitch'],[]):
         p=by_id[pid];ensure_stats(m,pid);m['stats'][pid]['minutes']+=1
@@ -311,6 +316,8 @@ def settle_players(s,m):
     for pid in m['served_bans']:by_id[pid]['discipline']['ban']=max(0,by_id[pid]['discipline']['ban']-1)
     for pid,stat in m['stats'].items():
         p=by_id[pid];p['development']['minutes']+=stat['minutes']
+        from . import pathways
+        pathways.record_senior(s,p,stat['minutes'])
         if stat['minutes']:p['sharpness']=min(100,p['sharpness']+stat['minutes']*.06)
     for pid,number in m['cards'].items():
         p=by_id[pid];p['discipline']['yellows']+=number
@@ -322,4 +329,4 @@ def settle_players(s,m):
 
 
 def public_match(m):
-    return {k:deepcopy(v) for k,v in m.items() if k not in ('rng','served_bans','new_bans','manager_plan')}
+    return {k:deepcopy(v) for k,v in m.items() if k not in ('rng','served_bans','new_bans','manager_plan','playing_time_snapshot','mood_expectations','dynamics')}

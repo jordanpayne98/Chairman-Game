@@ -4,7 +4,7 @@ All commands run inside Simulation's copy-on-commit transaction. Public quotes
 are persisted; opening a screen never rerolls a counterparty response.
 """
 from copy import deepcopy
-from . import clauses, registration, contract_terms, loan_clauses, transfer_rights
+from . import clauses, registration, contract_terms, loan_clauses, transfer_rights, recruitment
 
 DEFAULTS = dict(asking_multiple=3,minimum_squad=14,minimum_goalkeepers=1,
                 ai_opening_cash=35000000,ai_weekly_income=3000000,ai_weekly_overheads=350000,
@@ -217,7 +217,7 @@ def apply(s,action,data):
         if kind=='loan':require(days>=cfg['minimum_loan_days'],'Employment expires too soon for this loan.')
         s['market']['deals'][key]=dict(id=key,player=p['id'],kind=kind,source=source,target=target,status='quote',fee=price,
             upfront=price,defer_days=28,share=100,end=end,days=days,wage_cost=p['wage'],rounds=0,expires=min(day+cfg['quote_days'],window_end(s)),
-            transcript=[f"Club: Proposed {kind}. Fee £{price/100:,.0f}. The player will review employment or temporary placement separately."])
+            interest_policy=1,transcript=[f"Club: Proposed {kind}. Fee £{price/100:,.0f}. The player will review employment or temporary placement separately."])
         return 'Club discussion opened. No money, employment or registration has changed.'
     if action=='loan_recall':
         l=next((l for l in s['market']['loans'] if l['id']==data.get('id') and l['status']=='active'),None)
@@ -301,6 +301,15 @@ def apply(s,action,data):
     if d['kind']=='loan':registration.check_arrival(s,p,d['target'],is_loan=True)
     if action=='market_accept':
         require(d['status']=='quote','This deal has already been accepted.')
+        if d['kind']=='sale' and d.get('interest_policy'):
+            from .career import contractual_end
+            d['employment_end']=contractual_end(s,2)
+            d.setdefault('consent_day',day)
+            result=recruitment.check(s,p,d['target'],p['wage'],d['employment_end'],d.get('consent_day'))
+            d['transcript'].extend(result['reasons'])
+        if d['kind']=='loan' and d.get('interest_policy') and d.get('purchase_kind','none')!='none':
+            d.setdefault('consent_day',day)
+            recruitment.check(s,p,d['target'],d['purchase_wage'],d['purchase_end'],d.get('consent_day'))
         if d['kind']=='sale' and transfer_rights.notify(s,d):return 'First refusal notified. Wait for the holder’s response in Transfers > Rights.'
         require(day+cfg['medical_days']<=d['expires'],'Medical checks cannot finish before this offer expires.')
         require(s['manager'] is not None,'Appoint a manager first.')
@@ -328,6 +337,9 @@ def apply(s,action,data):
         b=budgets(s,d['target'])
         require(club_payroll(s,d['target'])+wages<=b['wage_limit'],'The receiving club’s payroll authority changed.')
         require(club_cash(s,d['target'])-fees-b['bills']>=b['reserve'],'The receiving club must retain its committed cash cover.')
+    if d['kind']=='sale' and d.get('interest_policy'):recruitment.check(s,p,d['target'],p['wage'],d['employment_end'],d.get('consent_day'))
+    if d['kind']=='loan' and d.get('interest_policy') and d.get('purchase_kind','none')!='none':
+        recruitment.check(s,p,d['target'],d['purchase_wage'],d['purchase_end'],d.get('consent_day'))
     transfer_cash(s,d['id']+':fee',d['target'],d['source'],d['fee'],'Loan fee' if d['kind']=='loan' else 'Player transfer')
     if d['kind']=='loan':
         if d.get('days') is not None:d['end']=day+d['days']
@@ -336,7 +348,7 @@ def apply(s,action,data):
         s['market']['loans'].append(dict(id=d['id'],player=p['id'],source=d['source'],target=d['target'],start=day,end=d['end'],share=d['share'],fee=d['fee'],status='active',**{k:v for k,v in d.items() if k.startswith('purchase_')},purchase_fixtures=[]))
     else:
         from .career import contractual_end
-        d['employment_end']=contractual_end(s,2)
+        d['employment_end']=d.get('employment_end') or contractual_end(s,2)
         clauses.complete_sale(s,d)
         p['contract_end']=d['employment_end']
     p['club']=d['target'];d.update(status='completed',completed=day)

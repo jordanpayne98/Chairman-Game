@@ -19,7 +19,7 @@ class ManagerInterfaceTests(unittest.TestCase):
         a.state['day']=28;a.v=view(a.state);seen.clear();before=json.dumps(a.state,sort_keys=True);a.render()
         self.assertTrue(any(v.startswith('Stale') for v in seen));self.assertEqual(before,json.dumps(a.state,sort_keys=True))
         self.click('Refresh manager assessment');self.click('Back to manager office')
-        self.click('Review Alex Rowan');self.click('Confirm');self.click('Manager profile',0);seen.clear();a.render()
+        self.click('Review '+a.v['manager_candidates'][0]["name"]);self.click('Confirm');self.click('Manager profile',0);seen.clear();a.render()
         self.assertIn('Club access',seen);self.assertTrue(any(v.startswith('Current ability') for v in seen))
 
 

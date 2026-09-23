@@ -36,7 +36,7 @@ class FootballScreens:
         name=self.shortlist_name()
         self.button('List: '+(name if len(name)<=19 else name[:18]+'…'),(970,389,235,38),self.open_shortlists)
         tabs=('Attributes','Goalkeeping','Development','Contract')
-        active=self.profile_tab if self.profile_tab in tabs else 'Attributes'
+        active=self.profile_tab if self.profile_tab in tabs+('Reputation','Playing time','Morale','Relationship') else 'Attributes'
         for i,label in enumerate(tabs):
             self.button(('• ' if active==label else '')+label,(x+i*180,389,170,38),lambda label=label:setattr(self,'profile_tab',label))
         if active in ('Attributes','Goalkeeping'):
@@ -79,6 +79,17 @@ class FootballScreens:
                 self.button('Load: '+load,(right+20,548,310,42),lambda:self.cycle_training(p,'load'),not self.v['match'])
                 self.wrap('Plans guide weekly development. Intense training adds fatigue; lighter work supports recovery. Minutes and coaching matter. Potential is an uncertain outlook.',right+20,611,1360-right,23)
             else:self.wrap('The employing club controls this player’s development plan. Scouting can improve your evidence without changing their ability.',right+20,495,1360-right,25)
+        elif active=='Relationship':
+            self.draw_relationship(x,p)
+            return
+        elif active=='Morale':
+            self.draw_morale(x,p)
+            return
+        elif active=='Playing time':
+            self.draw_playing_time(x,p)
+            return
+        elif active=='Reputation':
+            self.reputation_detail(x,441,1400-x,340,self.v['reputation']['players'][p['id']])
         else:
             self.panel(x,441,650,313,'Employment and public record')
             self.text(money(p['wage'])+' / week',x+20,488,30,GREEN)
@@ -86,7 +97,11 @@ class FootballScreens:
             self.text('Contract: '+end,x+20,532,24)
             self.text(f"This season: {p['appearances']} appearances / {p['goals']} goals",x+20,577,23)
             self.text(f"Earlier seasons: {p['career_appearances']} appearances / {p['career_goals']} goals",x+20,620,23)
-            self.wrap('Registration, wages and medical eligibility are distinct. Signing a contract never guarantees selection.',x+20,668,600,22)
+            standing=self.v['reputation']['players'][p['id']]
+            self.text(f"Domestic reputation {standing['value']}/100 / reviewed "+dated(self.v,standing['day']),x+20,661,22,MUTED)
+            self.button('Reputation history',(x+20,703,240,36),lambda:(setattr(self,'profile_tab','Reputation'),setattr(self,'reputation_page',0)))
+            if p['club']=='c0' or any(r['player']==p['id'] for r in self.v['playing_time']['history']):
+                self.button('Playing time',(x+280,703,190,36),lambda:(setattr(self,'profile_tab','Playing time'),setattr(self,'page',0)))
             right=x+665;self.panel(right,441,1400-right,313,'Terms and planning')
             if p.get('loan'):
                 loan=p['loan'];body='On loan from '+self.club(loan['source'])+' until '+dated(self.v,loan['end'])+'. Wage share '+str(loan['share'])+'%.'
@@ -94,6 +109,8 @@ class FootballScreens:
             elif p['club']:body='Club asking fee '+money(p['transfer_quote'])+'. Personal terms and signing fee require separate agreement.'
             else:body='Indicative signing fee '+money(p['fee'])+'. Negotiate personal terms, pass the medical review and confirm registration.'
             self.wrap(body,right+20,487,1360-right,24)
+            if p['club']=='c0':
+                self.button('Morale and support',(right+20,591,260,38),lambda:(setattr(self,'profile_tab','Morale'),setattr(self,'page',0)))
             self.wrap(self.v['planning']['notes'].get(p['id']) or 'No private note yet.',right+20,645,1360-right,22,MUTED)
         self.button('Private note',(1220,389,180,38),lambda:self.open_note(p['id']))
         if p['club']=='c0':
@@ -102,7 +119,7 @@ class FootballScreens:
             self.button('Review loan',(x+460,794,195,44),lambda:self.outgoing_open(p['id'],'loan'),not self.v['match'] and not p.get('loan') and not p['youth'])
         else:
             due=p['scout_due'];terms=self.v['terms']
-            self.button('Request scouting',(x,794,210,44),lambda:self.confirm('Commission scouting',f"Spend {money(terms['scout_fee'])} to assess {p['name']}? Report due {dated(self.v,self.v['day']+terms['scout_days'])}. Current ratings become exact on completion; potential stays uncertain.",lambda:self.command('scout',id=p['id'])),not due and (not report or report['day']<self.v['day']) and not self.v['match'] and not self.v['season_done'])
+            self.button('Request scouting',(x,794,210,44),lambda:self.confirm('Commission scouting',f"Spend {money(p['scout_quote']['cost'])} to assess {p['name']}? Report due {dated(self.v,p['scout_quote']['due'])}. Starts {dated(self.v,p['scout_quote']['start'])}. Current ratings become exact on completion; potential stays uncertain.",lambda:self.command('scout',id=p['id'])),not due and (not report or report['day']<self.v['day']) and not self.v['match'] and not self.v['season_done'])
             if p['club'] is None:self.button('Negotiate contract',(x+225,794,220,44),lambda:self.contract_open(p['id']),not self.v['match'] and not p['retired'] and self.v['day']<=self.v['window_end'])
             else:
                 self.button('Club enquiry',(x+225,794,195,44),lambda:self.market_open('club_enquire',p['id']),not self.v['match'] and not p.get('loan'))
@@ -124,16 +141,16 @@ class FootballScreens:
         if self.registration_draft is None:self.registration_draft=list(r['players'])
         self.registration_draft=[pid for pid in self.registration_draft if pid in {p['id'] for p in own}]
         selected=[p for p in own if p['id'] in self.registration_draft]
-        senior=sum(p['age']>=cfg['exempt_under'] for p in selected)
+        senior=sum(r['ages'][p['id']]>=cfg['exempt_under'] for p in selected)
         self.panel(x,245,1400-x,113,'Competition registration')
         self.text(f"Senior places {senior} / {cfg['senior_limit']}   |   U{cfg['exempt_under']} exempt {len(selected)-senior}   |   Reserved arrivals {r['reserved']}",x+20,289,25,GREEN)
-        self.text('Unlisted players remain employed and paid. Injuries, suspensions and loan restrictions still apply.',x+20,331,20,MUTED)
+        self.text(('Age cutoff '+dated(v,r['cutoff'])+'. Unlisted players remain employed and paid.') if r['cutoff'] is not None else 'Legacy season: current-age rules retained. Unlisted players remain employed and paid.',x+20,331,20,MUTED)
         editable=v['day']<=r['deadline'] and not v['match'] and not v['season_done']
         self.page=min(self.page,max(0,(len(own)-1)//7))
         for i,p in enumerate(own[self.page*7:self.page*7+7]):
             y=378+i*55;self.panel(x,y,1400-x,50)
             self.text(p['name']+' / '+p['role'],x+15,y+8,24)
-            self.text(('U21 exempt' if p['age']<cfg['exempt_under'] else 'Senior place')+' / '+('Homegrown' if p['homegrown'] else 'Non-homegrown'),x+15,y+32,17,MUTED)
+            self.text(('U21 exempt' if r['ages'][p['id']]<cfg['exempt_under'] else 'Senior place')+' / '+('Homegrown' if p['homegrown'] else 'Non-homegrown'),x+15,y+32,17,MUTED)
             self.text((p['availability'] or f"Available / condition {p['condition']:.0f}%")[:42],x+470,y+18,21,RED if p['availability'] else MUTED)
             self.button('Remove' if p['id'] in self.registration_draft else 'Include',(1240,y+5,145,40),lambda pid=p['id']:self.toggle_registration(pid),editable)
         self.pager(x,786,len(own),7)

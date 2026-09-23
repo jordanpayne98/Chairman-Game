@@ -131,7 +131,7 @@ class TransferRightsTests(unittest.TestCase):
         for k in ('right_notice_days','buyback_discount','refusal_discount','release_profiles','ai_buyout_multiple'):old['config']['clauses'].pop(k)
         before=deepcopy(old);up=migrate(old);self.assertEqual(old,before)
         self.assertEqual(up['players'],old['players']);self.assertEqual(up['clauses']['employment'],old['clauses']['employment'])
-        self.assertEqual(up['schema'],20);self.assertEqual(migrate(up),up)
+        self.assertEqual(up['schema'],29);self.assertEqual(migrate(up),up)
 
     def test_cancelled_underlying_offer_invalidates_matched_consent_and_releases_money(self):
         self.sell(first_refusal=True);n=self.bid();self.act('refusal_match',id=n['id'])

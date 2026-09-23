@@ -1,6 +1,6 @@
 """Compact-club decisions constrained by observed ability and real accounts."""
 from copy import deepcopy
-from . import market,registration,staff,people,clauses,detail,transfer_rights
+from . import market,registration,staff,people,clauses,detail,transfer_rights,recruitment,playing_time
 
 DEFAULTS=dict(review_days=7,medical_days=2,target_squad=19,max_squad=20,
               reserve_weeks=3,payroll_income_percent=90,upgrade_margin=5)
@@ -57,6 +57,7 @@ def process_day(s):
             if p['club']!=d['source'] or p['retired'] or p['youth'] or market.active_loan(s,p['id']):raise ValueError('Player availability changed.')
             if day>min(window_end(s),d.get('expires',window_end(s))):raise ValueError('Registration or consent deadline closed.')
             transfer_rights.check_exit(s,p,dict(d,target=cid))
+            if d.get('interest_policy'):recruitment.check(s,p,cid,d['wage'],d['end'],d['day'],playing_role=d.get('playing_role'))
             other=market.active_deal(s,p['id'])
             notice=next((n for n in s['clauses']['notices'] if n['id']==d.get('notice_id')),None)
             if other and not (notice and notice['origin_id']==other['id']):raise ValueError('A competing club agreement now requires priority review.')
@@ -78,6 +79,7 @@ def process_day(s):
         market.post(s,cid,d['id']+':signing',-d['signing_fee'],'Player signing fee: '+p['name'])
         previous={p['id']:p['club']};p.update(club=cid,wage=d['wage'],contract_end=d['end'])
         transfer_rights.ai_employment(s,p,cid,p['wage'],p['contract_end'],d['id'])
+        playing_time.sign(s,p,cid,d.get('playing_role'),d['id'])
         registration.sync(s,{q['id']:previous.get(q['id'],q['club']) for q in s['players']})
         d.update(status='completed',completed=day,outcome='Consents, medical, cash, payroll and registration rechecked; employment and fee settled.')
         log(s,cid,'registration',d['reason'],player=p['id'],fee=d['fee']+d['signing_fee'])
@@ -98,6 +100,7 @@ def process_day(s):
         squad=[p for p in s['players'] if p['club']==cid and not p['retired'] and not p['youth']]
         if not detail.review_due(s,cid,squad):continue
         s['club_ai']['last_review'][cid]=day;b=budgets(s,cid)
+        recruitment_context=recruitment.roster_context(s)
         for role in ('Executive','Football director','Coaching'):
             if any(p['club']==cid and p['role']==role for p in s['staff']['people']):continue
             candidates=[p for p in s['staff']['people'] if p['club'] is None and not p['pending'] and p['role']==role and (p['id'] not in s['staff']['offers'] or s['staff']['offers'][p['id']]['status'] in staff.CLOSED)]
@@ -114,6 +117,7 @@ def process_day(s):
         for p in squad:
             if p['contract_end']-day>28 or market.active_loan(s,p['id']):continue
             if market.club_payroll(s,cid)+b['wages']<=b['wage_limit'] and market.club_cash(s,cid)-b['fees']-b['bills']>=b['reserve']:
+                if not recruitment.assess(s,p,cid,p['wage'],contractual_end(s,3),recruitment_context)['acceptable']:continue
                 p['contract_end']=contractual_end(s,3)
                 employment=s['clauses']['employment'].get(p['id'])
                 if employment and employment['employer']==cid:employment['end']=p['contract_end']
@@ -139,7 +143,7 @@ def process_day(s):
             if p['club'] and p['id'] not in releasable and not exit_terms:continue
             if exit_terms:
                 wage=p['wage']*110//100;end=max(end,p['contract_end']+1)
-                if not transfer_rights.personal_accepts(p,wage,end,day):continue
+            if not recruitment.assess(s,p,cid,wage,end,recruitment_context)['acceptable']:continue
             if current_cash-fee-signing-b['fees']-b['bills']<b['reserve']+wage*cfg['reserve_weeks']:continue
             if current_payroll+wage+b['wages']>b['wage_limit']:continue
             # Candidates have no active deal, bid or target-club employment.
@@ -160,9 +164,10 @@ def process_day(s):
         candidates.sort(key=lambda x:(-x[0],x[1]['id']));best=candidates[0][0]
         options=[x for x in candidates[:3] if best-x[0]<=3]
         _,p,fee,signing,estimate,wage,end,exit_terms=rng_for(s['seed'],f'ai-choice:{cid}:{day}').choice(options)
+        role='Rotation' if playing_time.credibility(s,p,cid,'Rotation')[0] else None
         ident=f"ai:{cid}:{day}:{p['id']}"
         s['club_ai']['decisions'].append(dict(id=ident,club=cid,player=p['id'],source=p['club'],day=day,due=day+cfg['medical_days'],status='medical',
-            fee=fee,signing_fee=signing,wage=wage,end=end,target=cid,upfront=fee,**exit_terms,
+            fee=fee,signing_fee=signing,wage=wage,end=end,target=cid,upfront=fee,interest_policy=1,playing_role=role,**exit_terms,
             reason=f"Observed role fit ({estimate}/100 estimate), squad cover and affordable guaranteed costs. Conditional player/club consent; medical and final checks pending.",outcome=None))
         if p['club']:
             try:transfer_rights.notify(s,s['club_ai']['decisions'][-1],origin_kind='ai')

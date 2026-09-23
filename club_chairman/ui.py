@@ -12,6 +12,10 @@ import pygame
 from .simulation import Command, MANAGERS, execute, new_career, view
 from .persistence import SaveStore, SaveError, load, user_directory
 from .career_ui import CareerScreens
+from .reputation_ui import ReputationScreens
+from .playing_time_ui import PlayingTimeScreens
+from .morale_ui import MoraleScreens
+from .dynamics_ui import DynamicsScreens
 from .business_ui import BusinessScreens
 from .football_ui import FootballScreens
 from .navigation import NavigationScreens
@@ -30,11 +34,14 @@ WIDTH,HEIGHT=1440,900
 def money(v):return f'£{v/100:,.0f}'
 
 
-class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
+from .development_ui import DevelopmentScreens
+from .world_ui import WorldScreens
+
+class App(WorldScreens,DevelopmentScreens,DynamicsScreens,MoraleScreens,PlayingTimeScreens,ReputationScreens,ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
     def __init__(self,save_root=None):
         pygame.display.init();pygame.font.init()
         self.window=pygame.display.set_mode((1280,800),pygame.RESIZABLE)
-        pygame.display.set_caption('Club Chairman — Background Reviews 0.15')
+        pygame.display.set_caption('Club Chairman — Club Dynamics 0.27')
         self.canvas=pygame.Surface((WIDTH,HEIGHT))
         self.fonts={};self.inbox_selection=None;self.inbox_reader_page=0;self.inbox_reader_key=None;self._nav_style=None;self._inbox_style=None
         self.state=None;self.v=None;self.screen='Home';self.buttons=[];self.focus=0;self.running=True
@@ -49,6 +56,7 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
         self.market_scope='Free agents';self.market_id=None;self.market_draft=None;self.market_tab='Deals'
         self.outgoing_player=None;self.outgoing_kind='sale';self.sponsor_right=None;self.sponsor_draft=None
         self.profile_tab='Attributes';self.registration_draft=None
+        self.reputation_kind='clubs';self.reputation_entity='c0';self.reputation_page=0
         self.staff_tab='Manager';self.staff_person=None;self.staff_draft=None;self.staff_scope='Candidates';self.staff_role='All roles'
         self.responsibility=None;self.authority_draft=None;self.staff_league=False
         self.key_events_only=False;self.offer_id=None;self.offer_draft=None;self.offer_tab='Terms';self.offer_archive=None;self.history_season=None;self.load_cache=None
@@ -128,7 +136,7 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
         self.help_regions.append((r,label+' — '+self.control_help(label,enabled),idx))
 
     def position(self):
-        return {key:getattr(self,key) for key in ('screen','page','inbox_selection','profile','search','role','sort','descending','only_shortlist','tab','match_report','profile_ids','offer_id','offer_draft','offer_tab','offer_archive','history_season','market_scope','market_id','market_draft','market_tab','outgoing_player','outgoing_kind','sponsor_right','sponsor_draft','profile_tab','registration_draft','staff_tab','staff_person','staff_draft','staff_scope','staff_role','responsibility','authority_draft','staff_league')}
+        return {key:getattr(self,key) for key in ('screen','page','inbox_selection','profile','search','role','sort','descending','only_shortlist','tab','match_report','profile_ids','offer_id','offer_draft','offer_tab','offer_archive','history_season','market_scope','market_id','market_draft','market_tab','outgoing_player','outgoing_kind','sponsor_right','sponsor_draft','profile_tab','registration_draft','staff_tab','staff_person','staff_draft','staff_scope','staff_role','responsibility','authority_draft','staff_league','reputation_kind','reputation_entity','reputation_page')}
 
     def restore_position(self,position):
         for key,value in position.items():
@@ -156,6 +164,7 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
         self.market_scope='Free agents';self.market_id=None;self.market_draft=None;self.market_tab='Deals';self.outgoing_player=None;self.outgoing_kind='sale';self.sponsor_right=None;self.sponsor_draft=None
         self.notification_log=[];self.message_seen='';self.offer_id=None;self.offer_draft=None;self.offer_tab='Terms';self.offer_archive=None;self.history_season=None;self.last_score=None;self.goal_until=0
         self.profile_tab='Attributes';self.registration_draft=None
+        self.reputation_kind='clubs';self.reputation_entity='c0';self.reputation_page=0
         self.screen='Home';self.page=0;self.profile=None;self.search='';self.role='All';self.sort='Name'
         self.descending=False;self.only_shortlist=False;self.match_report=None;self.profile_ids=[];self.tab='Forecast'
 
@@ -336,9 +345,12 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
     def draw_staff(self,x):StaffScreens.draw_staff(self,x)
 
     def draw_squad(self,x):
-        if self.tab=='Registration' and not self.profile:self.registration_screen(x)
+        if self.tab=='Dynamics' and not self.profile:self.draw_dynamics(x)
+        elif self.tab=='Registration' and not self.profile:self.registration_screen(x)
         else:self.player_table(x,False)
-    def draw_recruitment(self,x):self.player_table(x,True)
+    def draw_recruitment(self,x):
+        if self.tab=='Scouting' and not self.profile:self.draw_scouting(x)
+        else:self.player_table(x,True)
 
     def filtered_players(self):
         return player_rows(self.v,self.screen=='Recruitment',self.search,self.role,self.only_shortlist,self.sort,self.descending,self.market_scope)
@@ -361,7 +373,9 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
             self.button('Saved targets' if self.only_shortlist else 'Market: '+self.market_scope,(x+395,246,235,38),lambda:self.filter_change('market_scope',scopes[(scopes.index(self.market_scope)+1)%3]),not self.only_shortlist)
             name=self.shortlist_name()
             self.button('Lists: '+(name if len(name)<=20 else name[:19]+'…'),(1080,246,320,38),self.open_shortlists)
-        self.text(f'{len(rows)} results',x+650,257,22,MUTED)
+        if recruitment:self.button('Scouting desk',(x+650,246,175,38),self.open_scouting)
+        else:self.text(f'{len(rows)} results',x+650,257,22,MUTED)
+        if not recruitment:self.button('Club dynamics',(x+395,246,210,38),lambda:(setattr(self,'tab','Dynamics'),setattr(self,'page',0)))
         if not recruitment:self.button('Registration',(1200,246,200,38),lambda:(setattr(self,'tab','Registration'),setattr(self,'page',0)))
         pygame.draw.rect(self.canvas,RAISED,(x,298,1400-x,38),border_radius=4)
         self.text('NAME / ROLE',x+15,309,18,MUTED);self.text('WAGE / WEEK',x+395,309,18,MUTED)
@@ -500,7 +514,9 @@ class App(ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessS
         reserve_y=round(y+h-(f['reserve']-lo)/(hi-lo)*h)
         for dx in range(0,round(plot_w),10):pygame.draw.line(self.canvas,MUTED,(plot_x+dx,reserve_y),(min(plot_x+plot_w,plot_x+dx+4),reserve_y))
 
-    def draw_league(self,x):self.division_screen(x)
+    def draw_league(self,x):
+        if self.tab=='World calendar':self.draw_world_calendar(x)
+        else:self.division_screen(x)
 
     def draw_cup(self,x):self.cup_screen(x)
 

@@ -52,7 +52,7 @@ class PlanningTests(unittest.TestCase):
                 db.execute('INSERT INTO entities VALUES (?,?)',('world',raw));db.commit()
             finally:db.close()
             original=path.read_bytes();upgraded=load(path)
-            self.assertEqual(path.read_bytes(),original);self.assertEqual(upgraded['schema'],20)
+            self.assertEqual(path.read_bytes(),original);self.assertEqual(upgraded['schema'],29)
             original_finish,_=execute(self.s,Command('end',self.s['revision'],'match_skip',{}))
             loaded_finish,_=execute(upgraded,Command('end',upgraded['revision'],'match_skip',{}))
             for key in ('fixtures','cash','clubs','players','ledger'):
@@ -73,6 +73,7 @@ class PlanningTests(unittest.TestCase):
         self.assertNotIn('attrs',json.dumps(ordered))
 
     def test_forecast_reconciles_actual_settlements_including_partial_week(self):
+        self.act('fund')  # Fund actual payroll while this fixture removes gate income.
         # Remove only uncertain gate receipts; the cash settlement schedule stays real.
         self.s['config']['capacity']=0
         self.act('budget',value=4000000);self.act('hire',id='m0');self.advance(4)

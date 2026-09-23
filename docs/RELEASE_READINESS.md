@@ -1,8 +1,113 @@
 # Club Chairman release readiness
 
-Implementation tracking against the **approved living GDD revision 0.3**. This is an engineering checklist, not a replacement design document, new design approval or a reduced release scope. The full AA game is **not release-ready**. No percentage-complete claim is made.
+Implementation tracking against the attached living GDD revision 0.18. Earlier milestone entries below are historical; the latest development checkpoint records current implementation evidence. This is an engineering checklist, not a replacement design document or design approval. The full AA game is not release-ready.
 
-## Current gameplay scope: Competitions Update 0.10
+## Batch 3 requirement register — GDD 0.18
+
+### Execution order — systems across all fourteen nations
+
+Jordan's 23 September direction: work horizontally across every playable nation for each system, including domestic cups as one cross-nation batch. Preserve existing identities and reusable services. The later GDD 0.18 approval replaces national league structures with shared English profiles; it does not complete the implementation gates.
+
+| Pass | Coverage required across all playable nations |
+|---|---|
+| 1. League structures | Five shared English tier profiles across every approved national depth; sizes, points, table ties, promotion/relegation, playoffs, feeder boundaries, national season windows and dated sources |
+| 2. Domestic cups | All applicable senior cups and supporting competitions; entrant pools, entry rounds, draw/venue rules, match resolution, calendar windows, awards and qualification routes; explicitly sourced inactive competitions |
+| 3. Registration and regulation | Transfer windows, squad/loan/homegrown/foreign-player rules, eligibility exceptions, licensing and financial monitoring |
+| 4. Opening world population | Named fictional clubs, supporting pools, squads/staff and current facilities/finances; initial memberships and seeding, without pre-game results or biographies |
+| 5. Continental and international access | Complete competition definitions, named eligible opening participants, access slots, holder/duplicate resolution and future outcome-based qualification |
+| 6. Integration and final gate | Career scheduling, simulation, cash, persistence, inbox/calendar/UI and one final regression/build gate |
+
+Each pass uses a fourteen-nation coverage matrix and separately records researched, defined, implemented, integrated and verified status. Any missing source or unresolved exception remains a named blocker; never invent rules or mark a whole pass complete because its schema exists. Work through the cross-nation pass before returning to isolated country polish. Next active pass: league structures for all fourteen nations at their approved depths.
+
+The living GDD revision 0.18 approves English league rules by equivalent tier across all fourteen nations. One division per playable level gives 38 divisions and 856 senior league places: 20 per top tier and 24 per lower tier. National registration, employment, financial and ownership rules, domestic cups and continental competitions remain separate. Calendar dates must be reconciled with the new match counts; this is not an approval of identical dates worldwide. Existing careers keep their saved rules.
+
+### Shared league structure pass — CONTENT-047
+
+`data/production_rules_2026.json` holds five versioned shared profiles and 38 national instances. Validation rejects profile drift, extra regional divisions, closed-pyramid overrides, missing profile references and lost bottom-tier feeder boundaries. Current Premier League, EFL and FA handbooks support expanded table, access, playoff-pairing, cessation and feeder definitions. Separate playoff match provisions, National League additions and narrow table interpretations remain open; see `docs/ENGLISH_LEAGUE_RULE_DETAILS.md`. Approval of the adaptation does not certify those gaps. All structures remain PARTIAL and unintegrated with careers.
+
+Completed-fixture standings and an access preview now run for the same profiles in all fourteen nations. They preserve unresolved ties and refuse to guess who crosses an automatic promotion/relegation boundary or receives an EFL playoff seed. Association rulings are explicit inputs. Disciplinary end-of-table decisions, playoff deciders, eligibility, calendar integration and actual careers remain pending; the preview does not certify a finished league pass.
+
+Recorded 42-match EFL disciplinary assessments can now resolve the next published tie stage; missing evidence blocks ordering. An authored calendar plan can be checked against 38/46 full rounds, national windows and blocked dates. Ordinary cross-division and background-feeder exchanges conserve actual named clubs and refuse unrecorded playoff/eligibility decisions. These conditional services do not supply missing national dates or identities, resolve licensing/vacancy exceptions, or create the current National League playoff format. All 38 active divisions still have empty production calendars, opening membership lists and playoff brackets, with pending feeder boundaries. Pass 1 remains open.
+
+| Nations | Depth each | Divisions | Senior places |
+|---|---:|---:|---:|
+| England | 5 | 5 | 116 |
+| Germany, France, Spain, Italy, Scotland, Brazil, Argentina | 3 | 21 | 476 |
+| Netherlands, Portugal, Ireland, Northern Ireland, Wales, USA | 2 | 12 | 264 |
+| Total | — | 38 | 856 |
+
+The former 43 national league definitions and opening league allocations are retained in `data/reference_national_leagues_2026.json` as superseded research and legacy service fixtures. They are not active production definitions or pre-game sporting history. National split, conference, period-title, Apertura/Clausura and relegation-average formats no longer block the shared league design. The former proposed USL second-level choice is superseded by the approved open two-tier model.
+
+All 284 existing Welsh club identities remain. New league membership lists are deliberately unallocated until the opening-world pass reconciles 20/24 places and feeder pools. The previous cup snapshot, admission facts and reusable services are retained, but cup cohorts and continental nominations require revalidation against the changed memberships. The old Welsh cup builder now refuses to overwrite shared-model data. Empty or stale allocations remain production blockers; they are not replaced by invented past promotions.
+
+Verification: CONTENT-046 passed 31 focused shared-standings, shared-rule, league-structure and content checks; CONTENT-045 passed 13 focused checks and profile-drift validation. The preceding CONTENT-044 passed 65 focused checks across shared rules, legacy access, content, entries, cups and qualification. These cover 20/24-club balanced fixtures, all fourteen depth mappings, drift rejection, preserved legacy playoff behavior and atomic refusal of the old cup builder. No new playable build is claimed. The production gate remains blocked; blocker counts are diagnostics, not progress percentages.
+
+CONTENT-047 additionally passed 35 focused shared-table, national-calendar-validator, ordinary-exchange, existing league and content checks. Those include synthetic season results and named memberships across all fourteen nations. The production audit still reports 593 blockers across Batch 3 and related content; this count is diagnostic, not a Pass 1 percentage. The missing source and authored-input requirements are named in `docs/ENGLISH_LEAGUE_RULE_DETAILS.md`.
+
+Pass 1 remains active: finish the five English profiles and their result-driven table/access paths, then reconcile each national calendar and feeder boundary. Continue the all-nation cup pass next. Population and career integration retain their later pass order. The compact development population catalogue and existing career scenarios remain unchanged and do not certify the 856-place production world.
+
+| Requirement | Design | Rule/content evidence | Behaviour and UI | Persistence and checks | Remaining gate |
+|---|---|---|---|---|---|
+| World people and careers | Confirmed | Partial: fictional pool and names, no calibrated national distributions | Partial: background ageing, development, free recruitment, employed background purchases and public histories | World lifecycle and same-ID fee checks; snapshot persists | Detailed rosters, origins, bidirectional employed market, staff succession, calibration and long-run scale |
+| Domestic national calendars and registration | Confirmed | Partial: shared league profiles plus provisional compact/England/Wales/Brazil scenarios | Partial: domestic fixtures, cup and youth calendars; shared English profiles not integrated | Focused schedule checks; no 14-nation integration | Complete shared tier sources, windows, exceptions/playoffs, state competition reconciliation and licensing |
+| Continental and world club tournaments | Confirmed | Missing: full entrant/access and supporting-club allocations | Missing | Missing | Verified format versions, all entrants, duplicate/holder resolution and multi-season qualifier graph |
+| National teams and international tournaments | Confirmed | Missing: full qualifying, eligibility and window records | Missing | Missing | Selection, releases, travel, fatigue, caps, results and return in same careers |
+| Shared inbox/calendar and world news | Confirmed | Design specified in chapters 22, 26, 37–39 | Partial: existing message list and calendar lists; world cycle counts shown | Message-specific actions, reminders and deadline persistence missing | IC01–IC08 and connected transfer/competition source events |
+| Integrated Batch 3 gate | Confirmed | Incomplete | Incomplete | No final regression or Windows build | AF-C01–05, full-world/long-run performance and content validation |
+
+## Earlier design requirement — GDD 0.13 inbox and calendar
+
+Design recorded; implementation pending. The expanded chairman inbox requires per-message unread/workflow state, searchable filtered archives, structured reports, threads, source-specific decisions, delegation tracking, bookmarks/notes, configurable briefings and followed-person/club/competition news. Background nationalities and careers remain eligible for public news regardless of playable-league status, with digests and subscriptions controlling volume.
+
+The shared calendar requires agenda/day, week, month and season/year views; football, contract, financial and project dates; authoritative deadline and event details; provisional/rescheduled status; congestion visibility; linked inbox actions and persistent reminders. Continue must respect the last valid mandatory decision opportunity even when its message is read, archived, muted or snoozed. Migration must preserve known history without inventing actions or past events.
+
+The current plain-text inbox, aggregate read boundary, global decision controls and fixture/calendar lists do not satisfy this scope. Implement common event/message/reminder services and core screens alongside Batch 3, then connect business/project and multi-club sources in their respective batches. All IC01–IC08 acceptance cases remain pending, including selected-message correctness, deadline protection, save/resume, background-person news, rescheduling, calendar consistency, permissions and accessibility/history scale. See DESIGN-013 for the reviewed document and implementation gaps. At that design checkpoint the game was version 0.30; Batch 3 is still open.
+
+## Current update — 0.30 / Batch 3 living world population
+
+Implemented: 239 nationality identities independent of playable leagues; 68 RNG name pools for initial people and later player/staff entrants; 81,039 fully populated background people in the compact opening world; persistent monthly careers, contracts, movement, development/decline, injuries, retirement and annual generation; public country/person/history browser; identity-preserving recruitment entry for unattached players and staff; schema-29 migration preserving old identities and requiring explicit background-world creation. See PLAY-030 for exact evidence and provisional policies. The living GDD revision 0.12 records Jordan's nationality/naming/lifecycle clarification and remains distinct from implementation status.
+
+Verification: focused world and affected-flow checks, a genuine predecessor mid-match migration comparison, five-year reduced-world turnover, a 13-month full-population pass with ledger validation and actual Pygame visual inspection. Final Windows/Linux regression and packaging remain pending. No full-batch or long-run calibration pass is claimed.
+
+Remaining Batch 3 scope: employed international transfers; connected national calendars and continental/international competition/qualification graphs; national-team release/return and registration; full detailed domestic rosters and richer career histories. Wider name pools, national economic/population calibration, full manager succession and efficient cancellable monthly processing remain open. Current compact/England/Wales/Brazil scenarios are development scenarios; the fourteen-nation inventory is not fourteen playable career modes. No Windows update has been published.
+
+## Current update — 0.29 / Batch 3 calendar and population groundwork
+
+Implemented: recovery-safe development scheduling against senior fixtures and all potential cup rounds; configured blackout enforcement; visible scheduling diagnostics; frozen youth and senior-exemption ages; development-to-senior recovery guard; population reconciliation evidence with retained identities; read-only calendar/population UI; schema-28 migration deferring new rules until the next season.
+
+Batch 3 is NOT complete. Connected active/background national worlds, continental and international tournament/qualification graphs, national-team release/return timelines, competition-specific continental registration and sustainable full-scale rosters remain open. Current shipped scenarios remain isolated domestic pyramids. Existing supporting-club detail policy is unchanged. Supporting-region identities and complete qualification allocations are explicitly unresolved in GDD revision 0.11; do not silently create tournament entrants to bypass this gate. Existing automatic background senior replacement and annual intake policies remain provisional.
+
+Verification: nine focused domain/UI checks passed; genuine v0.28 minute-27 save resumes identically for match, fixtures, people, clubs, cash/ledger, pathways and social records, with original SQLite bytes unchanged. Calendar, population and populated reconciliation screens rendered and inspected. The broad regression attempts were interrupted; no complete passing result is available. No remote publication or Windows package.
+
+## Current update — 0.28 / Recruitment and Development Batch 2
+
+Connected implementation: paid staff-capacity scouting with dated evidence and travel previews; recruitment briefs based on observed reports; partial-success saved-target batches; completed-signing outcomes; separate youth/reserve fixtures, appearances and tables; recovery/challenge-adjusted exposure; monthly staff advice, group changes, loan monitoring and academy renewals; bounded annual AI admissions and renewals; schema-27 migration without retroactive population.
+
+Full-GDD requirements remain open: worldwide 18 youth / 18 reserve / 25 senior content and sustainable multi-year population, regional recruitment pools, complete development calendars and frozen eligibility (Batch 3 world scope); personality/reference evidence, mentoring, mature development/retraining and detailed injury policies; staff promises, departmental resources and destination-specific loan advice (Batch 6 football/staff and alpha integration); remaining contract families and full-scale calibration. These are not removed or declared complete by this milestone.
+
+The compact founding rosters and development fixture model are provisional tuning. AI employment still uses existing finance/registration checks. Existing saves are not silently repopulated. Publication and a verified Windows package remain separate pending delivery work.
+
+## Current gameplay scope: Club Dynamics Update 0.27 — Batch 1
+
+Connected senior player contact/influence and settling evidence, actual-participant coordination, manager/coaching witness reactions, confirmed private follow-ups, a concerns overview and monthly summaries now extend 0.25–0.26. Social inputs persist under schema 26 without inventing old contact. The group summary is not a second match modifier. The GDD remains unchanged.
+
+Still open within the wider social pillar: leak/faction/mentoring event families; full stable personality and staff departmental relationships; expanded deferred bench requests; full staff remit/resource commitments; multi-club/successor identities; realism calibration. These remain approved scope, to be reconciled into subsequent connected milestones (particularly recruitment/development, ownership, football/AI and alpha integration). Batch 1 delivers the listed playable flow; it does not close the entire chapter 16 acceptance matrix. Publication and Windows packaging are pending.
+
+## Previous gameplay scope: Private Support and Relationships Update 0.26
+
+Updates 0.25–0.26 add source-based player morale, dated causes and trends, first-team mood summaries, private support meetings and sparse player/chairman relationship evidence. Local verification and limits are recorded in DEVELOPMENT_CHECKPOINT.md and the milestone entries below. Wider social systems remain open; publication and Windows packaging remain pending.
+
+Jordan approved grouping related implementation work into larger milestones on 22 September 2026. The seven-batch delivery sequence is recorded in DEVELOPMENT_CHECKPOINT.md; it does not replace this requirements register or reduce the GDD. Reconcile historical entries against current code before sizing each batch. No fixed version is promised as alpha.
+
+## Previous gameplay scope: Playing-Time Commitments Update 0.24
+
+Explicit senior domestic role agreements now connect employment talks, a profile conversation, pre-kickoff availability, real minutes/starts, dated reviews, persistent private concerns and subsequent consent. Manager selection remains autonomous. Schema 23 preserves older contracts and active matches without inventing promises. New AI arrivals may agree rotation using the shared rules. The wider social influence/morale pillar, manager endorsement, bespoke development plans, loan promises, richer negotiation motives and balancing remain open. See DEVELOPMENT_CHECKPOINT.md for verified checks and the outstanding publication step.
+
+## Previous gameplay scope: Reputation & Career Evidence Update 0.23
+
+Dated player/club performance reviews and season honours now develop domestic standing, with persistent league/cup records, bounded change, public history screens, recruitment consequences and schema-22 compatibility. This extends 0.22 employment consent without bypassing seller, player or buyer gates. It does not close the full reputation/recruitment pillar: calibrated initial reputation profiles, calibrated performance/exposure, staff and international scope, commercial integration, manager-fit forecasts, playing-time commitments, relationships and competing packages remain open. See DEVELOPMENT_CHECKPOINT.md for verification and publication status.
+
+## Historical gameplay scope: Competitions Update 0.10
 
 The compact domestic cup now connects seeded draws, byes, extra time/penalties, background rounds after elimination, fixture/report UI, trophy history and schema-8 persistence. League standings exclude cup results. Existing saves retain their original schedule until the next season. This closes the generated-cup portion of the next dependency, not the complete competition milestone.
 
@@ -149,3 +254,11 @@ Implemented the remaining simple initial catalogue from GDD 0.10: fixed transfer
 Limitations: binding loans must settle inside the current window; AI option policy uses a simple appearance threshold and affordability; outgoing conditional fees replace guaranteed value at face value in the conservative initial buyer quote. Full risk-based valuation, player willingness/reputation, agent priorities, AI clause negotiation and national legal parity remain open. Real-world evidence and the implemented buy-back/first-refusal/buy-out scope are recorded in CONTRACT_RESEARCH.md; GDD revision 0.11 records the approved rules. A Spain buy-out mechanism profile is not a playable Spanish scenario or full legal parity.
 
 Verification uses focused financial, consent, trigger, deadline, save and UI checks plus syntax/import checks. The final Windows/Linux regression and packaged build are publication gates; actual run evidence belongs in the PR. Jordan handles gameplay/UI feel testing.
+
+### Update 0.25 evidence
+Source-based player morale and current first-team summary implemented. Wider circumstances, academy/reserve summaries, general personality/relationship propagation, coordination/cohesion, calibration and Windows verification remain open. Profile reasons are keyboard/touch accessible. No full chapter 16 completion claimed.
+
+### Update 0.26 evidence
+Private senior-player meetings, persistent responses/cooldowns, sparse directed chairman relationship evidence and genuine fulfilment-based trust repair implemented. No inferred observers or universal teammate reaction. Relationship state informs support response; the source-based morale path carries its only current match effect. General relationships, staff/manager personality and relationships, succession participant identities, influence, factions/leaks, cohesion and final calibration remain open. No AA release, Windows executable or remote CI completion claimed.
+
+Local combined 0.25/0.26 gate: 284 regression tests passed (626.062 seconds), with additional review-hook and live/skip/resume cases passing in the nine-case relationship run. Genuine 0.24 mid-match compatibility and original-save preservation checked. Two new screens visually inspected. Windows packaging and remote CI remain pending publication approval.

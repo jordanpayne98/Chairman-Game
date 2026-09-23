@@ -7,7 +7,7 @@ import json
 import math
 from pathlib import Path
 import random
-from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, feeders, detail, managers, preparation, contract_terms, loan_clauses, transfer_rights
+from . import career, market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, feeders, detail, managers, preparation, contract_terms, loan_clauses, transfer_rights, recruitment, reputation, playing_time, morale, relationships, dynamics, scouting, pathways, world_calendar, world_population, identities
 from .football import finished as match_finished
 
 
@@ -84,6 +84,7 @@ def new_career(seed=42,scenario='compact'):
     commercial.initialise(world)
     clauses.initialise(world)
     people.initialise(world);registration.initialise(world);football.initialise(world)
+    pathways.initialise(world);pathways.seed_groups(world)
     staff.initialise(world);delegation.initialise(world);club_ai.initialise(world)
     competitions.initialise(world,legacy=True)
     leagues.initialise(world)
@@ -96,7 +97,18 @@ def new_career(seed=42,scenario='compact'):
     contract_terms.initialise(world)
     transfer_rights.initialise(world)
     preparation.initialise(world)
-    world['schema']=20
+    recruitment.initialise(world)
+    reputation.initialise(world)
+    playing_time.initialise(world)
+    morale.initialise(world)
+    relationships.initialise(world)
+    dynamics.initialise(world)
+    world_calendar.initialise(world)
+    pathways.sync(world);pathways.schedule(world);scouting.initialise(world)
+    world['config']['club_ai']['payroll_income_percent']=100
+    world_population.initialise(world)
+    identities.name_starting_people(world)
+    world['schema']=29
     for p in world['players']:
         if p['club']:p['contract_end']=career.contractual_end(world,3)
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
@@ -158,8 +170,18 @@ def execute(state, command):
         rule=s['delegation']['responsibilities'].get(command.responsibility)
         require(rule and rule['delegate']==command.actor,'This action is outside your authority.')
         message=delegation.perform(s,command.responsibility,command.action,command.payload,'Authorised staff command.')
+    pathways.sync(s);scouting.record_signings(s,prior_clubs)
+    dynamics.sync(s)
     registration.sync(s,prior_clubs)
     delegation.reconcile(s)
+    recruitment.sync(s)
+    reputation.sync(s)
+    playing_time.reconcile(s)
+    if not s['match'] or s['match']['settled']:
+        reputation.review(s)
+        playing_time.review(s)
+        relationships.process(s)
+        morale.reconcile(s)
     s['revision'] += 1
     s['receipts'][command.id] = dict(action=command.action, payload=deepcopy(command.payload), message=message)
     validate(s)
@@ -167,6 +189,15 @@ def execute(state, command):
 
 
 def apply(s, action, payload):
+    for module in (world_population,scouting,pathways):
+        result=module.apply(s,action,payload)
+        if result is not None:return result
+    result=dynamics.apply(s,action,payload)
+    if result is not None:return result
+    result=relationships.apply(s,action,payload)
+    if result is not None:return result
+    result=playing_time.apply(s,action,payload)
+    if result is not None:return result
     result=transfer_rights.apply(s,action,payload)
     if result is not None:return result
     result=loan_clauses.apply(s,action,payload)
@@ -237,14 +268,8 @@ def apply(s, action, payload):
         raise ValueError('Open Contracts: agree terms, review the medical and confirm completion. Instant signing is no longer available.')
     if action == 'scout':
         require(not s['season_done'] and s['match'] is None, 'Recruitment is closed during matchday or after season end.')
-        p = next((x for x in s['players'] if x['id'] == payload.get('id')), None)
-        require(p is not None and p['club'] != 'c0', 'This player is already at your club.')
-        require(not p['retired'] and not p['youth'],'Use Academy for youth admissions; retired people cannot be signed.')
-        require(p['id'] not in s['scouting'] and (p['id'] not in s['reports'] or s['reports'][p['id']]['day']<s['day']), 'Scouting is in progress or this player was assessed today.')
-        require(career.free_cash(s,cfg['scout_fee']), 'Insufficient available cash for scouting.')
-        posting(s, f"scout:{p['id']}:{s['revision']}", -cfg['scout_fee'], 'Scouting')
-        s['scouting'][p['id']] = s['day'] + cfg['scout_days']
-        return f"Scouting commissioned. Report due in {cfg['scout_days']} days."
+        job=scouting.commission(s,payload.get('id'))
+        return f"Scouting commissioned. Report due day {job['due']}."
     if action == 'fund':
         amount = 5000000
         require(s['owner_cash'] >= amount, 'Owner funds are insufficient.')
@@ -279,9 +304,12 @@ def apply(s, action, payload):
             posting(s, f'sponsor:{tomorrow}', cfg['weekly_sponsor'], 'Weekly sponsorship')
         market.process_day(s)
         career.process_day(s)
+        world_population.process_day(s)
         staff.process_day(s)
+        pathways.process_day(s)
         people.process_day(s)
         preparation.process_day(s)
+        dynamics.process_day(s)
         club_ai.process_day(s)
         registration.sync(s,previous_clubs)
         market.accrue_accounts(s)
@@ -294,12 +322,7 @@ def apply(s, action, payload):
             posting(s, f'payroll:{tomorrow}', -(s['accrued_costs']//7), 'Accrued payroll and operations')
             s['accrued_costs'] %= 7
         clauses.settle_payables(s)
-        for pid, due in list(s['scouting'].items()):
-            if due <= tomorrow:
-                p = next(p for p in s['players'] if p['id']==pid)
-                s['reports'][pid] = make_report(s, p, complete=True)
-                del s['scouting'][pid]
-                news(s, 'Scouting report ready', f"{p['name']}: fully scouted current ratings are available in Recruitment; potential remains an estimate.")
+        scouting.process_day(s)
         season_day=tomorrow-s['career']['start']
         if season_day in (3,24,45,66):
             s['decision'] = dict(id=f'decision:{tomorrow}', title='Community open day' if season_day in (3,45) else 'Manager preparation camp',
@@ -307,6 +330,10 @@ def apply(s, action, payload):
                 supporters=7 if season_day in (3,45) else 1)
             news(s, 'Chairman decision required', s['decision']['title'])
         delegation.process_day(s)
+        playing_time.reconcile(s)
+        playing_time.review(s)
+        relationships.process(s)
+        morale.reconcile(s)
         fixtures = [f for f in s['fixtures'] if f['day']==tomorrow]
         if fixtures:
             require(s['manager'] is not None,'Appoint a manager before the fixture.')
@@ -350,6 +377,7 @@ def apply(s, action, payload):
             else:
                 response='Manager: I disagree. We are sticking to our approach.'
             s['trust']=max(0,s['trust']-4)
+        dynamics.bench_event(s,m,payload['choice'],response)
         m['events'].append(dict(minute=m['minute'],text=response,kind='bench'))
         m['rng']=rng.getstate()
         return response
@@ -418,11 +446,15 @@ def step_match(s,m):
 def record_result(s,m):
     f=next(f for f in s['fixtures'] if f['id']==m['fixture'])
     if f['result'] is not None:return
+    reputation.collect(s,m)
+    playing_time.collect(s,m)
+    morale.collect(s,m)
     loan_clauses.record_match(s,m)
     clauses.record_match(s,m)
     if m.get('engine')==2:
         football.settle_players(s,m)
         preparation.settle(s,m)
+        dynamics.settle(s,m)
     f['result']=football.public_match(m) if m.get('engine')==2 else deepcopy({k:m[k] for k in ('score','events','shots','on_target','xg','possession','lineups')})
     for side,cid in enumerate([m['home'],m['away']]):
         c=next(c for c in s['clubs'] if c['id']==cid);gf,ga=m['score'][side],m['score'][1-side]
@@ -465,6 +497,7 @@ def settle_background(s,legacy=False):
 def close_season(s):
     if not s['season_done'] and competitions.complete(s) and all(f['result'] is not None for f in s['fixtures']):
         leagues.close(s)
+        reputation.close_season(s)
         position=next(i for i,c in enumerate(table(s)) if c['id']=='c0')
         prefix='season' if s['career']['season']==1 else f"season:{s['career']['season']}"
         posting(s,prefix+':prize',leagues.division_for(s)['prizes'][position],'League prize')
@@ -477,7 +510,14 @@ def close_season(s):
 
 
 def validate(s):
-    require(s.get('schema')==20,'Unsupported save schema. This build supports schema 20.')
+    require(s.get('schema')==29,'Unsupported save schema. This build supports schema 29.')
+    scouting.validate(s);pathways.validate(s);world_calendar.validate(s);world_population.validate(s)
+    recruitment.validate(s)
+    reputation.validate(s)
+    playing_time.validate(s)
+    morale.validate(s)
+    relationships.validate(s)
+    dynamics.validate(s)
     leagues.validate(s)
     feeders.validate(s)
     detail.validate(s)
@@ -525,6 +565,7 @@ def view(s):
         row['availability']=registration.reason(s,p,'c0',opponent) if p['club']=='c0' else 'Free agent' if p['club'] is None else 'Not assessed by your staff'
         row['development']={k:deepcopy(p['development'][k]) for k in ('focus','load','last_day')} if p['club']=='c0' else None
         row['scout_due']=s['scouting'].get(p['id'])
+        row['scout_quote']=scouting.quote(s,p) if p['club']!='c0' and not p['youth'] and not p['retired'] else None
         employment=s['clauses']['employment'].get(p['id'],{})
         row['buyout_amount']=employment.get('release_fee',0) if employment.get('release_kind')=='buyout' and employment['employer']==p['club'] and s['day']<=employment['end'] else 0
         row['transfer_quote']=market.quote(s,p) if p['club'] not in (None,'c0') else 0
@@ -542,6 +583,16 @@ def view(s):
                 season=s['career']['season'],season_start=s['career']['start'],window_end=career.window_end(s),
                 career=deepcopy(s['career']),reserved_cash=career.reservations(s)[0],reserved_wages=career.reservations(s)[1],
                 preparation=preparation.view(s),severance=career.manager_severance(s),career_settings=deepcopy(s['config']['career']),project_specs=deepcopy(s['config']['projects']))
+    snapshot['scouting_work']=scouting.public(s)
+    snapshot['pathways']=pathways.public(s)
+    snapshot['world_calendar']=world_calendar.public(s)
+    snapshot['world_population']=world_population.public_summary(s)
+    snapshot['playing_time']=playing_time.public(s)
+    snapshot['mood']=morale.public(s)
+    snapshot['relationships']=relationships.public(s)
+    snapshot['dynamics']=dynamics.public(s)
+    snapshot['reputation']=reputation.public(s)
+    snapshot['reputation_coverage']=dict(start=s['reputation_progress']['start'],next_review=s['reputation_progress']['next_review'])
     snapshot['detail']=detail.snapshot(s)
     snapshot['calendar']=deepcopy(s.get('calendar'))
     snapshot['nation']=deepcopy(s['config'].get('nation'))

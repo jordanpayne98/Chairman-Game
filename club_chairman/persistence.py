@@ -10,7 +10,7 @@ import sqlite3
 import tempfile
 from .simulation import validate
 from .career import initialise
-from . import market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, detail, managers, preparation, contract_terms, transfer_rights
+from . import market, commercial, clauses, people, registration, football, staff, delegation, club_ai, competitions, leagues, nations, shortlists, detail, managers, preparation, contract_terms, transfer_rights, recruitment, reputation, playing_time, morale, relationships, dynamics, scouting, pathways, world_calendar, world_population
 
 
 def user_directory():
@@ -81,6 +81,35 @@ def migrate(state):
     if s.get('schema')==19:
         transfer_rights.initialise(s)
         s['schema']=20
+    if s.get('schema')==20:
+        recruitment.initialise(s)
+        s['schema']=21
+    if s.get('schema')==21:
+        reputation.initialise(s)
+        s['schema']=22
+    if s.get('schema')==22:
+        playing_time.initialise(s)
+        s['schema']=23
+    if s.get('schema')==23:
+        morale.initialise(s,legacy=True)
+        s['schema']=24
+    if s.get('schema')==24:
+        relationships.initialise(s)
+        # Historical reviews retain their evidence but imply no new contact.
+        s['relationships']['seen']=[a['id']+':review:'+str(r['day']) for a in s['playing_time']['agreements'].values() for r in a['reviews']]
+        s['schema']=25
+    if s.get('schema')==25:
+        dynamics.initialise(s)
+        s['schema']=26
+    if s.get('schema')==26:
+        pathways.initialise(s);pathways.schedule(s);scouting.initialise(s)
+        s['schema']=27
+    if s.get('schema')==27:
+        world_calendar.initialise(s,legacy=True)
+        s['schema']=28
+    if s.get('schema')==28:
+        world_population.initialise(s,legacy=True)
+        s['schema']=29
     validate(s)
     return s
 
@@ -92,7 +121,7 @@ def load(path):
         with closing(sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True)) as db:
             if db.execute('PRAGMA integrity_check').fetchone() != ('ok',):raise SaveError('Save integrity check failed.')
             metadata=dict(db.execute('SELECT key, value FROM metadata'))
-            if metadata.get('schema') not in ('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20'):raise SaveError('Unsupported save version. This build reads schemas 1–20.')
+            if metadata.get('schema') not in ('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29'):raise SaveError('Unsupported save version. This build reads schemas 1–29.')
             raw=db.execute("SELECT payload FROM entities WHERE id='world'").fetchone()[0]
             if hashlib.sha256(raw.encode()).hexdigest()!=metadata['checksum']:raise SaveError('Save checksum does not match.')
             s=json.loads(raw)
