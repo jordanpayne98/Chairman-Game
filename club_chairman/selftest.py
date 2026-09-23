@@ -47,7 +47,8 @@ def run():
     act('sale_enquire',id='p3',club='c2');sale_deal=next(reversed(s['market']['deals'].values()));act('market_accept',id=sale_deal['id'])
     act('sponsor_enquire',right='digital');act('sponsor_propose',right='digital',weekly=80000,weeks=16);act('sponsor_accept',right='digital')
     act('academy_intake')
-    youth=max((p for p in s['players'] if p['youth']),key=lambda p:p['age'])
+    youth=max((p for p in s['players'] if p['youth'] and p['club'] is None
+               and p.get('candidate_season')==s['career']['season']),key=lambda p:p['age'])
     act('academy_admit',id=youth['id'])
     if youth['age']>=16:act('academy_promote',id=youth['id'])
     act('project_plan',kind='training')
