@@ -45,6 +45,7 @@ def make(s,key,nationality=None,domestic=None):
 
 def stamp(s,p,domestic=None):
     p.update(make(s,p['id'],domestic=domestic))
+    p.setdefault('location_nation',domestic or s['config'].get('nation',{}).get('id','england'))
 
 
 def initialise(s):

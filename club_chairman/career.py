@@ -8,7 +8,8 @@ from . import contract_terms, market, clauses, people, registration, staff, club
 
 CAREER_DEFAULTS = dict(season_gap=14, offer_lifetime=7,
                       medical_days=2, manager_notice_weeks=4, academy_trial_fee=200000,
-                      academy_admission_fee=50000, academy_wage=10000, academy_base_capacity=12)
+                      academy_admission_fee=50000, academy_wage=10000, academy_base_capacity=12,
+                      retirement_age=36)
 PROJECTS = {
     'training':dict(name='Training ground',cost=6000000,days=28,upkeep=30000,capacity=0,closure=0),
     'academy':dict(name='Academy centre',cost=5000000,days=28,upkeep=25000,capacity=0,closure=0),
@@ -122,6 +123,8 @@ def process_day(s):
     for p in s['players']:
         p['age']=max(0,(day-p['birth_day'])//365)
         if p['club'] and p['contract_end'] is not None and day>p['contract_end']:
+            from .scouting import location
+            p['location_nation']=location(s,p)
             if p['club']=='c0':
                 clauses.release(s,p['id'],'c0')
                 p['club']=None;p['youth']=False;news(s,'Player contract expired',p['name']+' is now a free agent. No renewal was signed.')
@@ -366,7 +369,8 @@ def apply(s,action,data):
         for p in s['players']:
             p['career_goals']+=p['goals'];p['career_appearances']+=p['appearances'];p['goals']=0;p['appearances']=0
             loan=market.active_loan(s,p['id'])
-            if p['age']>=36 and p['club']!='c0' and not loan:p['retired']=True;p['club']=None
+            if not p['retired'] and p['age']>=settings.get('retirement_age',36) and not loan:
+                retire_player(s,p)
             if p['youth'] and p['club'] is None:p['retired']=True
         # Keep opponents playable. Scheduled background entrants have new identities.
         for club in s['clubs'][1:]:
@@ -386,3 +390,15 @@ def apply(s,action,data):
         news(s,'New season prepared',f"Season {c['season']} is ready. Preseason advances normally with wages and deadlines until the new fixtures begin. Review expiring contracts before Continue.")
         return 'New fixtures created. History retained. No days or recurring payments have been skipped.'
     return None
+
+
+def retire_player(s,p):
+    """End participation once; preserve identity, signed evidence and earned debts."""
+    if p['retired']:return
+    from .scouting import location
+    employer=p['club'];p['location_nation']=location(s,p)
+    p['retirement']=dict(day=s['day'],club=employer,age=p['age'],reason='Season-end retirement')
+    if employer:clauses.release(s,p['id'],employer)
+    p['retired']=True;p['club']=None
+    if employer=='c0':
+        news(s,'Player retirement',p['name']+' has retired at the season review. Their career record and earned payments are retained. Review squad cover before the next fixture.')
