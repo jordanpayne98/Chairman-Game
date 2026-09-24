@@ -1,8 +1,8 @@
 """Settle an ordinary shared-English pyramid from recorded sporting outcomes.
 
 All club identities, playoff decisions and feeder entrants are supplied by the
-caller. Licensing failures, cessations and discretionary vacancy reductions
-need a separate association decision and cannot take this ordinary path.
+caller. Cessations and genuine sporting vacancies need a separate recorded
+decision and cannot take this ordinary path.
 """
 from .league_structures import _require, settle_membership
 from .shared_standings import shared_access_preview
@@ -65,14 +65,12 @@ def settle_shared_pyramid(country, state, season, results, playoffs,
         if not isinstance(playoff, dict):
             candidate_valid = False
         elif level+1 == 5:
-            # The operative National League bracket is still unsourced. An
-            # externally approved actual outcome may settle membership, but
-            # this service cannot derive its entrants or winner.
-            candidate_valid = (playoff.get('association_approved') is True and
-                               playoff.get('winner') in members[keys[5]] and
-                               playoff.get('winner') not in lower and
-                               playoff.get('winner') not in
-                               access[5]['automatic_relegation_candidates'])
+            # The playoff bracket is still pending verification. A recorded
+            # sporting winner must occupy one of the six qualifying places;
+            # no separate admission or licence approval is required.
+            candidate_valid = any(row['rank'] in range(2, 8) and
+                                  row['clubs'] == [playoff.get('winner')]
+                                  for row in access[5]['table']['rows'])
         else:
             candidate_valid = playoff.get('winner') in access[level+1]['playoff_seeds']
         _require(isinstance(playoff, dict) and

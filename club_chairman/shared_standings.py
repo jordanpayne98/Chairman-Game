@@ -217,11 +217,11 @@ def completed_shared_table(tier, members, results, deductions=None,
 def shared_access_preview(tier, members, results, deductions=None,
                           adjudications=None, decisive_cutoffs=None,
                           disciplinary_totals=None):
-    """Identify ordinary sporting places; leave playoffs and admissions pending.
+    """Identify ordinary sporting places; leave playoffs pending.
 
     When a tie straddles an access boundary, or a playoff seed needs an exact
     position, the preview refuses to assign a club until a ruling is recorded.
-    Relegation places are *candidates* because cessation and admission can
+    Relegation places are *candidates* because a genuine sporting vacancy can
     change final membership. No successor club is fabricated here.
     """
     table = completed_shared_table(tier, members, results, deductions,

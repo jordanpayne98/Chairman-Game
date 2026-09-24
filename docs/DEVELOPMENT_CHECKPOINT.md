@@ -1,5 +1,13 @@
 # Development checkpoint
 
+## CONTENT-048 — Remove club licensing from active shared rules
+
+Date: 24 September 2026. Continued from `game/cross-nation-league-structures` at `22f0025` and living GDD revision 0.19, including the researched shared rulebook pass. The explicit removal of club licensing and separate destination admission checks supersedes the English admission procedures previously copied into active rule definitions. No new design approval, playable world or career migration is claimed.
+
+Implemented: removed licensing and admission metadata from five active profiles, all 38 tier instances and the unfinished Welsh continental nomination and cup admission definitions. Production validation now rejects reintroduced licensing and cup admission fields. Ordinary fifth-tier movement requires a recorded qualified playoff winner ranked 2–7, not association approval; missing or ineligible outcomes still fail. Legacy national format, Welsh licence and cup application helpers remain reference-only for historical tests and old saved rules. Sporting vacancies and reserve restrictions still need explicit decisions. No club identities, RNG, finances or compact-career saves were changed.
+
+Verification: 34 focused shared league/calendar/exchange, content-gate and legacy cup tests passed; Python syntax compilation passed. Checks include all fourteen synthetic pyramid exchanges, rejection of an unqualified fifth-tier winner, a recorded winner with a stale negative admission flag and preservation of the old Welsh cup checks for legacy rules. Production content remains blocked with 593 reported issues; calendar, initial membership, actual playoff fixtures and feeder formats are still missing. Next: finish source-backed playoff deciders and national schedules, then move horizontally to domestic cups across fourteen nations.
+
 ## PLAY-021 continuation — Transfer rights
 
 Date: 21 September 2026. Resumed draft PR #23 at `0a5d10eb5c8dbf52e524b8dc9b24f30201dce585` and recovered the unfinished local rights work. The local saved foundation tree matched that remote commit exactly. Current GDD revision 0.10 was recovered from its last saved output because the newly attached copy was still revision 0.2. A concurrent save updated the same living GDD to revision 0.11 (file version 9). The version check rejected this checkout’s replacement based on version 8. Read the new current content and confirmed that it already covers the approved rights, consent, cancellation, loan-bypass guard and provisional limits. Retained that current version without overwriting it or creating a competing GDD.

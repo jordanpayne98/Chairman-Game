@@ -1,6 +1,6 @@
 # Club Chairman release readiness
 
-Implementation tracking against the attached living GDD revision 0.18. Earlier milestone entries below are historical; the latest development checkpoint records current implementation evidence. This is an engineering checklist, not a replacement design document or design approval. The full AA game is not release-ready.
+Implementation tracking against the attached living GDD revision 0.19. Earlier milestone entries below are historical; the latest development checkpoint records current implementation evidence. This is an engineering checklist, not a replacement design document or design approval. The full AA game is not release-ready.
 
 ## Batch 3 requirement register — GDD 0.18
 
@@ -12,7 +12,7 @@ Jordan's 23 September direction: work horizontally across every playable nation 
 |---|---|
 | 1. League structures | Five shared English tier profiles across every approved national depth; sizes, points, table ties, promotion/relegation, playoffs, feeder boundaries, national season windows and dated sources |
 | 2. Domestic cups | All applicable senior cups and supporting competitions; entrant pools, entry rounds, draw/venue rules, match resolution, calendar windows, awards and qualification routes; explicitly sourced inactive competitions |
-| 3. Registration and regulation | Transfer windows, squad/loan/homegrown/foreign-player rules, eligibility exceptions, licensing and financial monitoring |
+| 3. Registration and regulation | Transfer windows, squad/loan/homegrown/foreign-player rules, eligibility exceptions and financial monitoring |
 | 4. Opening world population | Named fictional clubs, supporting pools, squads/staff and current facilities/finances; initial memberships and seeding, without pre-game results or biographies |
 | 5. Continental and international access | Complete competition definitions, named eligible opening participants, access slots, holder/duplicate resolution and future outcome-based qualification |
 | 6. Integration and final gate | Career scheduling, simulation, cash, persistence, inbox/calendar/UI and one final regression/build gate |
@@ -27,7 +27,7 @@ The living GDD revision 0.18 approves English league rules by equivalent tier ac
 
 Completed-fixture standings and an access preview now run for the same profiles in all fourteen nations. They preserve unresolved ties and refuse to guess who crosses an automatic promotion/relegation boundary or receives an EFL playoff seed. Association rulings are explicit inputs. Disciplinary end-of-table decisions, playoff deciders, eligibility, calendar integration and actual careers remain pending; the preview does not certify a finished league pass.
 
-Recorded 42-match EFL disciplinary assessments can now resolve the next published tie stage; missing evidence blocks ordering. An authored calendar plan can be checked against 38/46 full rounds, national windows and blocked dates. Ordinary cross-division and background-feeder exchanges conserve actual named clubs and refuse unrecorded playoff/eligibility decisions. These conditional services do not supply missing national dates or identities, resolve licensing/vacancy exceptions, or create the current National League playoff format. All 38 active divisions still have empty production calendars, opening membership lists and playoff brackets, with pending feeder boundaries. Pass 1 remains open.
+Recorded 42-match EFL disciplinary assessments can now resolve the next published tie stage; missing evidence blocks ordering. An authored calendar plan can be checked against 38/46 full rounds, national windows and blocked dates. Ordinary cross-division and background-feeder exchanges conserve actual named clubs and refuse unrecorded playoff/eligibility decisions. Club licensing and separate destination admission checks have been removed from the active shared league model. These conditional services do not supply missing national dates or identities, resolve genuine sporting vacancy exceptions, or create the current National League playoff format. All 38 active divisions still have empty production calendars, opening membership lists and playoff brackets, with pending feeder boundaries. Pass 1 remains open.
 
 | Nations | Depth each | Divisions | Senior places |
 |---|---:|---:|---:|
@@ -40,6 +40,8 @@ The former 43 national league definitions and opening league allocations are ret
 
 All 284 existing Welsh club identities remain. New league membership lists are deliberately unallocated until the opening-world pass reconciles 20/24 places and feeder pools. The previous cup snapshot, admission facts and reusable services are retained, but cup cohorts and continental nominations require revalidation against the changed memberships. The old Welsh cup builder now refuses to overwrite shared-model data. Empty or stale allocations remain production blockers; they are not replaced by invented past promotions.
 
+GDD 0.19 follow-up: legacy Welsh admission and licence routines are reference-only. The active Welsh cup allocation no longer requires those decisions, while actual sporting entrants and cup rounds remain unpopulated. No production cup or continental access is playable yet.
+
 Verification: CONTENT-046 passed 31 focused shared-standings, shared-rule, league-structure and content checks; CONTENT-045 passed 13 focused checks and profile-drift validation. The preceding CONTENT-044 passed 65 focused checks across shared rules, legacy access, content, entries, cups and qualification. These cover 20/24-club balanced fixtures, all fourteen depth mappings, drift rejection, preserved legacy playoff behavior and atomic refusal of the old cup builder. No new playable build is claimed. The production gate remains blocked; blocker counts are diagnostics, not progress percentages.
 
 CONTENT-047 additionally passed 35 focused shared-table, national-calendar-validator, ordinary-exchange, existing league and content checks. Those include synthetic season results and named memberships across all fourteen nations. The production audit still reports 593 blockers across Batch 3 and related content; this count is diagnostic, not a Pass 1 percentage. The missing source and authored-input requirements are named in `docs/ENGLISH_LEAGUE_RULE_DETAILS.md`.
@@ -49,7 +51,7 @@ Pass 1 remains active: finish the five English profiles and their result-driven 
 | Requirement | Design | Rule/content evidence | Behaviour and UI | Persistence and checks | Remaining gate |
 |---|---|---|---|---|---|
 | World people and careers | Confirmed | Partial: fictional pool and names, no calibrated national distributions | Partial: background ageing, development, free recruitment, employed background purchases and public histories | World lifecycle and same-ID fee checks; snapshot persists | Detailed rosters, origins, bidirectional employed market, staff succession, calibration and long-run scale |
-| Domestic national calendars and registration | Confirmed | Partial: shared league profiles plus provisional compact/England/Wales/Brazil scenarios | Partial: domestic fixtures, cup and youth calendars; shared English profiles not integrated | Focused schedule checks; no 14-nation integration | Complete shared tier sources, windows, exceptions/playoffs, state competition reconciliation and licensing |
+| Domestic national calendars and registration | Confirmed | Partial: shared league profiles plus provisional compact/England/Wales/Brazil scenarios | Partial: domestic fixtures, cup and youth calendars; shared English profiles not integrated | Focused schedule checks; no 14-nation integration | Complete shared tier sources, windows, exceptions/playoffs and state competition reconciliation |
 | Continental and world club tournaments | Confirmed | Missing: full entrant/access and supporting-club allocations | Missing | Missing | Verified format versions, all entrants, duplicate/holder resolution and multi-season qualifier graph |
 | National teams and international tournaments | Confirmed | Missing: full qualifying, eligibility and window records | Missing | Missing | Selection, releases, travel, fatigue, caps, results and return in same careers |
 | Shared inbox/calendar and world news | Confirmed | Design specified in chapters 22, 26, 37–39 | Partial: existing message list and calendar lists; world cycle counts shown | Message-specific actions, reminders and deadline persistence missing | IC01–IC08 and connected transfer/competition source events |
