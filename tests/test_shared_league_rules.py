@@ -16,10 +16,16 @@ class SharedLeagueRulesTests(unittest.TestCase):
         for country in data['countries']:
             self.assertEqual(len(country['tier_rules']), DEPTH[country['id']])
             for tier in country['tier_rules']:
+                self.assertNotIn('licensing', tier)
+                self.assertNotIn('promotion_eligibility', tier)
                 self.assertEqual(tier['league_structure']['vertical_link'], 'open')
                 self.assertEqual(tier['format']['kind'], 'round_robin')
                 self.assertNotIn('selection_status', tier)
             self.assertEqual(country['tier_rules'][-1]['feeder_boundary']['mode'], 'background_feeder')
+        self.assertNotIn('european_nomination_rules',
+                         next(c for c in data['countries'] if c['id'] == 'wales'))
+        self.assertTrue(all('admission_rules' not in cup for c in data['countries']
+                            for cup in c['domestic_cups']))
 
     def test_divergent_national_rules_or_profiles_are_blocked(self):
         data = load()
@@ -29,6 +35,9 @@ class SharedLeagueRulesTests(unittest.TestCase):
             lambda d: d['countries'][0]['tier_rules'].append(deepcopy(d['countries'][0]['tier_rules'][0])),
             lambda d: d['shared_league_rulebook']['profiles'][0]['definition'].update(membership=30),
             lambda d: d.pop('shared_league_rulebook'),
+            lambda d: d['countries'][0]['tier_rules'][0].update(licensing={'required': True}),
+            lambda d: next(c for c in d['countries'] if c['id'] == 'wales')[
+                'domestic_cups'][0].update(admission_rules={'club_licence': True}),
         ):
             changed = deepcopy(data)
             mutate(changed)

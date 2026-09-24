@@ -10,7 +10,7 @@ class ContentGateTests(unittest.TestCase):
         source=load();original=deepcopy(source);issues=audit(source)
         self.assertEqual(source,original)
         self.assertTrue(any('england/england-premier-2026: tier remains PARTIAL' in e for e in issues))
-        self.assertFalse(any('cup admission assessments remain unverified' in e for e in issues))
+        self.assertFalse(any('opening sporting eligibility remains unverified' in e for e in issues))
         self.assertTrue(any('regional_competitions' in e for e in issues))
         with self.assertRaisesRegex(ValueError,'Production world content blocked'):
             require_verified(source)
@@ -85,7 +85,7 @@ class ContentGateTests(unittest.TestCase):
     def test_first_season_entry_requires_allocation_and_eligibility(self):
         source=load();allocation=source['opening_allocations'][0]
         entry=dict(competition=allocation['competition'],club=allocation['club_ids'][0],
-                   opening_allocation=allocation['id'],eligibility_evidence='initial licence assessment')
+                   opening_allocation=allocation['id'],eligibility_evidence='opening sporting allocation')
         source['first_season_entrants']=[entry]
         self.assertFalse(any('First-season entrant' in issue for issue in audit(source)))
         entry['opening_allocation']='missing'

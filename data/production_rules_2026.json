@@ -206,7 +206,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "ENG-PL-26",
@@ -358,7 +357,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "ENG-EFL-MASTER-26"
@@ -565,7 +563,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "ENG-EFL-MASTER-26"
@@ -762,7 +759,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "ENG-EFL-MASTER-26"
@@ -842,16 +838,6 @@
               "venue": "UNVERIFIED_IN_MASTER_REGULATIONS"
             },
             "deciders": "UNVERIFIED_CURRENT_PLAYOFF_RULES_REQUIRED"
-          },
-          "promotion_eligibility": {
-            "articles": "EFL 7-8/10.1.3",
-            "status": "VERIFIED_ENGLISH_SOURCE_NOT_NATIONAL_LICENSING",
-            "eligible_candidates": "National League champion and runner-up determined by playoff or league position",
-            "failed_candidate": "board_may_reduce_tier4_relegations; no_other_tier5_replacement",
-            "national_league_acceptance": "must_accept_retiring_EFL_clubs",
-            "playoff_approval_deadline": "30 June before season",
-            "requirements": "membership criteria assessed separately; sporting position alone does not admit club",
-            "scope": "English admission consequences sourced; national licensing retained, not overwritten with English statutory requirements"
           }
         },
         {
@@ -966,7 +952,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "ENG-EFL-MASTER-26",
@@ -1024,16 +1009,6 @@
               "eligibility_and_all_ineligible_cases"
             ],
             "scope": "background feeder only; does not add playable levels"
-          },
-          "promotion_eligibility": {
-            "articles": "EFL 7-8/10.1.3",
-            "status": "VERIFIED_ENGLISH_SOURCE_NOT_NATIONAL_LICENSING",
-            "eligible_candidates": "National League champion and runner-up determined by playoff or league position",
-            "failed_candidate": "board_may_reduce_tier4_relegations; no_other_tier5_replacement",
-            "national_league_acceptance": "must_accept_retiring_EFL_clubs",
-            "playoff_approval_deadline": "30 June before season",
-            "requirements": "membership criteria assessed separately; sporting position alone does not admit club",
-            "scope": "English admission consequences sourced; national licensing retained, not overwritten with English statutory requirements"
           }
         }
       ],
@@ -1245,7 +1220,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "scotland-ENG-PL-26",
@@ -1397,7 +1371,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "scotland-ENG-EFL-MASTER-26"
@@ -1604,7 +1577,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "scotland-ENG-EFL-MASTER-26"
@@ -1992,11 +1964,6 @@
             "administrator": "FAW",
             "member_decisions": "governed by FAW and relevant club/association rules"
           },
-          "licensing": {
-            "tier_1_required": true,
-            "tier_2_fallback_if_failure": true,
-            "european_licence_separate": true
-          },
           "first_season_members": [],
           "source_ids": [
             "wales-ENG-PL-26",
@@ -2148,7 +2115,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "wales-ENG-EFL-MASTER-26"
@@ -2364,7 +2330,7 @@
             }
           },
           "format": "Geographical draws through round 2; open draw thereafter; tier 1 byes to round 2",
-          "qualification": "Winner has conditional European entry subject to licence and domestic duplicate resolution",
+          "qualification": "Winner has conditional continental entry under a verified access allocation and domestic duplicate resolution",
           "source_ids": [
             "FAW-26-CUP",
             "FAW-26-T1",
@@ -2490,23 +2456,6 @@
             ],
             "private_dressing_area_toilets_from": "round_1",
             "unsuitable_home_ground": "approved_alternative_or_opponents_ground"
-          },
-          "admission_rules": {
-            "source_id": "FAW-26-CUP",
-            "articles": [
-              "6",
-              "7"
-            ],
-            "association_jurisdiction": "wales",
-            "mandatory_tiers": [
-              1,
-              2,
-              3
-            ],
-            "deadline": "2026-06-30",
-            "entry_fee_pence": 10000,
-            "currency": "GBP",
-            "association_may_reject": true
           },
           "draw_policy": {
             "regional_rounds": [
@@ -2850,7 +2799,7 @@
             "south_east",
             "south_west"
           ],
-          "entry_rule": "Four 16-club tier-3 divisions supply licence-dependent promotion and cup entrants",
+          "entry_rule": "Former regional cohorts require reassignment as named clubs into the approved shared pyramid and feeder; sporting entry remains pending.",
           "club_ids": [
             "wal-wrexham-turntable",
             "wal-chirk-woodgrain",
@@ -3186,7 +3135,7 @@
       "membership_basis": "Explicit opening database allocation; no prior seasons, promotions or relegations are asserted.",
       "open_requirements": [
         "Full FAW Section H registration exceptions and international clearance",
-        "Tier-specific licensing criteria and financial monitoring",
+        "Tier-specific financial monitoring",
         "Complete prize and distribution schedules",
         "Conditional European access paths and eligible first-season qualifiers",
         "Supporting amateur/youth competition coverage"
@@ -3209,26 +3158,6 @@
           ]
         }
       ],
-      "european_nomination_rules": {
-        "source_id": "FAW-26-T1",
-        "source_article": "16.1-16.7",
-        "supported_total_places": [
-          3,
-          4
-        ],
-        "primary": "highest_placed_european_licensed_club",
-        "cup_duplicate": "next_eligible_league_club",
-        "playoff_rank_limit": 7,
-        "playoff_licences": [
-          "tier_one",
-          "european"
-        ],
-        "ineligible_opponent": "bye_without_replacement",
-        "higher_league_rank_hosts": true,
-        "extra_time": false,
-        "unresolved_licence_interaction": "association_direction_required",
-        "annual_access_list_and_entry_stages": "UNVERIFIED"
-      },
       "league_pass_status": "PARTIAL",
       "league_model": "shared-english-2026-v1",
       "league_reconciliation_status": "OPENING_MEMBERS_CALENDARS_AND_CUP_COHORTS_PENDING"
@@ -3445,7 +3374,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "northern-ireland-ENG-PL-26",
@@ -3597,7 +3525,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "northern-ireland-ENG-EFL-MASTER-26"
@@ -3906,7 +3833,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "ireland-ENG-PL-26",
@@ -4058,7 +3984,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "ireland-ENG-EFL-MASTER-26"
@@ -4367,7 +4292,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "germany-ENG-PL-26",
@@ -4519,7 +4443,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "germany-ENG-EFL-MASTER-26"
@@ -4726,7 +4649,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "germany-ENG-EFL-MASTER-26"
@@ -5027,7 +4949,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "france-ENG-PL-26",
@@ -5179,7 +5100,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "france-ENG-EFL-MASTER-26"
@@ -5386,7 +5306,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "france-ENG-EFL-MASTER-26"
@@ -5687,7 +5606,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "spain-ENG-PL-26",
@@ -5839,7 +5757,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "spain-ENG-EFL-MASTER-26"
@@ -6046,7 +5963,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "spain-ENG-EFL-MASTER-26"
@@ -6327,7 +6243,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "netherlands-ENG-PL-26",
@@ -6479,7 +6394,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "netherlands-ENG-EFL-MASTER-26"
@@ -6768,7 +6682,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "portugal-ENG-PL-26",
@@ -6920,7 +6833,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "portugal-ENG-EFL-MASTER-26"
@@ -7239,7 +7151,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "italy-ENG-PL-26",
@@ -7391,7 +7302,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "italy-ENG-EFL-MASTER-26"
@@ -7598,7 +7508,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "italy-ENG-EFL-MASTER-26"
@@ -7899,7 +7808,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "brazil-ENG-PL-26",
@@ -8051,7 +7959,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "brazil-ENG-EFL-MASTER-26"
@@ -8258,7 +8165,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "brazil-ENG-EFL-MASTER-26"
@@ -8559,7 +8465,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "argentina-ENG-PL-26",
@@ -8711,7 +8616,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "argentina-ENG-EFL-MASTER-26"
@@ -8918,7 +8822,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "argentina-ENG-EFL-MASTER-26"
@@ -9218,7 +9121,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "usa-ENG-PL-26",
@@ -9370,7 +9272,6 @@
           "registration": null,
           "financial": null,
           "governance": null,
-          "licensing": null,
           "first_season_members": [],
           "source_ids": [
             "usa-ENG-EFL-MASTER-26"
@@ -30382,16 +30283,6 @@
               "venue": "UNVERIFIED_IN_MASTER_REGULATIONS"
             },
             "deciders": "UNVERIFIED_CURRENT_PLAYOFF_RULES_REQUIRED"
-          },
-          "promotion_eligibility": {
-            "articles": "EFL 7-8/10.1.3",
-            "status": "VERIFIED_ENGLISH_SOURCE_NOT_NATIONAL_LICENSING",
-            "eligible_candidates": "National League champion and runner-up determined by playoff or league position",
-            "failed_candidate": "board_may_reduce_tier4_relegations; no_other_tier5_replacement",
-            "national_league_acceptance": "must_accept_retiring_EFL_clubs",
-            "playoff_approval_deadline": "30 June before season",
-            "requirements": "membership criteria assessed separately; sporting position alone does not admit club",
-            "scope": "English admission consequences sourced; national licensing retained, not overwritten with English statutory requirements"
           }
         },
         "source_ids": [
@@ -30548,16 +30439,6 @@
               "eligibility_and_all_ineligible_cases"
             ],
             "scope": "background feeder only; does not add playable levels"
-          },
-          "promotion_eligibility": {
-            "articles": "EFL 7-8/10.1.3",
-            "status": "VERIFIED_ENGLISH_SOURCE_NOT_NATIONAL_LICENSING",
-            "eligible_candidates": "National League champion and runner-up determined by playoff or league position",
-            "failed_candidate": "board_may_reduce_tier4_relegations; no_other_tier5_replacement",
-            "national_league_acceptance": "must_accept_retiring_EFL_clubs",
-            "playoff_approval_deadline": "30 June before season",
-            "requirements": "membership criteria assessed separately; sporting position alone does not admit club",
-            "scope": "English admission consequences sourced; national licensing retained, not overwritten with English statutory requirements"
           }
         },
         "source_ids": [

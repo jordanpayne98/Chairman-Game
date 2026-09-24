@@ -26,6 +26,8 @@ def shared_rulebook_issues(data):
         errors.append('Exactly five equivalent English tier profiles are required.')
     for level, profile in by_level.items():
         definition = profile.get('definition', {})
+        if 'promotion_eligibility' in definition or 'licensing' in definition:
+            errors.append('Shared profiles cannot include club licensing or admission gates.')
         membership = 20 if level == 1 else 24
         fmt = dict(kind='round_robin', cycles=2, games_per_club=2*(membership-1))
         if (definition.get('membership') != membership or definition.get('format') != fmt
@@ -40,6 +42,8 @@ def shared_rulebook_issues(data):
                 or sorted(t.get('tier', 0) for t in tiers) != list(range(1, DEPTH.get(nation, 0)+1))):
             errors.append(str(nation)+': shared model requires one division per approved level.')
         for tier in tiers:
+            if 'licensing' in tier or 'promotion_eligibility' in tier:
+                errors.append(str(tier.get('id'))+': club licensing is not part of the shared model.')
             divisions += 1
             places += tier.get('membership', 0) if type(tier.get('membership')) is int else 0
             profile = by_level.get(tier.get('tier'), {})
@@ -63,6 +67,11 @@ def shared_rulebook_issues(data):
             mode = 'background_feeder' if tier.get('tier') == DEPTH.get(nation) else 'playable_lower_tier'
             if boundary.get('mode') != mode or boundary.get('equivalent_lower_tier') != tier.get('tier', 0)+1:
                 errors.append(str(tier.get('id'))+': shared pyramid feeder boundary is missing.')
+        if country.get('league_model') == book.get('id'):
+            if 'european_nomination_rules' in country:
+                errors.append(str(nation)+': licence-based continental nomination rules are superseded.')
+            if any('admission_rules' in cup for cup in country.get('domestic_cups', [])):
+                errors.append(str(nation)+': club admission rules are not active cup content.')
     if (divisions, places) != (38, 856):
         errors.append('Shared league inventory must reconcile to 38 divisions and 856 senior places.')
     return list(dict.fromkeys(errors))

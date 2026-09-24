@@ -16,7 +16,7 @@ COUNTRIES = ('england','germany','france','spain','italy','netherlands',
              'brazil','argentina','usa')
 DEPTH = dict(zip(COUNTRIES,(5,3,3,3,3,2,2,3,2,2,2,3,3,2)))
 FIELDS = ('id','nation','tier','format','membership','calendar','tiebreakers',
-          'progression','registration','financial','governance','licensing',
+          'progression','registration','financial','governance',
           'effective_from','source_ids','first_season_members')
 SOURCE_FIELDS = ('url','publisher','accessed','edition','article','status')
 CLUB_FIELDS = ('id','name','nation','city','ground','colors','badge',
@@ -170,6 +170,7 @@ def audit(data):
         if entry.get('history_result'):
             errors.append('First-season entrant cannot claim a pre-game historical result.')
     for country in countries:
+        legacy_rules = country.get('league_model') != 'shared-english-2026-v1'
         tier_members={}
         for tier in country.get('tier_rules',[]):
             tier_members.setdefault(tier.get('tier'),[]).extend(tier.get('first_season_members',[]))
@@ -195,16 +196,16 @@ def audit(data):
             for entry in cup_entries:
                 if entry.get('club') not in cohorts.get(entry.get('entry_round'),[]):
                     errors.append(str(cid)+': entrant assigned to the wrong entry round.')
-                if cid=='wales-national-cup-2026':
+                if legacy_rules and cid=='wales-national-cup-2026':
                     facilities=club_by_id.get(entry.get('club'),{}).get('cup_ground',{})
                     if welsh_cup_ground_issues(facilities,entry.get('entry_round')):
                         errors.append(str(cid)+': opening entrant lacks a suitable registered ground.')
                 evidence=entry.get('eligibility_evidence',{})
-                if cid=='wales-national-cup-2026':
+                if legacy_rules and cid=='wales-national-cup-2026':
                     for issue in welsh_cup_admission_issues(evidence,cup.get('admission_rules',{})):
                         errors.append(str(cid)+': '+str(entry.get('club'))+': '+issue)
                 if not isinstance(evidence,dict) or evidence.get('status')!='VERIFIED':
-                    errors.append(str(cid)+': cup admission assessments remain unverified.')
+                    errors.append(str(cid)+': opening sporting eligibility remains unverified.')
         for tier in country.get('tier_rules',[]):
             allocation=allocations.get(tier.get('opening_allocation'),{})
             if (allocation.get('competition')!=tier.get('id')
