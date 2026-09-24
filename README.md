@@ -1,6 +1,14 @@
-# Club Chairman — Background Club Transfers Update (0.31)
+# Club Chairman — Audit Fixes (0.31.1)
 
-The production football content gate is being researched separately from the current playable development scenarios. `python tools/audit_content_gate.py` reports the explicit missing rule records and exits with an error until all verified tiers, supporting clubs, competitions, entrants and qualification links exist. See `data/production_rules_2026.json`. Passing development tests does not override this gate.
+The authoritative design is GDD revision 0.20. Batch 3 now uses playable gates B3-A–E and shared fictional STANDARD, SPENDING and MEMBER profiles. Exhaustive national legal research and routine cross-version playtest-save migrations are no longer required. `python tools/audit_content_gate.py` still inspects the older production definitions: its 593 historical diagnostics are not the current GDD completion checklist. Missing named clubs, feasible calendars, fixtures and connected progression remain real gaps. See `docs/RELEASE_READINESS.md` for the current gate mapping.
+
+## New in 0.31.1 — Audit fixes
+
+Scouting travel now uses a target's club location or recorded free-agent location, independently of nationality. A background free agent entering Recruitment retains their last recorded club country (or opening location). Accepted scouting jobs retain their quoted fee and due date. Unknown location receives a labelled base assessment, not an invented nationality surcharge.
+
+Owned players now use the existing detailed-world season-end retirement rule alongside rivals: the provisional threshold is configurable at age 36. Active loans defer retirement until a later season review. Retirement retains identity, statistics, earned payments and signed-contract history, closes employment rights, removes registration, and creates an owner inbox notice. Retired dossiers show their retirement date and disable recruitment actions. This fixes the owned-player exemption; it does not complete B3-B's cross-detail lifecycle policy or manager succession.
+
+The menu displays the package version directly. No world expansion, new rule-profile activation, monthly-performance improvement or completed B3 gate is claimed by this patch. Existing migration code is retained without extending the supported-save promise; current-build save/load is tested. Build/CI results belong to the patch PR.
 
 ## New in 0.31 — Batch 3 employed background movement
 

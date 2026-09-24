@@ -1,8 +1,26 @@
 # Club Chairman release readiness
 
-Implementation tracking against the attached living GDD revision 0.19. Earlier milestone entries below are historical; the latest development checkpoint records current implementation evidence. This is an engineering checklist, not a replacement design document or design approval. The full AA game is not release-ready.
+Implementation tracking against the attached living GDD revision 0.20. The current register below supersedes older gate instructions in this file. Earlier milestone entries remain historical evidence. This is an engineering checklist, not a replacement GDD. The full AA game is not release-ready.
 
-## Batch 3 requirement register — GDD 0.18
+## Current Batch 3 register — GDD 0.20
+
+The 24 September simplification approval preserves fourteen nations, 38 divisions, 856 senior places, persistent people and the full ownership scope. Shared fictional STANDARD, SPENDING and MEMBER modules replace exhaustive country-by-country regulatory replication. Article-by-article legal research, immigration dossiers, regulatory appeals and club licensing are not implementation gates. Current-build save/load remains mandatory; routine migrations between development versions do not.
+
+| Gate | Existing implementation | Remaining playable outcome | Status |
+|---|---|---|---|
+| B3-A World and progression | Development league/cup/feeder seasons; shared tier definitions, standings and exchange helpers | Named 856-place world and feeder/cup allocations; feasible calendars; playable playoffs, domestic seasons and rollover across approved depths | OPEN — next primary milestone |
+| B3-B People and markets | Detailed and background lifecycle, contracts, loans, background transfers, unattached activation; 0.31.1 closes owned retirement exemption and geographic scouting defect | Employed cross-detail purchase/sale with identity, consent and commitments; consistent lifecycle/manager population and replacement | OPEN |
+| B3-C Continental and international | Nationalities and some entry/qualification helpers | Named competition graphs and entrants, call-ups, release/travel/return on one availability calendar | OPEN |
+| B3-D Rules and decision delivery | Registration/reservations, money/consent guards, delegation and basic inbox/calendar | Active shared fictional rule profiles, spending/member workflows, source-linked messages and deadlines | OPEN |
+| B3-E Integrated milestone | Current development save/load and test/build workflow | Connected B3-A–D season/rollover, finance reconciliation and representative processing measurements | OPEN |
+
+The old content audit remains useful for missing identities, schedules and references, but its 593 diagnostics also include superseded evidence requirements. Do not quote that count as remaining GDD 0.20 tasks or silently turn incomplete content green. Reconcile the validator with executable shared game definitions during B3-A. No new gate has passed in 0.31.1.
+
+Chapters 37–38 remain in scope: core windows, appointments, availability and consequential messages attach to the gates above. Cinematic deadline day and richer feeds belong to presentation work; camps, tours, forums, interviews, partnerships, testimonials, awards and settling support belong to ownership/living-world milestones. They are not additional blockers retroactively added to each Batch 3 gate.
+
+Immediate verification: audit fixes require geographic quote/fee timing, retirement/earned-debt/registration, dossier input and current-build save/load checks. The previous exact-commit regression failure was a market test assuming a report existed before its recorded due date. The revised test uses that due date. Remote regression status is recorded in the patch PR after execution; it is not assumed green.
+
+## Historical Batch 3 requirement register — GDD 0.18
 
 ### Execution order — systems across all fourteen nations
 

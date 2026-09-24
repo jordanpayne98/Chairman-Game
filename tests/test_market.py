@@ -148,7 +148,7 @@ class MarketTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.act('complete_offer',id='p20')
     def test_market_sorting_uses_known_estimates_and_scouting_external_club(self):
         from club_chairman.planning import player_rows
-        self.act('scout',id='p20');self.progress(3)
+        self.act('scout',id='p20');self.progress(self.s['scouting']['p20'])
         v=view(self.s);rows=player_rows(v,True,sort='Passing',market_scope='Club players')
         self.assertEqual(rows[0]['id'],'p20');self.assertEqual(len(rows),333)
         self.assertTrue(rows[0]['report']['exact_current'])

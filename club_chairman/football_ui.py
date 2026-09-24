@@ -22,7 +22,7 @@ class FootballScreens:
         portrait(self.canvas,p['id'],p['age'],(x+14,261,85,102),p['club'])
         self.text(p['role']+' / Age '+str(p['age']),x+118,267,28)
         self.text(f"{p['foot']} foot / {p['height']} cm",x+118,307,21,MUTED)
-        self.clipped_text('Free agent' if not p['club'] else self.club(p['club']),x+118,343,345,20,MUTED)
+        self.clipped_text('Retired' if p['retired'] else 'Free agent' if not p['club'] else self.club(p['club']),x+118,343,345,20,MUTED)
         width=(1400-x-525)/3
         exact=bool(report and report.get('exact_current'))
         metrics=[('CURRENT ABILITY' if exact else 'EST. ABILITY',interval(report.get('overall') if report else None),'Role: '+p['role']+' / 1–100'),
@@ -92,9 +92,9 @@ class FootballScreens:
             self.reputation_detail(x,441,1400-x,340,self.v['reputation']['players'][p['id']])
         else:
             self.panel(x,441,650,313,'Employment and public record')
-            self.text(money(p['wage'])+' / week',x+20,488,30,GREEN)
+            self.text(('Last wage: ' if p['retired'] else '')+money(p['wage'])+' / week',x+20,488,30,GREEN)
             end=dated(self.v,p['contract_end']) if p['contract_end'] is not None else 'No current employment'
-            self.text('Contract: '+end,x+20,532,24)
+            self.text(('Retired: '+dated(self.v,p['retirement']['day']) if p.get('retirement') else 'Retired; date unrecorded') if p['retired'] else 'Contract: '+end,x+20,532,24)
             self.text(f"This season: {p['appearances']} appearances / {p['goals']} goals",x+20,577,23)
             self.text(f"Earlier seasons: {p['career_appearances']} appearances / {p['career_goals']} goals",x+20,620,23)
             standing=self.v['reputation']['players'][p['id']]
@@ -103,7 +103,8 @@ class FootballScreens:
             if p['club']=='c0' or any(r['player']==p['id'] for r in self.v['playing_time']['history']):
                 self.button('Playing time',(x+280,703,190,36),lambda:(setattr(self,'profile_tab','Playing time'),setattr(self,'page',0)))
             right=x+665;self.panel(right,441,1400-right,313,'Terms and planning')
-            if p.get('loan'):
+            if p['retired']:body='Retired from playing. Career evidence and earned payments remain recorded. No new playing contract or scouting assignment is available.'
+            elif p.get('loan'):
                 loan=p['loan'];body='On loan from '+self.club(loan['source'])+' until '+dated(self.v,loan['end'])+'. Wage share '+str(loan['share'])+'%.'
             elif p['club']=='c0':body='Manage renewals and signed clauses in Contracts. The manager controls selection and match changes.'
             elif p['club']:body='Club asking fee '+money(p['transfer_quote'])+'. Personal terms and signing fee require separate agreement.'
@@ -117,7 +118,7 @@ class FootballScreens:
             self.button('Negotiate renewal',(x,794,225,44),lambda:self.contract_open(p['id']),not self.v['match'] and not p['youth'] and not p.get('loan'))
             self.button('Review sale',(x+245,794,195,44),lambda:self.outgoing_open(p['id'],'sale'),not self.v['match'] and not p.get('loan') and not p['youth'])
             self.button('Review loan',(x+460,794,195,44),lambda:self.outgoing_open(p['id'],'loan'),not self.v['match'] and not p.get('loan') and not p['youth'])
-        else:
+        elif not p['retired'] and not p['youth']:
             due=p['scout_due'];terms=self.v['terms']
             self.button('Request scouting',(x,794,210,44),lambda:self.confirm('Commission scouting',f"Spend {money(p['scout_quote']['cost'])} to assess {p['name']}? Report due {dated(self.v,p['scout_quote']['due'])}. Starts {dated(self.v,p['scout_quote']['start'])}. Current ratings become exact on completion; potential stays uncertain.",lambda:self.command('scout',id=p['id'])),not due and (not report or report['day']<self.v['day']) and not self.v['match'] and not self.v['season_done'])
             if p['club'] is None:self.button('Negotiate contract',(x+225,794,220,44),lambda:self.contract_open(p['id']),not self.v['match'] and not p['retired'] and self.v['day']<=self.v['window_end'])

@@ -14,7 +14,7 @@ class Batch2Tests(unittest.TestCase):
         self.s,_=execute(self.s,c);return c
 
     def test_queue_partial_batch_charge_and_duplicate_receipt(self):
-        p=career.person(self.s,'p144');p['nationality']='France';q=scouting.quote(self.s,p);cash=self.s['cash']
+        p=career.person(self.s,'p144');p['location_nation']='france';q=scouting.quote(self.s,p);cash=self.s['cash']
         self.assertEqual(q['cost'],2*self.s['config']['scout_fee'])
         c=self.act('scout_batch',ids=['p144','p144','missing','p145'])
         jobs=self.s['scouting_work']['jobs'];self.assertEqual(len(jobs),2)

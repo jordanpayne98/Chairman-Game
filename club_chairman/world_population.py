@@ -312,6 +312,8 @@ def activate(s,pid):
     db=unpack(w['blob']);r=db['people'].get(pid)
     require(r and r['status']=='active' and r['club'] is None,'Only available unattached people can enter the current recruitment market.')
     r=deepcopy(r);age=max(0,(s['day']-r['birth_day'])//365);a=attributes(r)
+    last_club=next((db['clubs'][e['club']] for e in reversed(r['history']) if e.get('club') in db['clubs']),None)
+    location_nation=last_club['nation'] if last_club else r['origin_nation']
     if r['kind']=='player':
         require(age>=16,'This player is too young for the senior recruitment market.')
         a['goalkeeping']=a['handling']
@@ -327,6 +329,7 @@ def activate(s,pid):
             age=age,birth_day=r['birth_day'],background_history=r['history'],lifecycle_year=s['day']//365,retired=False)
         for k in ('nationality','nation_id','nationalities','birth_nation','given_name','family_name','name_locale','name_algorithm'):p[k]=r[k]
         s['staff']['people'].append(p)
+    p['location_nation']=location_nation
     w['claimed'].append(pid);manifest(s)
     return r['kind']
 

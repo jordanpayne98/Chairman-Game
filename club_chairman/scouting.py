@@ -14,11 +14,21 @@ def initialise(s):
             work['jobs'].append(dict(id='legacy:'+pid,player=pid,observer='Legacy analyst',observer_id=None,start=min(s['day'],due),due=due,cost=0,legacy=True,remote=False,status='queued'))
 
 
+def location(s,p):
+    """Observation location is club/residence evidence, never citizenship."""
+    club=next((c for c in s['clubs'] if c['id']==p['club']),None)
+    if club:
+        return club.get('nation',s['config'].get('nation',{}).get('id','england'))
+    return p.get('location_nation')
+
+
 def quote(s,p):
     cfg=s['config']['scouting_work'];day=s['day']
     observers=[q for q in s['staff']['people'] if q['club']=='c0' and q['role']=='Recruitment' and q['end']>=day and q['availability']>q['workload']]
     lanes=[(q['id'],q['name'],max(1,cfg['desk_capacity']*(q['availability']-q['workload'])//100)) for q in observers] or [(None,'Commissioned analyst',1)]
-    remote=p['nationality']!=s['config'].get('nation',{}).get('name','England')
+    observed_location=location(s,p)
+    home=s['config'].get('nation',{}).get('id','england')
+    remote=observed_location is not None and observed_location!=home
     duration=s['config']['scout_days']+(cfg['remote_travel_days'] if remote else 0)
     choices=[]
     for ident,name,capacity in lanes:
@@ -29,7 +39,7 @@ def quote(s,p):
             collisions=[t for t in points if sum(j['start']<=t<j['due'] for j in jobs)>=capacity]
             if not collisions:break
             start=min(j['due'] for j in jobs if j['start']<=min(collisions)<j['due'])
-        choices.append(dict(observer=name,observer_id=ident,start=start,due=start+duration,cost=s['config']['scout_fee']*(cfg['remote_cost_multiplier'] if remote else 1),remote=remote))
+        choices.append(dict(observer=name,observer_id=ident,start=start,due=start+duration,cost=s['config']['scout_fee']*(cfg['remote_cost_multiplier'] if remote else 1),remote=remote,location_nation=observed_location))
     return min(choices,key=lambda q:(q['due'],q['observer_id'] or ''))
 
 
@@ -56,7 +66,8 @@ def process_day(s):
         observer=next((q for q in s['staff']['people'] if q['id']==j['observer_id']),None)
         ability=observer['capabilities']['potential_assessment'] if observer else 50
         r=people.report(s,p,j['observer'],max(4,14-ability//10),complete=True)
-        r.update(observer=j['observer'],owner='c0',observed_from=j['start'],context='Travel assessment' if j['remote'] else 'Domestic assessment',job=j['id'])
+        context='Travel assessment' if j['remote'] else 'Domestic assessment' if j.get('location_nation') else 'Base assessment; location unrecorded'
+        r.update(observer=j['observer'],owner='c0',observed_from=j['start'],context=context,job=j['id'])
         s['reports'][p['id']]=r;j['report']=deepcopy(r)
         news(s,'Scouting report ready',p['name']+': current ratings assessed; potential remains uncertain.')
 

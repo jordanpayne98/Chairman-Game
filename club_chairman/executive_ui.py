@@ -1,5 +1,6 @@
 """Figma Executive layouts rendered as live Pygame controls and read models."""
 import pygame
+from . import __version__
 from .theme import ASSETS, BG, PANEL, RAISED, BORDER, TEXT, MUTED, FAINT, GREEN, BUTTON, SELECTED, WARNING, RED
 from .contract_review import attention
 from .planning import dated, forecast
@@ -144,7 +145,7 @@ class ExecutiveScreens:
         self.panel(914,560,422,214)
         self.text('THE OWNERSHIP GAME',938,587,16,GREEN)
         self.wrap('Appoint the people.\nMake the big decisions.\nLeave a lasting club.',938,627,370,29,TEXT)
-        self.text('CLUB DYNAMICS 0.27',104,820,16,FAINT)
+        self.text('DEVELOPMENT BUILD '+__version__,104,820,16,FAINT)
         self.text('Single-country scenarios / Development build',914,820,16,FAINT)
 
     def executive_overview(self,x):

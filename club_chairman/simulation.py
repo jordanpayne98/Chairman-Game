@@ -557,12 +557,13 @@ def view(s):
     for p in s['players']:
         row={k:p[k] for k in ('id','name','club','role','age','wage','fee','goals','appearances','contract_end','youth','retired','career_goals','career_appearances')}
         row['report']=people.observed_report(s,p)
+        row['retirement']=deepcopy(p.get('retirement'))
         row.update({k:deepcopy(p[k]) for k in ('height','foot','nationality','homegrown','condition','fatigue','sharpness','morale','medical','discipline')})
         if p['club']!='c0':
             for key in ('condition','fatigue','sharpness','morale','medical'):row[key]=None
         upcoming=next((f for f in s['fixtures'] if 'c0' in (f['home'],f['away']) and f['result'] is None),None)
         opponent=(upcoming['away'] if upcoming['home']=='c0' else upcoming['home']) if upcoming else None
-        row['availability']=registration.reason(s,p,'c0',opponent) if p['club']=='c0' else 'Free agent' if p['club'] is None else 'Not assessed by your staff'
+        row['availability']='Retired' if p['retired'] else registration.reason(s,p,'c0',opponent) if p['club']=='c0' else 'Free agent' if p['club'] is None else 'Not assessed by your staff'
         row['development']={k:deepcopy(p['development'][k]) for k in ('focus','load','last_day')} if p['club']=='c0' else None
         row['scout_due']=s['scouting'].get(p['id'])
         row['scout_quote']=scouting.quote(s,p) if p['club']!='c0' and not p['youth'] and not p['retired'] else None

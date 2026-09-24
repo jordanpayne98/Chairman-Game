@@ -1,5 +1,15 @@
 # Development checkpoint
 
+## Audit fixes — Update 0.31.1 / GDD 0.20
+
+Date: 24 September 2026. Continued from `game/league-rulebook-followup` at `3f8433c`, using the newly supplied GDD revision 0.20. The readiness register now separates B3-A–E and records the approved reusable rule modules and reduced migration burden. The historical 593-issue research gate is not the current implementation task count.
+
+Implemented: scouting travel uses club or recorded free-agent location instead of citizenship, and saves its quoted location. Season review applies the existing configurable age-36 retirement rule to owned players as well as rivals. Retirement retains identity, career history and earned debts, ends employment, removes payroll and registration participation, and records an inbox notice and readable retired profile. The menu displays the package version. The market regression follows the actual scouting deadline.
+
+Verification: 19 focused domain and UI tests passed in 37.785 seconds, including season rollover, financial integrity, current-build save/load, quote persistence, league exchange and background identity activation. Syntax compilation and diff whitespace checks passed. Retired Contract profile and main menu were rendered and inspected. Full Windows/Linux CI remains pending publication; no full regression or packaged-build result is claimed.
+
+Limits and next work: retirement is still the provisional season-end age rule, with active loans deferred; broader lifecycle tuning remains open. Production domestic competitions, cross-detail world integration and the monthly performance stall remain unfinished. Continue B3-A playable domestic world/calendar/rollover against GDD 0.20, then the remaining staged gates. No main or predecessor merge.
+
 ## CONTENT-048 — Remove club licensing from active shared rules
 
 Date: 24 September 2026. Continued from `game/cross-nation-league-structures` at `22f0025` and living GDD revision 0.19, including the researched shared rulebook pass. The explicit removal of club licensing and separate destination admission checks supersedes the English admission procedures previously copied into active rule definitions. No new design approval, playable world or career migration is claimed.
