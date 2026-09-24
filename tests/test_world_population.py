@@ -24,6 +24,12 @@ class WorldPopulationTests(unittest.TestCase):
         # Create a vacancy and surplus without generating or replacing anyone.
         source['club']=seller
         source['history'].append(dict(day=0,event='Prior move',club=seller))
+        # Make this identity the best fit; stature now creates different club levels.
+        wp.set_attributes(source,{k:db['clubs'][buyer]['level'] for k in people.ATTRIBUTES})
+        source['potential']=max(source['potential'],wp.overall(source))
+        for candidate in db['people'].values():
+            if candidate['club']==seller and candidate['id']!=source['id'] and candidate['kind']=='player' and candidate['role']=='DEF':
+                wp.set_attributes(candidate,{k:10 for k in people.ATTRIBUTES})
         db['clubs'][buyer]['cash']+=5000000;db['clubs'][buyer]['opening_cash']+=5000000
         db['clubs'][buyer]['payroll_limit']+=5000000
         db['people'][source['id']]=source
@@ -72,8 +78,10 @@ class WorldPopulationTests(unittest.TestCase):
         s=new_career();cfg=identities.definition(s);db=wp.unpack(s['world_population']['blob'])
         self.assertEqual(len(cfg['nations']),239);self.assertEqual(len(cfg['names']),68)
         self.assertEqual(sum(n['clubs'] for n in cfg['nations'] if n['playable']),636)
-        self.assertEqual(len(db['clubs']),1086);self.assertEqual(len(db['people']),81039)
-        self.assertEqual(len({r['id'] for r in db['people'].values()}),81039)
+        self.assertEqual(len(db['clubs']),1086)
+        expected=sum(c['stature']['squad_size']+cfg['settings']['youth_target']+cfg['settings']['reserve_target']+len(c['stature']['roles']) for c in db['clubs'].values())+len(cfg['nations'])*(cfg['settings']['free_players_per_nation']+cfg['settings']['free_staff_per_nation'])
+        self.assertEqual(len(db['people']),expected)
+        self.assertEqual(len({r['id'] for r in db['people'].values()}),expected)
         self.assertTrue(all(c['players'] and c['staff'] for c in s['world_population']['manifest']['counts'].values()))
         self.assertFalse(identities.nation(s,'japan')['playable']);wp.validate_database(s)
         before=s['world_population']['blob'];rows=wp.search(s,'japan')['rows']

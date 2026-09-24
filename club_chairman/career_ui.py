@@ -235,7 +235,7 @@ class CareerScreens(ClauseScreens):
 
     def draw_career(self,x):
         v=self.v;self.panel(x,195,1400-x,190,'Career journal')
-        self.text('Northbridge Athletic / Season '+str(v['season']),x+20,245,36,GREEN)
+        self.text(self.club('c0')+' / Season '+str(v['season']),x+20,245,36,GREEN)
         self.text('Current campaign ends '+dated(v,v['season_end']),x+20,293,24)
         division=next(d for d in v['leagues']['divisions'] if d['id']==v['leagues']['own_division'])
         cup_text='; regional pool members do not enter the primary cup' if division.get('supporting') else ' plus the domestic cup'

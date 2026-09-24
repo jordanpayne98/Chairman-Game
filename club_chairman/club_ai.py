@@ -17,9 +17,9 @@ def pending_for(s,pid):
 
 
 def budgets(s,cid):
-    cfg=s['config']['club_ai'];income=s['config']['market']['ai_weekly_income']
-    wage_limit=income*cfg['payroll_income_percent']//100-s['config']['market']['ai_weekly_overheads']
-    reserve=(market.club_payroll(s,cid)+s['config']['market']['ai_weekly_overheads'])*cfg['reserve_weeks']
+    cfg=s['config']['club_ai'];account=s['market']['accounts'][cid];income=account.get('income_weekly',s['config']['market']['ai_weekly_income']);overheads=account.get('overheads_weekly',s['config']['market']['ai_weekly_overheads'])
+    wage_limit=income*cfg['payroll_income_percent']//100-overheads
+    reserve=(market.club_payroll(s,cid)+overheads)*cfg['reserve_weeks']
     bills=sum(b['amount'] for b in s['market']['obligations'] if b['source']==cid and b['status']=='scheduled')
     bills+=sum(c['amount']-c['paid'] for c in s['clauses'].get('conditional',[]) if c['source']==cid and c['status'] in ('due','arrears'))
     fees,wages=market.extra_reservations(s,cid)

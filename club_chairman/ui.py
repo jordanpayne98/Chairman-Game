@@ -21,6 +21,7 @@ from .football_ui import FootballScreens
 from .navigation import NavigationScreens
 from .staff_ui import StaffScreens
 from .shortlist_ui import ShortlistScreens
+from .setup_ui import SetupScreens
 from .executive_ui import ExecutiveScreens, TITLES, DESCRIPTIONS
 from .theme import BG,PANEL,BORDER,TEXT,MUTED,GREEN,BUTTON,RED,RAISED,SELECTED,FAINT, font as themed_font
 from .football import finished as match_finished
@@ -37,7 +38,7 @@ def money(v):return f'£{v/100:,.0f}'
 from .development_ui import DevelopmentScreens
 from .world_ui import WorldScreens
 
-class App(WorldScreens,DevelopmentScreens,DynamicsScreens,MoraleScreens,PlayingTimeScreens,ReputationScreens,ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
+class App(SetupScreens,WorldScreens,DevelopmentScreens,DynamicsScreens,MoraleScreens,PlayingTimeScreens,ReputationScreens,ShortlistScreens,ExecutiveScreens,StaffScreens,CareerScreens,BusinessScreens,FootballScreens,NavigationScreens):
     def __init__(self,save_root=None):
         pygame.display.init();pygame.font.init()
         self.window=pygame.display.set_mode((1280,800),pygame.RESIZABLE)
@@ -246,14 +247,19 @@ class App(WorldScreens,DevelopmentScreens,DynamicsScreens,MoraleScreens,PlayingT
         except ValueError as exc:
             self.message=str(exc);self.play=False;self.batch=False;return False
 
-    def start(self,scenario=None):
-        try:state=new_career(secrets.randbelow(1000000),scenario or self.new_scenario)
+    def start(self,scenario=None,setup=None,prepared=None):
+        try:state=prepared if prepared is not None else new_career(secrets.randbelow(1000000),scenario or self.new_scenario,setup)
         except ValueError as exc:
             self.message='Cannot start career: '+str(exc);return False
-        self.state=state;self.state['career_id']=uuid.uuid4().hex[:16]
-        self.reset_workspace();self.v=view(self.state);self.nav('Overview');self.message='Welcome. Start by appointing your manager in Staff.'
-        try:self.store.autosave(self.state)
-        except SaveError as exc:self.message=str(exc)
+        from .simulation import validate
+        try:validate(state)
+        except ValueError as exc:self.message='Cannot start career: '+str(exc);return False
+        state['career_id']=uuid.uuid4().hex[:16]
+        try:self.store.autosave(state)
+        except SaveError as exc:self.message='Cannot start before saving: '+str(exc);return False
+        self.state=state
+        self.reset_workspace();self.v=view(self.state);self.nav('Overview');self.message='Welcome. Review your team and finances.' if setup is not None else 'Welcome. Start by appointing your manager in Staff.'
+        return True
 
     def manual_save(self):
         self.save_preferences()
@@ -297,7 +303,9 @@ class App(WorldScreens,DevelopmentScreens,DynamicsScreens,MoraleScreens,PlayingT
 
     def render(self):
         self.canvas.fill(BG);self.buttons=[];self.help_regions=[]
-        if self.state is None or self.screen in ('Home','Load'):
+        if self.screen=='Setup':
+            self.draw_setup()
+        elif self.state is None or self.screen in ('Home','Load'):
             self.home()
         else:
             if self.v is None or self.v['revision']!=self.state['revision']:self.v=view(self.state)
@@ -305,7 +313,7 @@ class App(WorldScreens,DevelopmentScreens,DynamicsScreens,MoraleScreens,PlayingT
             title=TITLES.get(self.screen,self.screen)
             if self.profile:title=next((p['name'] for p in self.v['players'] if p['id']==self.profile),title)
             self.heading(title,x,104,40)
-            self.clipped_text(DESCRIPTIONS.get(self.screen,'NORTHBRIDGE ATHLETIC  /  '+self.screen.upper()) if not self.profile else self.screen.upper()+'  /  PLAYER PROFILE  /  CURRENT ABILITY AND SCOUTING EVIDENCE',x,151,1135,18,MUTED)
+            self.clipped_text(DESCRIPTIONS.get(self.screen,self.club('c0').upper()+'  /  '+self.screen.upper()) if not self.profile else self.screen.upper()+'  /  PLAYER PROFILE  /  CURRENT ABILITY AND SCOUTING EVIDENCE',x,151,1135,18,MUTED)
             self.button('< Back',(1160,100,112,38),self.go_back,bool(self.history))
             self.button('Forward >',(1283,100,117,38),self.go_forward,bool(self.forward))
             getattr(self,'draw_'+self.screen.lower())(x)
@@ -632,6 +640,7 @@ class App(WorldScreens,DevelopmentScreens,DynamicsScreens,MoraleScreens,PlayingT
                 return
             if event.key==pygame.K_F2:
                 self.explain_focus=not self.explain_focus;return
+            if self.screen=='Setup' and self.setup_key(event):return
             if event.key==pygame.K_ESCAPE and self.explain_focus:
                 self.explain_focus=False;return
             if event.key==pygame.K_ESCAPE:

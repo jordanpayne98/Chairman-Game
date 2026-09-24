@@ -89,4 +89,5 @@ def validate(s):
 
 def venue_name(v):
     contract=next((c for c in v.get('commercial',{}).get('contracts',[]) if c['right']=='stadium' and c['start']<=v['day']<c['end']),None)
-    return contract['sponsor']+' Stadium' if contract else 'Northbridge ground'
+    club=next((c['name'] for c in v.get('clubs',[]) if c['id']=='c0'),'Northbridge Athletic')
+    return contract['sponsor']+' Stadium' if contract else 'Northbridge ground' if club=='Northbridge Athletic' else club+' ground'

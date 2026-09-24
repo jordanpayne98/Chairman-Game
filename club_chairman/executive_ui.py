@@ -49,12 +49,13 @@ class ExecutiveScreens:
 
     def executive_chrome(self):
         v=self.v; sw=78 if self.collapsed else 220
+        badge=next(c.get('opening_identity','c0') for c in v['clubs'] if c['id']=='c0')
         pygame.draw.rect(self.canvas, PANEL, (0,0,sw,900))
         pygame.draw.line(self.canvas, BORDER, (sw,0), (sw,900))
-        crest(self.canvas, 'c0', ((sw-34)//2,17,34,44))
+        crest(self.canvas, badge, ((sw-34)//2,17,34,44))
         if not self.collapsed:
             self.heading('CLUB CHAIRMAN',24,70,25)
-            self.text('NORTHBRIDGE ATHLETIC',39,104,14,MUTED)
+            self.clipped_text(self.club('c0').upper(),21,104,180,14,MUTED)
         self.button('>' if self.collapsed else '< Collapse', (14,123,sw-28,29), self.toggle_sidebar)
         groups=[('YOUR CLUB',[('Overview','overview'),('Inbox','inbox'),('Squad','people'),('Recruitment','search'),('Staff','people'),('Academy','academy')]),
             ('OPERATIONS',[('Finances','finance'),('Commercial','commercial'),('Facilities','stadium'),('Contracts','people'),('Transfers','search'),('Responsibilities','settings')]),
@@ -80,9 +81,10 @@ class ExecutiveScreens:
         for label,top,icon in [('Settings',767,'settings'),('Help',802,'inbox')]:
             self._nav_style=(icon,self.screen==label);self.button(label,(14,top,sw-28,29),lambda n=label:self.nav(n));self._nav_style=None
         self._nav_style=('overview',False);self.button('Main menu',(14,843,sw-28,33),lambda:self.nav('Home'));self._nav_style=None
-        crest(self.canvas,'c0',(sw+22,17,30,42))
+        crest(self.canvas,badge,(sw+22,17,30,42))
         self.text(self.club('c0'),sw+65,18,23)
-        self.text('Club ownership  /  Season '+str(v['season']),sw+65,46,16,FAINT)
+        if v.get('owner'):self.button(v['owner']['name']+(' / Sandbox' if v['career_setup']['customised'] else ' / Owner'),(sw+65,43,255,26),lambda:self.nav('Owner'))
+        else:self.text('Club ownership / Season '+str(v['season']),sw+65,46,16,FAINT)
         self.button('Search',(550,18,235,42),self.open_search)
         self.text(v['date'],805,17,20,MUTED)
         count=self.unresolved_count()
@@ -131,7 +133,7 @@ class ExecutiveScreens:
         choices=[dict(id='compact',name='Compact',division_sizes=[8,8],start_month=8,end_month=11)]+[n for n in nations.catalogue()['nations'] if n['playable']]
         chosen=next(n for n in choices if n['id']==self.new_scenario)
         feeder_note=' The national scenario also includes an eight-club regional feeder pool, with promotion and relegation below the lowest primary tier.' if chosen['id']!='compact' else ''
-        self.button('New career',(104,602,359,48),lambda:self.confirm('Start a new career?',f"Begin with Northbridge Athletic in the {chosen['name']} scenario: {len(chosen['division_sizes'])} divisions and {sum(chosen['division_sizes'])} primary clubs.{feeder_note} A fresh seed creates the squads. Other countries and continental cups are not active. Existing saved careers keep their competition structure.",lambda id=chosen['id']:self.start(id)))
+        self.button('New career',(104,602,359,48),self.open_setup)
         self.panel(914,225,422,302)
         self.text('CAREER SCENARIO',938,250,16,GREEN)
         index=choices.index(chosen)

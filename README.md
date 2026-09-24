@@ -1,4 +1,15 @@
-# Club Chairman — Audit Fixes (0.31.1)
+# Club Chairman — Audit Fixes (0.32.0)
+
+## Update 0.32.0 — Career setup and club stature
+
+New career opens a five-step owner/chairman wizard: identity and portrait, country, division/club, optional sandbox settings, and a validated financial review. Confirmation saves the reviewed world before play; failed saving keeps the wizard open. The owner profile is available from the top bar. Club names and main crests follow your selection.
+
+Starting squads and departments now vary with fictional national standing, tier, reputation, an independent wealth factor and facilities. Senior squads have 18–25 players with positional cover; each club receives coaching and core departments, with more specialists at stronger clubs. Your club inherits a manager. The wider background population uses the same stature profiles and retains its target squad/staff sizes during later recruitment. Opening funds, wages, AI operating income and spending authority reconcile with the generated commitments. These are provisional game calibration values, not researched national economic parity.
+
+Sandbox offers labelled funding grants, opening reputation/facility overrides and initial board confidence. It does not change match rolls or remove scouting uncertainty. Background is currently descriptive; portraits use the existing procedural style.
+
+**Playable coverage:** compact development world, England, Wales and Brazil. The other eleven target nations are labelled background-only. This update does not complete the production 856-place world, negotiated club acquisition, club creation, multi-country activation or richer board objectives. The GDD remains the full target. Use a new career to receive the wizard setup and new populations; existing saves are not regenerated. Internal development fixtures may still call the legacy constructor without setup options.
+
 
 The authoritative design is GDD revision 0.20. Batch 3 now uses playable gates B3-A–E and shared fictional STANDARD, SPENDING and MEMBER profiles. Exhaustive national legal research and routine cross-version playtest-save migrations are no longer required. `python tools/audit_content_gate.py` still inspects the older production definitions: its 593 historical diagnostics are not the current GDD completion checklist. Missing named clubs, feasible calendars, fixtures and connected progression remain real gaps. See `docs/RELEASE_READINESS.md` for the current gate mapping.
 

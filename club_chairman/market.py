@@ -141,7 +141,7 @@ def process_day(s):
     transfer_rights.process_day(s)
     # Income then dated liabilities; Continue is atomic if a player-owned bill is unaffordable.
     for cid,a in s['market']['accounts'].items():
-        if day%7==0:post(s,cid,f'ai-income:{day}',s['config']['market']['ai_weekly_income'],'Operating income')
+        if day%7==0:post(s,cid,f'ai-income:{day}',a.get('income_weekly',s['config']['market']['ai_weekly_income']),'Operating income')
     for bill in s['market']['obligations']:
         if bill['status']=='scheduled' and bill['due']<=day:
             transfer_cash(s,bill['id'],bill['source'],bill['target'],bill['amount'],'Transfer instalment')
@@ -170,7 +170,7 @@ def process_day(s):
 def accrue_accounts(s):
     day=s['day']
     for cid,a in s['market']['accounts'].items():
-        a['accrued']+=club_payroll(s,cid)+s['config']['market']['ai_weekly_overheads']
+        a['accrued']+=club_payroll(s,cid)+a.get('overheads_weekly',s['config']['market']['ai_weekly_overheads'])
         if day%7==0:
             amount=a['accrued']//7
             # No invented overdraft: retained arrears stay visible in the account.
