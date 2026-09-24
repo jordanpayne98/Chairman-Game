@@ -1,5 +1,19 @@
 # Development checkpoint
 
+## Career setup and stature — Update 0.32.0
+
+Publication authorization: Jordan explicitly approved publishing Update 0.32.0 to public `jordanpayne98/Chairman-Game` and starting CI/Windows packaging on 24 September 2026. This resolves the earlier automatic-review block recorded below.
+
+Date: 24 September 2026. Continues PR #26, remote head `10062cc2390b499892eeff3bc75b991644a60303` (tested local tree `a96f91b`). Jordan approved stature-based starting players/staff and an owner/chairman career wizard in one update. The existing GDD received the approved revision 0.21 addendum; its original 95 rendered pages remain unchanged.
+
+Implemented: owner name, nationality search, age, procedural portrait and descriptive background; supported nation/division/club selection; standard/sandbox settings; resolved financial review and save-before-start. Core and specialist staffing, senior cover, wages, player quality/potential/ages and starting accounts follow shared deterministic stature profiles, including background clubs. Background recruitment/retention respects those targets. Selected-club names and primary crests follow the resolved ownership slot. Existing careers are not regenerated.
+
+Validation: five setup/domain/UI tests and seven background-population tests passed on the final behaviour, including first Continue, current-build save/resume, sandbox ledger conservation, inherited manager/staff, roster cover, deterministic lifecycle, transfer balances, nationality input, cancellation and failed-save recovery. England tier 5 and Brazil tier 3 careers were separately generated and passed full state validation; Wales tier 2 is covered by the setup tests. Five wizard screens rendered and inspected. Final syntax/whitespace checks and CI are recorded with publication.
+
+Limits: only compact, England, Wales and Brazil are playable. Other nations use the stature rules in background populations, not playable fixtures. The existing production-world gap is unchanged. Starting appointment is not negotiated acquisition; club creation, richer board objectives, fully custom appearance and multi-country detail controls remain open. Calibration is provisional; this is not national economic parity or B3 completion. Next: finish production domestic world/calendar/rollover, then expand wizard selection onto that validated world. No predecessor or main merge.
+
+Publication status: automatic approval review rejected creation of the remote GitHub tree for Update 0.32.0 because it would publish the full source/documentation to public `jordanpayne98/Chairman-Game` without explicit approval of this payload. No remote tree, branch or PR was created for this update; no CI run was started. Implementation is committed locally on `game/career-setup-stature`. Final setup/UI checks: 5 passed in 15.492s; background checks: 7 passed in 24.056s. Syntax and whitespace checks passed. Once publication is explicitly approved, verify the parent remains PR #26 head `10062cc2390b499892eeff3bc75b991644a60303`, publish the current tree and open a draft PR against `game/audit-fixes-gdd020`; do not bypass the rejection.
+
 ## Audit fixes — Update 0.31.1 / GDD 0.20
 
 Date: 24 September 2026. Continued from `game/league-rulebook-followup` at `3f8433c`, using the newly supplied GDD revision 0.20. The readiness register now separates B3-A–E and records the approved reusable rule modules and reduced migration burden. The historical 593-issue research gate is not the current implementation task count.

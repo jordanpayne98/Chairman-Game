@@ -56,7 +56,7 @@ def make_person(s,n,cid,kind,group,slot,day,cohort=0,level=50,role_override=None
     ident=identities.make(s,key,nationality=n['id'],domestic=n['id'])
     r=dict(id=key,kind=kind,role=role,group=group,club=cid,origin_nation=n['id'],birth_day=day-age*365-rng.randrange(365),
         status='active',created_day=day,contract_start=day if cid else None,contract_end=day+rng.randint(1,4)*365 if cid else None,
-        free_since=day if not cid else None,wage=0,expected_wage=max(8000,(quality*quality*3 if kind=='player' else quality*900)),
+        free_since=day if not cid else None,wage=0,expected_wage=max(8000,(quality**3 if kind=='player' else quality**2*10)),
         potential=max(quality,min(99,quality+rng.randint(4,30))),professionalism=rng.randint(25,90),
         fitness=rng.randint(60,100),height=rng.randint(175,201) if role=='GK' else rng.randint(166,195),foot='Left' if rng.random()<.24 else 'Right',
         hidden={k:rng.randint(25,90) for k in people.HIDDEN},risk=rng.choice(('Cautious','Balanced','Ambitious')),condition=100.0,fatigue=0.0,injury_until=0,history=[],**ident)
@@ -73,6 +73,9 @@ def _build(seed,origin_day,cfg_text,active_nation,active_clubs):
     from .simulation import rng_for
     cfg=json.loads(cfg_text);s=dict(seed=seed,config={'world_population':cfg})
     settings=cfg['settings'];clubs={};persons={}
+    from .career_setup import profile,positions
+    from .nations import catalogue
+    depths={n['id']:n['division_sizes'] for n in catalogue()['nations']}
     prefixes=('Northstar','Harbour','Union','Riverside','Valley','Olympic','Central','Crescent','Royal','Dynamo','Atlas','Phoenix','Sporting','Racing','Vista','Falcon')
     suffixes=('Athletic','United','Sport Club','FC','Rovers','City','Club','Association')
     for n in cfg['nations']:
@@ -81,20 +84,25 @@ def _build(seed,origin_day,cfg_text,active_nation,active_clubs):
         # domestic schedule merely to make them visible in a search.
         start=active_clubs if n['id']==active_nation else 0
         for i in range(start,n['clubs']):
-            cid=f"world-club:{n['id']}:{i}";rng=rng_for(seed,cid);level=rng.randint(38,78)
+            cid=f"world-club:{n['id']}:{i}";rng=rng_for(seed,cid)
+            sizes=depths.get(n['id'],[n['clubs']]);tier=next((j+1 for j in range(len(sizes)) if i<sum(sizes[:j+1])),len(sizes)+1)
+            stature=profile(seed,n['id'],cid,tier);level=stature['level']
             city=n['cities'][i%len(n['cities'])] if n['cities'] else None
             name=(city+' ' if city else prefixes[i%len(prefixes)]+' ')+suffixes[(i//max(1,len(n['cities'])))%len(suffixes)]
             if not city:name+=f" ({n['name']})"
-            c=dict(id=cid,name=name,nation=n['id'],city=city,level=level,opening_cash=0,cash=0,income_weekly=0,ledger=[],payroll_limit=0)
+            c=dict(id=cid,name=name,nation=n['id'],city=city,level=level,stature=stature,opening_cash=0,cash=0,income_weekly=0,ledger=[],payroll_limit=0)
             clubs[cid]=c;payroll=0
-            for group,count in [('Seniors',settings['senior_target']),('Youth',settings['youth_target']),('Reserves',settings['reserve_target'])]:
+            for group,count in [('Seniors',stature['squad_size']),('Youth',settings['youth_target']),('Reserves',settings['reserve_target'])]:
                 for j in range(count):
                     # Group participates in identity key, preserving individuality.
-                    r=make_person(s,n,cid,'player',group,j,origin_day,level=level)
+                    r=make_person(s,n,cid,'player',group,j,origin_day,level=level,role_override=positions(stature['squad_size'])[j] if group=='Seniors' else None)
                     # Identity includes group from its first generation.
+                    if group=='Seniors':r['wage']=r['expected_wage']=max(12000,r['expected_wage']*stature['wealth']//100)
                     persons[r['id']]=r;payroll+=r['wage']
-            for j in range(len(staff.ROLES)):
-                r=make_person(s,n,cid,'staff','Staff',j,origin_day,level=level);persons[r['id']]=r;payroll+=r['wage']
+            for j,role in enumerate(stature['roles']):
+                r=make_person(s,n,cid,'staff','Staff',j,origin_day,level=level,role_override=role)
+                r['wage']=r['expected_wage']=max(12000,r['expected_wage']*stature['wealth']//100)
+                persons[r['id']]=r;payroll+=r['wage']
             c.update(opening_cash=payroll*16,cash=payroll*16,income_weekly=payroll*115//100,payroll_limit=payroll*120//100)
         for kind,count in [('player',settings['free_players_per_nation']),('staff',settings['free_staff_per_nation'])]:
             for i in range(count):
@@ -145,6 +153,9 @@ def _employed_moves(s,db,roster,day,events):
     senior and goalkeeper cover. The world stream is independent of UI RNG.
     """
     from .simulation import rng_for
+    from .career_setup import positions
+    from collections import Counter
+    club_targets={cid:Counter(positions(c.get('stature',{}).get('squad_size',25))) for cid,c in db['clubs'].items()}
     targets={'GK':2,'DEF':8,'MID':9,'FWD':6}
     supply={role:[] for role in targets}
     for seller_id in sorted(db['clubs']):
@@ -152,12 +163,12 @@ def _employed_moves(s,db,roster,day,events):
         if len(senior)<=14:continue
         for role in targets:
             players=[p for p in senior if p['role']==role]
-            if len(players)>targets[role]:
+            if len(players)>club_targets[seller_id][role]:
                 supply[role].extend((seller_id,p['id']) for p in players)
     for buyer_id in sorted(db['clubs']):
         buyer=db['clubs'][buyer_id];team=roster[buyer_id]
         payroll=sum(p['wage'] for p in team)
-        for role,target in targets.items():
+        for role,target in club_targets[buyer_id].items():
             if sum(p['kind']=='player' and p['group']=='Seniors' and p['role']==role for p in team)>=target:
                 continue
             rng=rng_for(s['seed'],f'world-employed:{buyer_id}:{role}:{day}')
@@ -168,7 +179,7 @@ def _employed_moves(s,db,roster,day,events):
                 seller_team=roster[seller_id]
                 senior=[p for p in seller_team if p['kind']=='player' and p['group']=='Seniors']
                 if len(senior)<=14:continue
-                if sum(p['role']==role for p in senior)<=targets[role]:continue
+                if sum(p['role']==role for p in senior)<=club_targets[seller_id][role]:continue
                 p=db['people'][pid]
                 if p['club']!=seller_id or p['contract_start']==day or p['contract_end']<=day+30 or p['injury_until']>day:continue
                 fee=p['wage']*6
@@ -256,7 +267,7 @@ def process_day(s):
             vacancies={nid:{role:0 for role in staff.ROLES} for nid in by_nation}
             for cid,c in db['clubs'].items():
                 occupied={r['role'] for r in roster[cid] if r['kind']=='staff'}
-                for role in staff.ROLES:
+                for role in c.get('stature',{}).get('roles',list(staff.ROLES)):
                     if role not in occupied:vacancies[c['nation']][role]+=1
             for nid in sorted(by_nation):
                 for index,role in enumerate(staff.ROLES):
@@ -274,7 +285,7 @@ def process_day(s):
             # Renew before expiry where the existing budget permits; otherwise
             # the person becomes available naturally on the next processing date.
             retained=set()
-            for group,target in [('Seniors',settings['senior_target']),('Youth',settings['youth_target']),('Reserves',settings['reserve_target'])]:
+            for group,target in [('Seniors',c.get('stature',{}).get('squad_size',settings['senior_target'])),('Youth',settings['youth_target']),('Reserves',settings['reserve_target'])]:
                 pool=sorted([r for r in employed if r['kind']=='player' and r['group']==group],key=lambda r:(-overall(r),r['id']))
                 keep=[r for r in pool if r['role']=='GK'][:2]
                 keep+= [r for r in pool if r not in keep][:max(0,target-len(keep))]
@@ -283,7 +294,9 @@ def process_day(s):
             for r in sorted(employed,key=lambda r:r['id']):
                 if r['id'] in retained and 0<=r['contract_end']-day<=period and c['cash']>=payroll*4 and payroll<=c['payroll_limit']:
                     r['contract_end']=day+year*2;r['history'].append(dict(day=day,event='Contract renewed',club=cid))
-            needs=[('player',role,n) for role,n in [('GK',2),('DEF',8),('MID',9),('FWD',6)]]+ [('staff',role,1) for role in staff.ROLES]
+            from .career_setup import positions
+            from collections import Counter
+            needs=[('player',role,n) for role,n in Counter(positions(c.get('stature',{}).get('squad_size',25))).items()]+ [('staff',role,1) for role in c.get('stature',{}).get('roles',list(staff.ROLES))]
             for kind,role,target in needs:
                 have=sum(r['kind']==kind and r['role']==role and (kind=='staff' or r['group']=='Seniors') for r in employed)
                 if have>=target:continue

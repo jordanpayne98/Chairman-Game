@@ -39,7 +39,9 @@ def restore_rng(state):
     return rng
 
 
-def new_career(seed=42,scenario='compact'):
+def new_career(seed=42,scenario='compact',setup=None):
+    from . import career_setup
+    options=career_setup.validate_options(setup,scenario) if setup is not None else None
     if type(seed) is not int or not 0 <= seed <= 999999:
         raise ValueError('Seed must be between 0 and 999999.')
     cfg = definition()
@@ -90,6 +92,7 @@ def new_career(seed=42,scenario='compact'):
     leagues.initialise(world)
     world['calendar']=None
     if scenario!='compact':nations.configure(world,scenario)
+    if options is not None:career_setup.select_club(world,options)
     competitions.start_season(world)
     shortlists.initialise(world)
     detail.initialise(world)
@@ -114,7 +117,10 @@ def new_career(seed=42,scenario='compact'):
         if p['club']=='c0':world['reports'][p['id']]=make_report(world,p,'Coaching staff',5)
     if world['calendar']:
         news(world,'National development scenario',f"{world['config']['nation']['name']}: one active national pyramid. Club identities, squads and finances are provisional content; an eight-club feeder pool exchanges clubs with the lowest primary tier. Continental competitions are pending.")
-    news(world, 'Welcome to Northbridge', 'Appoint a manager, review your wage budget, and request scouting before the first match. Review your divisions and domestic cup under Competitions.')
+    if options is not None:
+        career_setup.apply(world,options,scenario)
+        recruitment.sync(world);reputation.sync(world);pathways.sync(world);morale.sync(world);dynamics.sync(world)
+    news(world, 'Welcome to '+world['clubs'][0]['name'], 'Review your inherited team, wage budget and scouting before the first match. Review your divisions and domestic cup under Competitions.' if options is not None else 'Appoint a manager, review your wage budget, and request scouting before the first match.')
     return world
 
 
@@ -254,7 +260,7 @@ def apply(s, action, payload):
         return 'Manager appointed. Football decisions are delegated.'
     if action == 'budget':
         value = payload.get('value')
-        require(type(value) is int and 1500000 <= value <= 4000000, 'Weekly wage budget must be £15,000–£40,000.')
+        require(type(value) is int and s['config'].get('budget_min',1500000) <= value <= s['config'].get('budget_max',4000000), 'Weekly wage budget is outside this club’s configured range.')
         require(value >= payroll(s)+career.reservations(s)[1], 'Budget cannot be below existing wage commitments.')
         s['budget'] = value
         return 'Wage budget updated. This changes authority, not cash.'
@@ -505,7 +511,7 @@ def close_season(s):
         posting(s,prefix+':final-payroll',-(s['accrued_costs']//7),'Final pro-rata payroll and operations')
         s['accrued_costs']=0
         s['season_done']=True
-        news(s,'Season complete',f'Northbridge finished {position+1} of {len(table(s))} in {leagues.division_for(s)['name']}. Review the table and finances. Open Career to review contracts, preserve this season’s history and prepare the next campaign.')
+        news(s,'Season complete',f"{next(c['name'] for c in s['clubs'] if c['id']=='c0')} finished {position+1} of {len(table(s))} in {leagues.division_for(s)['name']}. Review the table and finances. Open Career to review contracts, preserve this season’s history and prepare the next campaign.")
     clauses.settle_payables(s)
 
 
@@ -573,7 +579,7 @@ def view(s):
         row['loan']=deepcopy(market.active_loan(s,p['id']))
         players.append(row)
     m=None if s['match'] is None else football.public_match(s['match'])
-    snapshot = dict(revision=s['revision'],date=calendar_date(s),day=s['day'],start_date=s['config']['start_date'],cash=s['cash'],owner_cash=s['owner_cash'],budget=s['budget'],
+    snapshot = dict(owner=deepcopy(s.get('owner')),career_setup=deepcopy(s.get('career_setup')),revision=s['revision'],date=calendar_date(s),day=s['day'],start_date=s['config']['start_date'],cash=s['cash'],owner_cash=s['owner_cash'],budget=s['budget'],
                 payroll=payroll(s),tickets=s['tickets'],manager=managers.view(s,s['manager']) if s['manager'] else None,manager_candidates=[managers.view(s,p) for p in s['managers']['people']],trust=s['trust'],morale=s['morale'],supporters=s['supporters'],
                 players=players,table=deepcopy(table(s)),clubs=deepcopy(s['clubs']),fixtures=deepcopy(s['fixtures']),
                 ledger=deepcopy(s['ledger']),inbox=deepcopy(s['inbox']),decision=deepcopy(s['decision']),match=m,
